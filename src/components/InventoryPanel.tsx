@@ -34,7 +34,8 @@ export default function InventoryPanel() {
       return b.sellValue - a.sellValue;
     });
     return result;
-  }, [state.inventory, filterSlot, filterRarity, sortBy]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.inventory, state.inventory.length, filterSlot, filterRarity, sortBy]);
 
   // Compute upgrade status for each item
   const upgradeMap = useMemo(() => {
@@ -43,7 +44,8 @@ export default function InventoryPanel() {
       map.set(item.id, computeItemDpsDelta(item, state, derived));
     }
     return map;
-  }, [state.inventory, state.equipment, state.character, state.trainingLevels, derived]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.inventory, state.inventory.length, state.equipment, state.character, state.trainingLevels, derived]);
 
   const selected = items.find(i => i.id === selectedId) ?? null;
 
