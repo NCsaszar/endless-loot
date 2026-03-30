@@ -857,6 +857,7 @@ button {
   text-align: center;
   gap: 2px;
 }
+.item-card.grid { position: relative; }
 .item-card.grid:hover { background: var(--bg-hover); }
 .item-card.grid.selected {
   background: var(--bg-hover);
@@ -879,6 +880,25 @@ button {
 .grid-level {
   font-size: 10px;
   color: var(--text-dim);
+}
+
+/* Upgrade Indicators */
+.upgrade-indicator {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  color: var(--green);
+  font-size: 12px;
+  font-weight: 700;
+  text-shadow: 0 0 4px rgba(68, 170, 68, 0.6);
+}
+@keyframes upgrade-pulse {
+  0%, 100% { box-shadow: 0 0 6px rgba(68, 170, 68, 0.3); }
+  50% { box-shadow: 0 0 14px rgba(68, 170, 68, 0.7); }
+}
+.item-card.grid.upgrade-glow {
+  animation: upgrade-pulse 1.5s ease-in-out infinite;
+  border-color: var(--green) !important;
 }
 
 /* Comparison Modal */

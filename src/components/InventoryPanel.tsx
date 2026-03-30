@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useGameState } from '../hooks/useGameState';
 import type { EquipSlot, Rarity } from '../types';
 import { RARITY_ORDER, RARITY_COLORS } from '../types';
 import { getTotalPrimaryStats, calculateDerivedStats } from '../data/formulas';
+import { computeItemDpsDelta } from '../systems/dps';
 import ItemCard from './ItemCard';
 import ComparisonModal from './ComparisonModal';
 
@@ -31,6 +32,15 @@ export default function InventoryPanel() {
     if (sortBy === 'slot') return a.slot.localeCompare(b.slot);
     return b.sellValue - a.sellValue;
   });
+
+  // Compute upgrade status for each item
+  const upgradeMap = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const item of state.inventory) {
+      map.set(item.id, computeItemDpsDelta(item, state, derived));
+    }
+    return map;
+  }, [state.inventory, state.equipment, state.character, state.trainingLevels, derived]);
 
   const selected = items.find(i => i.id === selectedId) ?? null;
 
@@ -125,6 +135,7 @@ export default function InventoryPanel() {
             item={item}
             grid
             selected={item.id === selectedId}
+            upgradePct={upgradeMap.get(item.id) ?? 0}
             onClick={() => setSelectedId(item.id === selectedId ? null : item.id)}
           />
         ))}

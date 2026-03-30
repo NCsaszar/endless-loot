@@ -1,4 +1,5 @@
-import type { DamageEntry, DerivedStats, MobInstance } from '../types';
+import type { DamageEntry, DerivedStats, MobInstance, Item, GameState } from '../types';
+import { getTotalPrimaryStats, calculateDerivedStats } from '../data/formulas';
 
 const DPS_WINDOW_MS = 10_000;
 
@@ -26,6 +27,19 @@ export function calculateTheoreticalMobDps(mob: MobInstance, playerDerived: Deri
   const avgHit = Math.max(1, mob.atk - playerDerived.defense);
   const dodgeFactor = 1 - playerDerived.dodgeChance;
   return avgHit * mob.attackSpeed * dodgeFactor;
+}
+
+export function computeItemDpsDelta(
+  item: Item,
+  state: GameState,
+  currentDerived: DerivedStats,
+): number {
+  const hypotheticalEquipment = { ...state.equipment, [item.slot]: item };
+  const hypotheticalPrimary = getTotalPrimaryStats(state.character, state.trainingLevels, hypotheticalEquipment);
+  const hypotheticalDerived = calculateDerivedStats(hypotheticalPrimary, hypotheticalEquipment);
+  const currentDps = sheetDps(currentDerived);
+  const newDps = sheetDps(hypotheticalDerived);
+  return currentDps > 0 ? (newDps - currentDps) / currentDps : 0;
 }
 
 export { DPS_WINDOW_MS };

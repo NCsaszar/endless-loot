@@ -7,6 +7,7 @@ interface ItemCardProps {
   selected?: boolean;
   compact?: boolean;
   grid?: boolean;
+  upgradePct?: number;
 }
 
 const SLOT_ABBREV: Record<string, string> = {
@@ -14,16 +15,19 @@ const SLOT_ABBREV: Record<string, string> = {
   legs: 'LGS', boots: 'BTS', ring: 'RNG', amulet: 'AMU',
 };
 
-export default function ItemCard({ item, onClick, selected, compact, grid }: ItemCardProps) {
+export default function ItemCard({ item, onClick, selected, compact, grid, upgradePct }: ItemCardProps) {
   const color = RARITY_COLORS[item.rarity];
 
   if (grid) {
+    const isUpgrade = (upgradePct ?? 0) > 0.02;
+    const isBigUpgrade = (upgradePct ?? 0) > 0.10;
     return (
       <div
-        className={`item-card grid ${selected ? 'selected' : ''}`}
+        className={`item-card grid ${selected ? 'selected' : ''} ${isBigUpgrade ? 'upgrade-glow' : ''}`}
         style={{ borderColor: color }}
         onClick={onClick}
       >
+        {isUpgrade && <span className="upgrade-indicator">&#9650;</span>}
         <span className="grid-slot" style={{ color }}>{SLOT_ABBREV[item.slot] ?? item.slot}</span>
         <span className="grid-name" style={{ color }}>{item.name}</span>
         <span className="grid-level">Lv.{item.itemLevel}</span>
