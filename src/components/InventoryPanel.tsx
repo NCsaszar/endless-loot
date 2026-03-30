@@ -1,20 +1,23 @@
 import { useState, useMemo } from 'react';
 import { useGameState } from '../hooks/useGameState';
-import type { EquipSlot, Rarity } from '../types';
+import type { EquipSlot, Rarity, Item } from '../types';
 import { RARITY_ORDER, RARITY_COLORS } from '../types';
 import { getTotalPrimaryStats, calculateDerivedStats } from '../data/formulas';
 import { computeItemDpsDelta } from '../systems/dps';
 import ItemCard from './ItemCard';
 import ComparisonModal from './ComparisonModal';
+import BulkSellConfirmModal from './BulkSellConfirmModal';
 
 type SortBy = 'rarity' | 'level' | 'slot' | 'value';
 
 export default function InventoryPanel() {
-  const { state, derived, doSellItem, doSalvageItem, doEquipItem, doToggleAutoSell } = useGameState();
+  const { state, derived, doSellItem, doSalvageItem, doEquipItem, doToggleAutoSell, doToggleLock, doBulkSell } = useGameState();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortBy>('rarity');
   const [filterSlot, setFilterSlot] = useState<EquipSlot | 'all'>('all');
   const [filterRarity, setFilterRarity] = useState<Rarity | 'all'>('all');
+  const [bulkSellItems, setBulkSellItems] = useState<Item[] | null>(null);
+  const [sellBelowLevel, setSellBelowLevel] = useState(5);
 
   let items = [...state.inventory];
 
@@ -63,9 +66,34 @@ export default function InventoryPanel() {
     if (selected) { doEquipItem(selected); setSelectedId(null); }
   };
   const handleSellAll = (rarity: Rarity) => {
-    const toSell = state.inventory.filter(i => i.rarity === rarity);
+    const toSell = state.inventory.filter(i => i.rarity === rarity && !i.locked);
     toSell.forEach(i => doSellItem(i.id));
     setSelectedId(null);
+  };
+
+  const handleSellNonUpgrades = () => {
+    const toSell = state.inventory.filter(item => {
+      if (item.locked) return false;
+      const delta = upgradeMap.get(item.id) ?? 0;
+      return delta <= 0.02;
+    });
+    if (toSell.length > 0) setBulkSellItems(toSell);
+  };
+
+  const handleSellBelowLevel = () => {
+    const toSell = state.inventory.filter(item => {
+      if (item.locked) return false;
+      return item.itemLevel < sellBelowLevel;
+    });
+    if (toSell.length > 0) setBulkSellItems(toSell);
+  };
+
+  const confirmBulkSell = () => {
+    if (bulkSellItems) {
+      doBulkSell(bulkSellItems.map(i => i.id));
+      setBulkSellItems(null);
+      setSelectedId(null);
+    }
   };
 
   return (
@@ -109,6 +137,21 @@ export default function InventoryPanel() {
             </button>
           ))}
         </span>
+        <button className="btn-bulk-sell" onClick={handleSellNonUpgrades}>
+          Sell Non-Upgrades
+        </button>
+        <span className="sell-below-group">
+          <button className="btn-bulk-sell" onClick={handleSellBelowLevel}>
+            Sell Below Lv.
+          </button>
+          <input
+            type="number"
+            className="sell-level-input"
+            value={sellBelowLevel}
+            min={1}
+            onChange={e => setSellBelowLevel(Math.max(1, parseInt(e.target.value) || 1))}
+          />
+        </span>
       </div>
 
       <div className="auto-sell-group">
@@ -136,6 +179,7 @@ export default function InventoryPanel() {
             grid
             selected={item.id === selectedId}
             upgradePct={upgradeMap.get(item.id) ?? 0}
+            onToggleLock={() => doToggleLock(item.id)}
             onClick={() => setSelectedId(item.id === selectedId ? null : item.id)}
           />
         ))}
@@ -152,6 +196,14 @@ export default function InventoryPanel() {
           onSell={handleSell}
           onSalvage={handleSalvage}
           onClose={() => setSelectedId(null)}
+        />
+      )}
+
+      {bulkSellItems && (
+        <BulkSellConfirmModal
+          items={bulkSellItems}
+          onConfirm={confirmBulkSell}
+          onCancel={() => setBulkSellItems(null)}
         />
       )}
     </div>

@@ -5,6 +5,7 @@ export function sellItem(state: GameState, itemId: string): boolean {
   const idx = state.inventory.findIndex(i => i.id === itemId);
   if (idx === -1) return false;
   const item = state.inventory[idx];
+  if (item.locked) return false;
   state.gold += item.sellValue;
   state.totalGoldEarned += item.sellValue;
   state.inventory.splice(idx, 1);
@@ -15,6 +16,7 @@ export function salvageItem(state: GameState, itemId: string): boolean {
   const idx = state.inventory.findIndex(i => i.id === itemId);
   if (idx === -1) return false;
   const item = state.inventory[idx];
+  if (item.locked) return false;
   state.materials[item.salvageResult.material] += item.salvageResult.amount;
   state.inventory.splice(idx, 1);
   return true;

@@ -76,6 +76,13 @@ export function loadGame(): GameState | null {
     parsed.combatLog = [];
     // Migration: add fields that may be missing from older saves
     if (!parsed.autoSellRarities) parsed.autoSellRarities = [];
+    // Migration: add locked field to items
+    for (const item of parsed.inventory) {
+      if ((item as any).locked === undefined) (item as any).locked = false;
+    }
+    for (const item of Object.values(parsed.equipment)) {
+      if (item && (item as any).locked === undefined) (item as any).locked = false;
+    }
     return parsed;
   } catch {
     return null;

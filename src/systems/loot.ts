@@ -146,6 +146,7 @@ export function generateItem(itemLevel: number, minRarity?: Rarity): Item {
     bonusStats,
     sellValue: itemSellValue(rarity, itemLevel),
     salvageResult: SALVAGE_MAP[rarity],
+    locked: false,
   };
 }
 

@@ -8,6 +8,7 @@ interface ItemCardProps {
   compact?: boolean;
   grid?: boolean;
   upgradePct?: number;
+  onToggleLock?: () => void;
 }
 
 const SLOT_ABBREV: Record<string, string> = {
@@ -15,7 +16,7 @@ const SLOT_ABBREV: Record<string, string> = {
   legs: 'LGS', boots: 'BTS', ring: 'RNG', amulet: 'AMU',
 };
 
-export default function ItemCard({ item, onClick, selected, compact, grid, upgradePct }: ItemCardProps) {
+export default function ItemCard({ item, onClick, selected, compact, grid, upgradePct, onToggleLock }: ItemCardProps) {
   const color = RARITY_COLORS[item.rarity];
 
   if (grid) {
@@ -23,10 +24,20 @@ export default function ItemCard({ item, onClick, selected, compact, grid, upgra
     const isBigUpgrade = (upgradePct ?? 0) > 0.10;
     return (
       <div
-        className={`item-card grid ${selected ? 'selected' : ''} ${isBigUpgrade ? 'upgrade-glow' : ''}`}
+        className={`item-card grid ${selected ? 'selected' : ''} ${isBigUpgrade ? 'upgrade-glow' : ''} ${item.locked ? 'locked' : ''}`}
         style={{ borderColor: color }}
         onClick={onClick}
       >
+        {item.locked && <span className="lock-icon">&#128274;</span>}
+        {onToggleLock && (
+          <button
+            className="lock-btn"
+            onClick={(e) => { e.stopPropagation(); onToggleLock(); }}
+            title={item.locked ? 'Unlock' : 'Lock'}
+          >
+            {item.locked ? '\u{1F512}' : '\u{1F513}'}
+          </button>
+        )}
         {isUpgrade && <span className="upgrade-indicator">&#9650;</span>}
         <span className="grid-slot" style={{ color }}>{SLOT_ABBREV[item.slot] ?? item.slot}</span>
         <span className="grid-name" style={{ color }}>{item.name}</span>

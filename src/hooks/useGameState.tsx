@@ -22,6 +22,8 @@ interface GameContextValue {
   doChangeZone: (zoneId: number) => void;
   doResetGame: () => void;
   doToggleAutoSell: (rarity: Rarity) => void;
+  doToggleLock: (itemId: string) => void;
+  doBulkSell: (itemIds: string[]) => void;
   offlineProgress: OfflineProgress | null;
   dismissOfflineProgress: () => void;
 }
@@ -156,6 +158,24 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const doToggleLock = useCallback((itemId: string) => {
+    const item = stateRef.current.inventory.find(i => i.id === itemId);
+    if (item) item.locked = !item.locked;
+  }, []);
+
+  const doBulkSell = useCallback((itemIds: string[]) => {
+    const s = stateRef.current;
+    for (const id of itemIds) {
+      const idx = s.inventory.findIndex(i => i.id === id);
+      if (idx === -1) continue;
+      const item = s.inventory[idx];
+      if (item.locked) continue;
+      s.gold += item.sellValue;
+      s.totalGoldEarned += item.sellValue;
+      s.inventory.splice(idx, 1);
+    }
+  }, []);
+
   const dismissOfflineProgress = useCallback(() => {
     setOfflineProgress(null);
   }, []);
@@ -174,6 +194,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     doChangeZone,
     doResetGame,
     doToggleAutoSell,
+    doToggleLock,
+    doBulkSell,
     offlineProgress,
     dismissOfflineProgress,
   };

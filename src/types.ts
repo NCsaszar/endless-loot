@@ -77,6 +77,7 @@ export interface Item {
   bonusStats: BonusStat[];
   sellValue: number;
   salvageResult: { material: MaterialType; amount: number };
+  locked: boolean;
 }
 
 // --- Materials (for future crafting) ---
