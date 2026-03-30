@@ -212,4 +212,4 @@ export interface GameState {
 
 // --- UI State (not persisted) ---
 
-export type ActivePanel = 'character' | 'inventory' | 'training' | 'zones';
+export type ActivePanel = 'character' | 'inventory' | 'training' | 'zones' | 'enchanting';

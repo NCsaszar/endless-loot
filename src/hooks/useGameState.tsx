@@ -3,7 +3,7 @@ import type { GameState, DerivedStats, Item, ActivePanel, Rarity } from '../type
 import { getTotalPrimaryStats, calculateDerivedStats } from '../data/formulas';
 import { tick } from '../systems/gameLoop';
 import { saveGame, loadGame, createDefaultState, calculateOfflineProgress } from '../systems/save';
-import { sellItem, salvageItem, trainStat, equipItem, unequipItem } from '../systems/economy';
+import { sellItem, salvageItem, trainStat, equipItem, unequipItem, enchantItem } from '../systems/economy';
 import { allocateStat, changeZone } from '../systems/progression';
 import { generateItem } from '../systems/loot';
 import type { OfflineProgress } from '../systems/save';
@@ -24,6 +24,7 @@ interface GameContextValue {
   doToggleAutoSell: (rarity: Rarity) => void;
   doToggleLock: (itemId: string) => void;
   doBulkSell: (itemIds: string[]) => void;
+  doEnchantItem: (itemId: string) => boolean;
   offlineProgress: OfflineProgress | null;
   dismissOfflineProgress: () => void;
 }
@@ -176,6 +177,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const doEnchantItem = useCallback((itemId: string) => {
+    return enchantItem(stateRef.current, itemId);
+  }, []);
+
   const dismissOfflineProgress = useCallback(() => {
     setOfflineProgress(null);
   }, []);
@@ -196,6 +201,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     doToggleAutoSell,
     doToggleLock,
     doBulkSell,
+    doEnchantItem,
     offlineProgress,
     dismissOfflineProgress,
   };

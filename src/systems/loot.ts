@@ -27,7 +27,7 @@ const BONUS_STAT_POOL: BonusStatType[] = [
 
 // --- Salvage Mapping ---
 
-const SALVAGE_MAP: Record<Rarity, { material: MaterialType; amount: number }> = {
+export const SALVAGE_MAP: Record<Rarity, { material: MaterialType; amount: number }> = {
   common:    { material: 'scrap', amount: 1 },
   uncommon:  { material: 'fragments', amount: 1 },
   rare:      { material: 'crystals', amount: 1 },
@@ -104,6 +104,55 @@ function rollBonusStats(rarity: Rarity, itemLevel: number): BonusStat[] {
   return stats;
 }
 
+// --- Generate a Single Bonus Stat (for enchanting) ---
+
+export function generateSingleBonusStat(itemLevel: number, existingTypes: BonusStatType[]): BonusStat | null {
+  const available = BONUS_STAT_POOL.filter(t => !existingTypes.includes(t));
+  if (available.length === 0) return null;
+  const type = pickRandom(available);
+  let value: number;
+  if (type === 'critChance' || type === 'dodgeChance') {
+    value = parseFloat((0.01 + Math.random() * 0.04 * (1 + itemLevel * 0.1)).toFixed(3));
+  } else if (type === 'hp') {
+    value = randomInt(5, 15) + Math.floor(itemLevel * 2);
+  } else if (type === 'defense') {
+    value = randomInt(1, 5) + Math.floor(itemLevel * 0.5);
+  } else {
+    value = randomInt(1, 3) + Math.floor(itemLevel * 0.3);
+  }
+  return { type, value };
+}
+
+// --- Enchanted Name Generation ---
+
+const RARITY_PREFIXES: Record<Rarity, string[]> = {
+  common: [],
+  uncommon: ['Fine', 'Keen', 'Sturdy'],
+  rare: ['Superior', 'Masterwork', 'Exquisite'],
+  epic: ['Mythic', 'Arcane', 'Transcendent'],
+  legendary: ['Godforged', 'Eternal', 'Primordial'],
+};
+
+export function generateEnchantedName(baseName: string, newRarity: Rarity): string {
+  const prefixes = RARITY_PREFIXES[newRarity];
+  if (prefixes.length === 0) return baseName;
+  const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+  return `${prefix} ${baseName}`;
+}
+
+// --- Affix Map (exported for enchanting) ---
+
+export const AFFIX_MAP: Record<BonusStatType, string> = {
+  str: 'of Might',
+  dex: 'of Agility',
+  int: 'of Wisdom',
+  vit: 'of Vitality',
+  critChance: 'of Precision',
+  dodgeChance: 'of Evasion',
+  hp: 'of Endurance',
+  defense: 'of Fortitude',
+};
+
 // --- Generate a Single Item ---
 
 export function generateItem(itemLevel: number, minRarity?: Rarity): Item {
@@ -123,17 +172,7 @@ export function generateItem(itemLevel: number, minRarity?: Rarity): Item {
   // Generate name with affix for uncommon+
   let name = baseDef.name;
   if (rarity !== 'common' && bonusStats.length > 0) {
-    const affixes: Record<BonusStatType, string> = {
-      str: 'of Might',
-      dex: 'of Agility',
-      int: 'of Wisdom',
-      vit: 'of Vitality',
-      critChance: 'of Precision',
-      dodgeChance: 'of Evasion',
-      hp: 'of Endurance',
-      defense: 'of Fortitude',
-    };
-    name = `${baseDef.name} ${affixes[bonusStats[0].type]}`;
+    name = `${baseDef.name} ${AFFIX_MAP[bonusStats[0].type]}`;
   }
 
   return {

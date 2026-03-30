@@ -1,4 +1,5 @@
-import type { PrimaryStats, DerivedStats, Equipment, Character, TrainingLevels } from '../types';
+import type { PrimaryStats, DerivedStats, Equipment, Character, TrainingLevels, Rarity } from '../types';
+import { RARITY_ORDER } from '../types';
 
 // --- Stat Scaling Constants ---
 
@@ -148,4 +149,21 @@ const SELL_BASE: Record<string, number> = {
 
 export function itemSellValue(rarity: string, itemLevel: number): number {
   return Math.floor((SELL_BASE[rarity] ?? 5) * (1 + 0.1 * itemLevel));
+}
+
+// --- Enchanting Cost ---
+
+export interface EnchantCost {
+  scrap: number;
+  fragments: number;
+}
+
+export function enchantCost(currentRarity: Rarity): EnchantCost | null {
+  const idx = RARITY_ORDER.indexOf(currentRarity);
+  if (idx >= RARITY_ORDER.length - 1) return null; // legendary can't upgrade
+  const base = Math.pow(5, idx + 1);
+  return {
+    scrap: Math.floor(base * 2),
+    fragments: Math.floor(base),
+  };
 }
