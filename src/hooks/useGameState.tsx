@@ -24,6 +24,7 @@ interface GameContextValue {
   doStopCombat: () => void;
   doResetGame: () => void;
   doToggleAutoSell: (rarity: Rarity) => void;
+  doToggleAutoSalvage: (rarity: Rarity) => void;
   doToggleLock: (itemId: string) => void;
   doBulkSell: (itemIds: string[]) => void;
   doBulkSalvage: (itemIds: string[]) => void;
@@ -170,6 +171,22 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       s.autoSellRarities.splice(idx, 1);
     } else {
       s.autoSellRarities.push(rarity);
+      // Mutual exclusion: disable auto-salvage for this rarity
+      const salvIdx = s.autoSalvageRarities.indexOf(rarity);
+      if (salvIdx >= 0) s.autoSalvageRarities.splice(salvIdx, 1);
+    }
+  }, []);
+
+  const doToggleAutoSalvage = useCallback((rarity: Rarity) => {
+    const s = stateRef.current;
+    const idx = s.autoSalvageRarities.indexOf(rarity);
+    if (idx >= 0) {
+      s.autoSalvageRarities.splice(idx, 1);
+    } else {
+      s.autoSalvageRarities.push(rarity);
+      // Mutual exclusion: disable auto-sell for this rarity
+      const sellIdx = s.autoSellRarities.indexOf(rarity);
+      if (sellIdx >= 0) s.autoSellRarities.splice(sellIdx, 1);
     }
   }, []);
 
@@ -212,6 +229,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     doStopCombat,
     doResetGame,
     doToggleAutoSell,
+    doToggleAutoSalvage,
     doToggleLock,
     doBulkSell,
     doBulkSalvage,

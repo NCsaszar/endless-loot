@@ -49,7 +49,10 @@ export function tick(state: GameState, derived: DerivedStats, dt: number, primar
       if (shouldDropLoot(isBoss, luk)) {
         const itemLevel = mob.level;
         const item = isBoss ? generateBossLoot(itemLevel, luk) : generateItem(itemLevel, undefined, luk);
-        if (state.autoSellRarities.includes(item.rarity)) {
+        if (state.autoSalvageRarities.includes(item.rarity)) {
+          state.materials[item.salvageResult.material] += item.salvageResult.amount;
+          addLog(state, `Auto-salvaged ${item.name} → ${item.salvageResult.amount} ${item.salvageResult.material}`, 'loot');
+        } else if (state.autoSellRarities.includes(item.rarity)) {
           const sellGold = Math.floor(item.sellValue * goldMult);
           state.gold += sellGold;
           state.totalGoldEarned += sellGold;

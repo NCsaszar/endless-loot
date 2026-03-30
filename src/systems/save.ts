@@ -40,6 +40,7 @@ export function createDefaultState(): GameState {
     lastSaveTimestamp: Date.now(),
     saveVersion: SAVE_VERSION,
     autoSellRarities: [],
+    autoSalvageRarities: [],
     combatActive: false,
   };
 }
@@ -77,6 +78,7 @@ export function loadGame(): GameState | null {
     parsed.combatLog = [];
     // Migration: add fields that may be missing from older saves
     if (!parsed.autoSellRarities) parsed.autoSellRarities = [];
+    if (!(parsed as any).autoSalvageRarities) (parsed as any).autoSalvageRarities = [];
     // Migration: add LUK stat
     if ((parsed.character.baseStats as any).luk === undefined) (parsed.character.baseStats as any).luk = 5;
     if ((parsed.character.trainingStats as any).luk === undefined) (parsed.character.trainingStats as any).luk = 0;

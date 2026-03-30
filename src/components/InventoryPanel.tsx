@@ -11,7 +11,7 @@ import BulkActionConfirmModal from './BulkActionConfirmModal';
 type SortBy = 'rarity' | 'level' | 'slot' | 'value';
 
 export default function InventoryPanel() {
-  const { state, derived, doSellItem, doSalvageItem, doEquipItem, doToggleAutoSell, doToggleLock, doBulkSell, doBulkSalvage } = useGameState();
+  const { state, derived, doSellItem, doSalvageItem, doEquipItem, doToggleAutoSell, doToggleAutoSalvage, doToggleLock, doBulkSell, doBulkSalvage } = useGameState();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortBy>('rarity');
   const [filterSlot, setFilterSlot] = useState<EquipSlot | 'all'>('all');
@@ -169,6 +169,23 @@ export default function InventoryPanel() {
               ...(state.autoSellRarities.includes(r) ? { background: RARITY_COLORS[r] + '33' } : {}),
             }}
             onClick={() => doToggleAutoSell(r)}
+          >
+            {r}
+          </button>
+        ))}
+      </div>
+
+      <div className="auto-sell-group">
+        <span className="auto-sell-label">Auto-salvage:</span>
+        {RARITY_ORDER.map(r => (
+          <button
+            key={r}
+            className={`auto-sell-toggle ${state.autoSalvageRarities.includes(r) ? 'active' : ''}`}
+            style={{
+              borderColor: RARITY_COLORS[r],
+              ...(state.autoSalvageRarities.includes(r) ? { background: RARITY_COLORS[r] + '33' } : {}),
+            }}
+            onClick={() => doToggleAutoSalvage(r)}
           >
             {r}
           </button>
