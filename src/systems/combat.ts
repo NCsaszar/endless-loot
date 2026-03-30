@@ -63,6 +63,7 @@ export function playerAttack(state: GameState, derived: DerivedStats): { killed:
 
   mob.currentHp -= dmgDealt;
   addPopup(state, dmgDealt, 'mob', 'damage', isCrit);
+  state.combat.playerDamageLog.push({ timestamp: Date.now(), amount: dmgDealt });
 
   const critText = isCrit ? ' (CRIT!)' : '';
   addLog(state, `You deal ${dmgDealt} damage to ${mob.def.name}${critText}`, 'damage');
@@ -93,6 +94,7 @@ export function mobAttack(state: GameState, derived: DerivedStats): { playerDied
 
   state.character.currentHp -= dmgTaken;
   addPopup(state, dmgTaken, 'player', 'damage');
+  state.combat.mobDamageLog.push({ timestamp: Date.now(), amount: dmgTaken });
 
   addLog(state, `${mob.def.name} deals ${dmgTaken} damage to you`, 'playerDamage');
 
@@ -118,6 +120,8 @@ export function handlePlayerDeath(state: GameState, derived: DerivedStats): void
   state.combat.currentMob = null;
   state.combat.playerAttackProgress = 0;
   state.combat.mobAttackProgress = 0;
+  state.combat.playerDamageLog = [];
+  state.combat.mobDamageLog = [];
 }
 
 export function regenHp(state: GameState, derived: DerivedStats, dt: number): void {

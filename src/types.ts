@@ -137,6 +137,13 @@ export interface DamagePopup {
   timestamp: number;
 }
 
+// --- DPS Tracking ---
+
+export interface DamageEntry {
+  timestamp: number;
+  amount: number;
+}
+
 // --- Combat State ---
 
 export interface CombatState {
@@ -146,6 +153,8 @@ export interface CombatState {
   killCount: number;
   isPlayerDead: boolean;
   damagePopups: DamagePopup[];
+  playerDamageLog: DamageEntry[];
+  mobDamageLog: DamageEntry[];
 }
 
 // --- Combat Log Entry ---

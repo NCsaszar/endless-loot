@@ -31,6 +31,8 @@ export function createDefaultState(): GameState {
       killCount: 0,
       isPlayerDead: false,
       damagePopups: [],
+      playerDamageLog: [],
+      mobDamageLog: [],
     },
     combatLog: [],
     totalKills: 0,
@@ -69,6 +71,8 @@ export function loadGame(): GameState | null {
     parsed.combat.playerAttackProgress = 0;
     parsed.combat.mobAttackProgress = 0;
     parsed.combat.damagePopups = [];
+    parsed.combat.playerDamageLog = [];
+    parsed.combat.mobDamageLog = [];
     parsed.combatLog = [];
     // Migration: add fields that may be missing from older saves
     if (!parsed.autoSellRarities) parsed.autoSellRarities = [];

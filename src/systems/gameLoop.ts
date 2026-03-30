@@ -5,9 +5,11 @@ import { shouldDropLoot, generateItem, generateBossLoot } from './loot';
 import { addLog } from './combat';
 
 export function tick(state: GameState, derived: DerivedStats, dt: number): void {
-  // Clean up expired damage popups (800ms lifetime)
+  // Clean up expired damage popups (800ms lifetime) and DPS logs (10s window)
   const now = Date.now();
   state.combat.damagePopups = state.combat.damagePopups.filter(p => now - p.timestamp < 800);
+  state.combat.playerDamageLog = state.combat.playerDamageLog.filter(e => now - e.timestamp < 10_000);
+  state.combat.mobDamageLog = state.combat.mobDamageLog.filter(e => now - e.timestamp < 10_000);
 
   if (state.combat.isPlayerDead) {
     handlePlayerDeath(state, derived);

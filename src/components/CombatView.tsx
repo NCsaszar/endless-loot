@@ -2,6 +2,7 @@ import { useGameState } from '../hooks/useGameState';
 import StatBar from './StatBar';
 import { getZone } from '../data/zones';
 import type { DamagePopup } from '../types';
+import { calculateActualDps, calculateTheoreticalPlayerDps, calculateTheoreticalMobDps } from '../systems/dps';
 
 function getHitClass(popups: DamagePopup[], target: 'player' | 'mob'): string {
   const now = Date.now();
@@ -58,6 +59,10 @@ export default function CombatView() {
               showText={false}
             />
           </div>
+          <div className="dps-display">
+            <span>DPS: {calculateActualDps(combat.playerDamageLog).toFixed(1)}</span>
+            <span className="dps-sheet">Sheet: {calculateTheoreticalPlayerDps(derived, mob?.defense ?? 0).toFixed(1)}</span>
+          </div>
         </div>
 
         <div className="vs-divider">VS</div>
@@ -98,6 +103,10 @@ export default function CombatView() {
                   height={10}
                   showText={false}
                 />
+              </div>
+              <div className="dps-display">
+                <span>DPS: {calculateActualDps(combat.mobDamageLog).toFixed(1)}</span>
+                <span className="dps-sheet">Sheet: {calculateTheoreticalMobDps(mob, derived).toFixed(1)}</span>
               </div>
             </>
           ) : (

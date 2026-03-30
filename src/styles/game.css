@@ -249,6 +249,16 @@ button {
   width: 100%;
   margin-top: 2px;
 }
+.dps-display {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 2px;
+  padding: 0 2px;
+}
+.dps-display .dps-sheet { color: #668; }
 
 .waiting-mob {
   color: var(--text-dim);
