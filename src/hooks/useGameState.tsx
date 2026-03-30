@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
-import type { GameState, DerivedStats, Item, ActivePanel } from '../types';
+import type { GameState, DerivedStats, Item, ActivePanel, Rarity } from '../types';
 import { getTotalPrimaryStats, calculateDerivedStats } from '../data/formulas';
 import { tick } from '../systems/gameLoop';
 import { saveGame, loadGame, createDefaultState, calculateOfflineProgress } from '../systems/save';
@@ -21,6 +21,7 @@ interface GameContextValue {
   doTrainStat: (stat: 'str' | 'dex' | 'int' | 'vit') => void;
   doChangeZone: (zoneId: number) => void;
   doResetGame: () => void;
+  doToggleAutoSell: (rarity: Rarity) => void;
   offlineProgress: OfflineProgress | null;
   dismissOfflineProgress: () => void;
 }
@@ -145,6 +146,16 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     saveGame(stateRef.current);
   }, [recalcDerived]);
 
+  const doToggleAutoSell = useCallback((rarity: Rarity) => {
+    const s = stateRef.current;
+    const idx = s.autoSellRarities.indexOf(rarity);
+    if (idx >= 0) {
+      s.autoSellRarities.splice(idx, 1);
+    } else {
+      s.autoSellRarities.push(rarity);
+    }
+  }, []);
+
   const dismissOfflineProgress = useCallback(() => {
     setOfflineProgress(null);
   }, []);
@@ -162,6 +173,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     doTrainStat,
     doChangeZone,
     doResetGame,
+    doToggleAutoSell,
     offlineProgress,
     dismissOfflineProgress,
   };

@@ -41,8 +41,14 @@ export function tick(state: GameState, derived: DerivedStats, dt: number): void 
       if (shouldDropLoot(isBoss)) {
         const itemLevel = mob.level;
         const item = isBoss ? generateBossLoot(itemLevel) : generateItem(itemLevel);
-        state.inventory.push(item);
-        addLog(state, `Loot: ${item.name} (${item.rarity})`, 'loot');
+        if (state.autoSellRarities.includes(item.rarity)) {
+          state.gold += item.sellValue;
+          state.totalGoldEarned += item.sellValue;
+          addLog(state, `Auto-sold ${item.name} for ${item.sellValue}g`, 'loot');
+        } else {
+          state.inventory.push(item);
+          addLog(state, `Loot: ${item.name} (${item.rarity})`, 'loot');
+        }
       }
 
       // Spawn next mob

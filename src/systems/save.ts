@@ -37,6 +37,7 @@ export function createDefaultState(): GameState {
     totalGoldEarned: 0,
     lastSaveTimestamp: Date.now(),
     saveVersion: SAVE_VERSION,
+    autoSellRarities: [],
   };
 }
 
@@ -69,6 +70,8 @@ export function loadGame(): GameState | null {
     parsed.combat.mobAttackProgress = 0;
     parsed.combat.damagePopups = [];
     parsed.combatLog = [];
+    // Migration: add fields that may be missing from older saves
+    if (!parsed.autoSellRarities) parsed.autoSellRarities = [];
     return parsed;
   } catch {
     return null;

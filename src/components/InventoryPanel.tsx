@@ -7,7 +7,7 @@ import ItemCard from './ItemCard';
 type SortBy = 'rarity' | 'level' | 'slot' | 'value';
 
 export default function InventoryPanel() {
-  const { state, doSellItem, doSalvageItem, doEquipItem } = useGameState();
+  const { state, doSellItem, doSalvageItem, doEquipItem, doToggleAutoSell } = useGameState();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortBy>('rarity');
   const [filterSlot, setFilterSlot] = useState<EquipSlot | 'all'>('all');
@@ -91,6 +91,23 @@ export default function InventoryPanel() {
             </button>
           ))}
         </span>
+      </div>
+
+      <div className="auto-sell-group">
+        <span className="auto-sell-label">Auto-sell:</span>
+        {RARITY_ORDER.map(r => (
+          <button
+            key={r}
+            className={`auto-sell-toggle ${state.autoSellRarities.includes(r) ? 'active' : ''}`}
+            style={{
+              borderColor: RARITY_COLORS[r],
+              ...(state.autoSellRarities.includes(r) ? { background: RARITY_COLORS[r] + '33' } : {}),
+            }}
+            onClick={() => doToggleAutoSell(r)}
+          >
+            {r}
+          </button>
+        ))}
       </div>
 
       {selected && (

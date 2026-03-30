@@ -197,6 +197,7 @@ export interface GameState {
   totalGoldEarned: number;
   lastSaveTimestamp: number;
   saveVersion: number;
+  autoSellRarities: Rarity[];
 }
 
 // --- UI State (not persisted) ---
