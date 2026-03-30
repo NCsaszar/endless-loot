@@ -63,14 +63,14 @@ function pickRandom<T>(arr: T[]): T {
 
 // --- Roll Rarity ---
 
-function rollRarity(minRarity?: Rarity, luk: number = 0): Rarity {
+function rollRarity(minRarity?: Rarity, luk: number = 0, zoneRarityBonus: number = 0): Rarity {
   const minIndex = minRarity ? RARITIES.indexOf(minRarity) : 0;
   const eligible = RARITIES.slice(minIndex);
   const shift = lukRarityShift(luk);
   const weights = eligible.map(r => {
     const base = RARITY_CONFIG[r].dropWeight;
-    // Boost uncommon+ weights by LUK shift factor
-    return r === 'common' ? base : base * shift;
+    // Boost uncommon+ weights by LUK shift factor and zone bonus
+    return r === 'common' ? base : base * shift * (1 + zoneRarityBonus);
   });
   return weightedRandom(eligible, weights);
 }
@@ -163,9 +163,9 @@ export const AFFIX_MAP: Record<BonusStatType, string> = {
 
 // --- Generate a Single Item ---
 
-export function generateItem(itemLevel: number, minRarity?: Rarity, luk: number = 0): Item {
+export function generateItem(itemLevel: number, minRarity?: Rarity, luk: number = 0, zoneRarityBonus: number = 0): Item {
   const slot: EquipSlot = pickRandom(ALL_EQUIP_SLOTS);
-  const rarity = rollRarity(minRarity, luk);
+  const rarity = rollRarity(minRarity, luk, zoneRarityBonus);
   const config = RARITY_CONFIG[rarity];
 
   const baseItems = getBaseItemsForSlot(slot);
@@ -206,8 +206,8 @@ export function shouldDropLoot(isBoss: boolean, luk: number = 0): boolean {
 
 // --- Generate Boss Loot (guaranteed rare+ or better with LUK) ---
 
-export function generateBossLoot(itemLevel: number, luk: number = 0): Item {
+export function generateBossLoot(itemLevel: number, luk: number = 0, zoneRarityBonus: number = 0): Item {
   const minRarityIdx = lukBossMinRarityIndex(luk);
   const minRarity = RARITY_ORDER[minRarityIdx];
-  return generateItem(itemLevel, minRarity, luk);
+  return generateItem(itemLevel, minRarity, luk, zoneRarityBonus);
 }

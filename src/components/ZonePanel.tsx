@@ -7,11 +7,11 @@ import { getTotalPrimaryStats, lukRarityShift, lukDropChance } from '../data/for
 import { RARITY_CONFIG, SALVAGE_MAP } from '../systems/loot';
 import { BASE_ITEMS } from '../data/items';
 
-function computeRarityPercents(luk: number): Record<Rarity, number> {
+function computeRarityPercents(luk: number, zoneRarityBonus: number = 0): Record<Rarity, number> {
   const shift = lukRarityShift(luk);
   const weights = RARITY_ORDER.map(r => {
     const base = RARITY_CONFIG[r].dropWeight;
-    return r === 'common' ? base : base * shift;
+    return r === 'common' ? base : base * shift * (1 + zoneRarityBonus);
   });
   const total = weights.reduce((s, w) => s + w, 0);
   const result: Record<string, number> = {};
@@ -35,7 +35,6 @@ export default function ZonePanel() {
     [state.character, state.trainingLevels, state.equipment]
   );
   const luk = primaryStats.luk;
-  const rarityPercents = useMemo(() => computeRarityPercents(luk), [luk]);
   const dropChance = useMemo(() => lukDropChance(luk), [luk]);
 
   const toggleExpand = (zoneId: number) => {
@@ -61,7 +60,6 @@ export default function ZonePanel() {
               <div
                 className="zone-card-clickable"
                 onClick={() => {
-                  if (unlocked && !active) doChangeZone(zone.id);
                   if (unlocked) toggleExpand(zone.id);
                 }}
               >
@@ -101,7 +99,9 @@ export default function ZonePanel() {
                 </button>
               )}
 
-              {isExpanded && unlocked && (
+              {isExpanded && unlocked && (() => {
+                const zoneRarityPercents = computeRarityPercents(luk, zone.rarityBonus);
+                return (
                 <div className="zone-details">
                   <div className="zone-details-section">
                     <h4>Drop Rates</h4>
@@ -114,7 +114,7 @@ export default function ZonePanel() {
                         <span key={r} className="zone-rarity-item">
                           <span className="zone-rarity-dot" style={{ background: RARITY_COLORS[r] }} />
                           <span style={{ color: RARITY_COLORS[r] }}>
-                            {r}: {rarityPercents[r].toFixed(1)}%
+                            {r}: {zoneRarityPercents[r].toFixed(1)}%
                           </span>
                         </span>
                       ))}
@@ -145,7 +145,8 @@ export default function ZonePanel() {
                     </div>
                   </div>
                 </div>
-              )}
+                );
+              })()}
             </div>
           );
         })}

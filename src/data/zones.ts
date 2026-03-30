@@ -159,6 +159,7 @@ export const ZONES: ZoneDef[] = [
     mobs: [slime, wolf, goblin],
     boss: goblinChief,
     unlockCost: 0,
+    rarityBonus: 0,
   },
   {
     id: 2,
@@ -167,6 +168,7 @@ export const ZONES: ZoneDef[] = [
     mobs: [bat, skeleton, spider],
     boss: caveTroll,
     unlockCost: 0, // unlocked by beating zone 1 boss
+    rarityBonus: 0.15,
   },
   {
     id: 3,
@@ -175,6 +177,7 @@ export const ZONES: ZoneDef[] = [
     mobs: [bandit, darkKnight, wraith],
     boss: fallenCommander,
     unlockCost: 0,
+    rarityBonus: 0.30,
   },
 ];
 

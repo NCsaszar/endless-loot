@@ -4,6 +4,7 @@ import { grantXpAndGold, handleBossKill } from './progression';
 import { shouldDropLoot, generateItem, generateBossLoot } from './loot';
 import { addLog } from './combat';
 import { lukGoldMultiplier } from '../data/formulas';
+import { getZone } from '../data/zones';
 
 export function tick(state: GameState, derived: DerivedStats, dt: number, primaryStats?: PrimaryStats): void {
   const luk = primaryStats?.luk ?? 0;
@@ -48,7 +49,8 @@ export function tick(state: GameState, derived: DerivedStats, dt: number, primar
       const isBoss = mob.def.isBoss;
       if (shouldDropLoot(isBoss, luk)) {
         const itemLevel = mob.level;
-        const item = isBoss ? generateBossLoot(itemLevel, luk) : generateItem(itemLevel, undefined, luk);
+        const zoneRarityBonus = getZone(state.currentZoneId)?.rarityBonus ?? 0;
+        const item = isBoss ? generateBossLoot(itemLevel, luk, zoneRarityBonus) : generateItem(itemLevel, undefined, luk, zoneRarityBonus);
         if (state.autoSalvageRarities.includes(item.rarity)) {
           state.materials[item.salvageResult.material] += item.salvageResult.amount;
           addLog(state, `Auto-salvaged ${item.name} → ${item.salvageResult.amount} ${item.salvageResult.material}`, 'loot');

@@ -141,6 +141,8 @@ export interface ZoneDef {
   mobs: MobDef[];
   boss: MobDef;
   unlockCost: number; // gold cost to unlock (0 for zone 1)
+  rarityBonus: number; // multiplier boost to uncommon+ drop weights (0 = baseline)
+  zoneItems?: string[]; // optional zone-exclusive item IDs (for future use)
 }
 
 // --- Damage Popup ---

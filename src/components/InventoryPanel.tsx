@@ -17,7 +17,6 @@ export default function InventoryPanel() {
   const [filterSlot, setFilterSlot] = useState<EquipSlot | 'all'>('all');
   const [filterRarity, setFilterRarity] = useState<Rarity | 'all'>('all');
   const [bulkAction, setBulkAction] = useState<{ items: Item[]; mode: BulkActionMode } | null>(null);
-  const [sellBelowLevel, setSellBelowLevel] = useState(5);
 
   // Filter for display (uses >= for rarity)
   const items = useMemo(() => {
@@ -85,14 +84,6 @@ export default function InventoryPanel() {
     if (toSell.length > 0) setBulkAction({ items: toSell, mode: 'sell' });
   };
 
-  const handleSellBelowLevel = () => {
-    const toSell = state.inventory.filter(item => {
-      if (item.locked) return false;
-      return item.itemLevel < sellBelowLevel;
-    });
-    if (toSell.length > 0) setBulkAction({ items: toSell, mode: 'sell' });
-  };
-
   const confirmBulkAction = () => {
     if (!bulkAction) return;
     const ids = bulkAction.items.map(i => i.id);
@@ -146,18 +137,6 @@ export default function InventoryPanel() {
         <button className="btn-bulk-action btn-bulk-sell" onClick={handleSellNonUpgrades}>
           Sell Non-Upgrades
         </button>
-        <span className="sell-below-group">
-          <button className="btn-bulk-action btn-bulk-sell" onClick={handleSellBelowLevel}>
-            Sell Below Lv.
-          </button>
-          <input
-            type="number"
-            className="sell-level-input"
-            value={sellBelowLevel}
-            min={1}
-            onChange={e => setSellBelowLevel(Math.max(1, parseInt(e.target.value) || 1))}
-          />
-        </span>
       </div>
 
       <div className="auto-sell-group">
