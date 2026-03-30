@@ -6,6 +6,7 @@ import StatBar from './StatBar';
 import ItemCard from './ItemCard';
 import Tooltip from './Tooltip';
 import EquipSlotPopover from './EquipSlotPopover';
+import { SLOT_ICONS } from './icons';
 
 const LEFT_SLOTS: EquipSlot[] = ['helmet', 'chest', 'legs', 'boots'];
 const RIGHT_SLOTS: EquipSlot[] = ['weapon', 'offhand', 'ring', 'amulet'];
@@ -45,7 +46,9 @@ export default function CharacterPanel() {
         {item ? (
           <ItemCard item={item} compact />
         ) : (
-          <div className="equip-empty-doll">&mdash;</div>
+          <div className="equip-empty-doll">
+            {(() => { const Icon = SLOT_ICONS[slot]; return <Icon size={28} color="currentColor" className="equip-empty-icon" />; })()}
+          </div>
         )}
         {activePopoverSlot === slot && (
           <EquipSlotPopover

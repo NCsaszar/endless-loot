@@ -1,5 +1,6 @@
 import type { Item } from '../types';
 import { RARITY_COLORS } from '../types';
+import { SLOT_ICONS } from './icons';
 
 interface ItemCardProps {
   item: Item;
@@ -10,11 +11,6 @@ interface ItemCardProps {
   upgradePct?: number;
   onToggleLock?: () => void;
 }
-
-const SLOT_ABBREV: Record<string, string> = {
-  weapon: 'WPN', offhand: 'OFF', helmet: 'HLM', chest: 'CHT',
-  legs: 'LGS', boots: 'BTS', ring: 'RNG', amulet: 'AMU',
-};
 
 export default function ItemCard({ item, onClick, selected, compact, grid, upgradePct, onToggleLock }: ItemCardProps) {
   const color = RARITY_COLORS[item.rarity];
@@ -39,7 +35,7 @@ export default function ItemCard({ item, onClick, selected, compact, grid, upgra
           </button>
         )}
         {isUpgrade && <span className="upgrade-indicator">&#9650;</span>}
-        <span className="grid-slot" style={{ color }}>{SLOT_ABBREV[item.slot] ?? item.slot}</span>
+        {(() => { const Icon = SLOT_ICONS[item.slot]; return <Icon size={20} color={color} className="grid-icon" />; })()}
         <span className="grid-name" style={{ color }}>{item.name}</span>
         <span className="grid-level">Lv.{item.itemLevel}</span>
       </div>
@@ -53,6 +49,7 @@ export default function ItemCard({ item, onClick, selected, compact, grid, upgra
         style={{ borderColor: color }}
         onClick={onClick}
       >
+        {(() => { const Icon = SLOT_ICONS[item.slot]; return <Icon size={16} color={color} />; })()}
         <span className="item-name" style={{ color }}>{item.name}</span>
         <span className="item-level">Lv.{item.itemLevel}</span>
       </div>

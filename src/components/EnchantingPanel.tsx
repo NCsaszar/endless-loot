@@ -3,6 +3,7 @@ import { useGameState } from '../hooks/useGameState';
 import { RARITY_ORDER, RARITY_COLORS, ALL_EQUIP_SLOTS, SLOT_LABELS } from '../types';
 import { enchantCost } from '../data/formulas';
 import ItemCard from './ItemCard';
+import { SLOT_ICONS } from './icons';
 
 export default function EnchantingPanel() {
   const { state, doEnchantItem } = useGameState();
@@ -82,7 +83,9 @@ export default function EnchantingPanel() {
                     ) : null}
                   </>
                 ) : (
-                  <div className="enchant-empty-slot">Empty</div>
+                  <div className="enchant-empty-slot">
+                    {(() => { const Icon = SLOT_ICONS[slot]; return <Icon size={24} color="currentColor" className="equip-empty-icon" />; })()}
+                  </div>
                 )}
               </div>
             );

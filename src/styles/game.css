@@ -472,7 +472,12 @@ button {
   text-align: center;
   border: 1px dashed var(--border);
   border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+.equip-empty-icon { opacity: 0.3; }
+.grid-icon { margin-bottom: 2px; flex-shrink: 0; }
 
 /* Equip Slot Popover */
 .equip-popover {
