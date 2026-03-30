@@ -770,6 +770,39 @@ button {
 .tooltip-box.above { bottom: calc(100% + 6px); }
 .tooltip-box.below { top: calc(100% + 6px); }
 
+/* Combat Animations */
+@keyframes shake-hit {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+@keyframes shake-crit {
+  0%, 100% { transform: translateX(0) scale(1); }
+  15% { transform: translateX(-6px) scale(1.05); }
+  30% { transform: translateX(6px) scale(1.05); }
+  45% { transform: translateX(-4px); }
+  60% { transform: translateX(4px); }
+  75% { transform: translateX(-2px); }
+}
+@keyframes dodge-slide {
+  0%, 100% { transform: translateX(0); opacity: 1; }
+  50% { transform: translateX(12px); opacity: 0.5; }
+}
+@keyframes death-fade {
+  0% { opacity: 1; filter: none; }
+  100% { opacity: 0.3; filter: grayscale(1) brightness(0.5); }
+}
+
+.anim-hit { animation: shake-hit 0.2s ease-out; }
+.anim-crit-hit {
+  animation: shake-crit 0.35s ease-out;
+  box-shadow: 0 0 16px rgba(255, 204, 0, 0.6) !important;
+}
+.anim-dodge { animation: dodge-slide 0.3s ease-out; }
+.combatant.anim-dead {
+  animation: death-fade 0.5s ease-out forwards;
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }

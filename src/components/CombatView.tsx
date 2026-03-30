@@ -1,12 +1,26 @@
 import { useGameState } from '../hooks/useGameState';
 import StatBar from './StatBar';
 import { getZone } from '../data/zones';
+import type { DamagePopup } from '../types';
+
+function getHitClass(popups: DamagePopup[], target: 'player' | 'mob'): string {
+  const now = Date.now();
+  const recent = popups.filter(p => p.target === target && now - p.timestamp < 200);
+  if (recent.length === 0) return '';
+  const last = recent[recent.length - 1];
+  if (last.type === 'dodge') return 'anim-dodge';
+  if (last.isCrit) return 'anim-crit-hit';
+  return 'anim-hit';
+}
 
 export default function CombatView() {
   const { state, derived } = useGameState();
   const { combat, character, currentZoneId, combatLog } = state;
   const mob = combat.currentMob;
   const zone = getZone(currentZoneId);
+
+  const playerHitClass = getHitClass(combat.damagePopups, 'player');
+  const mobHitClass = getHitClass(combat.damagePopups, 'mob');
 
   return (
     <div className="combat-view">
@@ -17,8 +31,8 @@ export default function CombatView() {
 
       <div className="combat-arena">
         {/* Player side */}
-        <div className="combatant player-side">
-          <div className="combatant-portrait player-portrait">
+        <div className={`combatant player-side ${combat.isPlayerDead ? 'anim-dead' : ''}`}>
+          <div className={`combatant-portrait player-portrait ${playerHitClass}`}>
             <img src="/portraits/hero.svg" alt="Hero" className="portrait-img" />
             {combat.damagePopups
               .filter(p => p.target === 'player')
@@ -52,7 +66,7 @@ export default function CombatView() {
         <div className="combatant mob-side">
           {mob ? (
             <>
-              <div className={`combatant-portrait mob-portrait ${mob.def.isBoss ? 'boss' : ''}`}>
+              <div className={`combatant-portrait mob-portrait ${mob.def.isBoss ? 'boss' : ''} ${mobHitClass}`}>
                 {mob.def.portrait ? (
                   <img src={mob.def.portrait} alt={mob.def.name} className="portrait-img" />
                 ) : (
