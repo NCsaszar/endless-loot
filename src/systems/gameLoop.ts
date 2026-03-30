@@ -1,10 +1,12 @@
-import type { GameState, DerivedStats } from '../types';
+import type { GameState, DerivedStats, PrimaryStats } from '../types';
 import { spawnMob, playerAttack, mobAttack, handlePlayerDeath, regenHp } from './combat';
 import { grantXpAndGold, handleBossKill } from './progression';
 import { shouldDropLoot, generateItem, generateBossLoot } from './loot';
 import { addLog } from './combat';
+import { lukGoldMultiplier } from '../data/formulas';
 
-export function tick(state: GameState, derived: DerivedStats, dt: number): void {
+export function tick(state: GameState, derived: DerivedStats, dt: number, primaryStats?: PrimaryStats): void {
+  const luk = primaryStats?.luk ?? 0;
   // Clean up expired damage popups (800ms lifetime) and DPS logs (10s window)
   const now = Date.now();
   state.combat.damagePopups = state.combat.damagePopups.filter(p => now - p.timestamp < 800);
@@ -34,19 +36,22 @@ export function tick(state: GameState, derived: DerivedStats, dt: number): void 
     const { killed } = playerAttack(state, derived);
 
     if (killed) {
-      // Grant rewards
+      // Grant rewards (apply LUK gold multiplier)
+      const goldMult = lukGoldMultiplier(luk);
+      mob.goldReward = Math.floor(mob.goldReward * goldMult);
       grantXpAndGold(state, mob);
       handleBossKill(state, mob);
 
       // Loot roll
       const isBoss = mob.def.isBoss;
-      if (shouldDropLoot(isBoss)) {
+      if (shouldDropLoot(isBoss, luk)) {
         const itemLevel = mob.level;
-        const item = isBoss ? generateBossLoot(itemLevel) : generateItem(itemLevel);
+        const item = isBoss ? generateBossLoot(itemLevel, luk) : generateItem(itemLevel, undefined, luk);
         if (state.autoSellRarities.includes(item.rarity)) {
-          state.gold += item.sellValue;
-          state.totalGoldEarned += item.sellValue;
-          addLog(state, `Auto-sold ${item.name} for ${item.sellValue}g`, 'loot');
+          const sellGold = Math.floor(item.sellValue * goldMult);
+          state.gold += sellGold;
+          state.totalGoldEarned += sellGold;
+          addLog(state, `Auto-sold ${item.name} for ${sellGold}g`, 'loot');
         } else {
           state.inventory.push(item);
           addLog(state, `Loot: ${item.name} (${item.rarity})`, 'loot');

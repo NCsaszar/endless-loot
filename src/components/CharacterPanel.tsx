@@ -15,6 +15,7 @@ const STAT_TIPS: Record<string, string> = {
   dex: 'Dexterity\n+0.008 Attack Speed per point\n+0.3% Crit Chance per point\n+0.2% Dodge Chance per point',
   int: 'Intelligence\nReserved for future magic system',
   vit: 'Vitality\n+8 Max HP per point\n+1.2 Defense per point\n+0.3/s HP Regen per point',
+  luk: 'Luck\nImproves drop rarity, gold find,\nbonus stat rolls, drop rates,\nand boss loot quality',
 };
 
 const DERIVED_TIPS: Record<string, string> = {
@@ -84,7 +85,7 @@ export default function CharacterPanel() {
       <div className="stats-section">
         <h3>Primary Stats</h3>
         <div className="stat-grid">
-          {(['str', 'dex', 'int', 'vit'] as const).map(stat => (
+          {(['str', 'dex', 'int', 'vit', 'luk'] as const).map(stat => (
             <Tooltip key={stat} text={STAT_TIPS[stat]}>
               <div className="stat-row">
                 <span className="stat-name">{stat.toUpperCase()}</span>

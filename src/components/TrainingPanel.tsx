@@ -4,12 +4,13 @@ import { trainingCost } from '../data/formulas';
 export default function TrainingPanel() {
   const { state, doTrainStat } = useGameState();
 
-  const stats = ['str', 'dex', 'int', 'vit'] as const;
+  const stats = ['str', 'dex', 'int', 'vit', 'luk'] as const;
   const descriptions: Record<string, string> = {
     str: 'Increases Attack Power',
     dex: 'Increases Speed, Crit, Dodge',
     int: 'Increases Magic Power (future)',
     vit: 'Increases HP, Defense, Regen',
+    luk: 'Increases Drop Rates, Rarity, Gold',
   };
 
   return (

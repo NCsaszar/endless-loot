@@ -22,6 +22,33 @@ const BASE_DEF = 2;
 const BASE_DODGE = 0.02; // 2%
 const BASE_REGEN = 1; // HP per second
 
+// --- LUK Effect Formulas (all with diminishing returns) ---
+
+/** Multiplier on uncommon+ rarity drop weights */
+export function lukRarityShift(luk: number): number {
+  return 1 + 2 * (1 - 1 / (1 + luk / 40));
+}
+
+/** Gold find multiplier (mob gold + sell values) */
+export function lukGoldMultiplier(luk: number): number {
+  return 1 + 0.5 * Math.log(1 + luk / 50);
+}
+
+/** Bonus stat roll range multiplier */
+export function lukBonusStatMultiplier(luk: number): number {
+  return 1 + 0.8 * (1 - 1 / (1 + luk / 60));
+}
+
+/** Drop chance for regular mobs (base 60%, cap ~95%) */
+export function lukDropChance(luk: number): number {
+  return 0.60 + 0.35 * (1 - 1 / (1 + luk / 80));
+}
+
+/** Boss minimum rarity index (0=common..4=legendary). Base is 2 (rare). */
+export function lukBossMinRarityIndex(luk: number): number {
+  return Math.min(4, Math.floor(2 + 2 * (1 - 1 / (1 + luk / 100))));
+}
+
 // --- XP Curve ---
 
 export function xpForLevel(level: number): number {
@@ -46,6 +73,7 @@ export function getTotalPrimaryStats(
     dex: character.baseStats.dex + trainingLevels.dex,
     int: character.baseStats.int + trainingLevels.int,
     vit: character.baseStats.vit + trainingLevels.vit,
+    luk: character.baseStats.luk + trainingLevels.luk,
   };
 
   // Add gear bonus stats
@@ -56,6 +84,7 @@ export function getTotalPrimaryStats(
       if (bonus.type === 'dex') total.dex += bonus.value;
       if (bonus.type === 'int') total.int += bonus.value;
       if (bonus.type === 'vit') total.vit += bonus.value;
+      if (bonus.type === 'luk') total.luk += bonus.value;
     }
   }
 

@@ -17,7 +17,7 @@ export function grantXpAndGold(state: GameState, mob: MobInstance): void {
   }
 }
 
-export function allocateStat(state: GameState, stat: 'str' | 'dex' | 'int' | 'vit'): boolean {
+export function allocateStat(state: GameState, stat: 'str' | 'dex' | 'int' | 'vit' | 'luk'): boolean {
   if (state.character.unspentStatPoints <= 0) return false;
   state.character.baseStats[stat]++;
   state.character.unspentStatPoints--;

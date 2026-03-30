@@ -1,7 +1,7 @@
 import type { Item, Rarity, EquipSlot, BonusStat, BonusStatType, MaterialType } from '../types';
-import { ALL_EQUIP_SLOTS } from '../types';
+import { ALL_EQUIP_SLOTS, RARITY_ORDER } from '../types';
 import { getBaseItemsForSlot } from '../data/items';
-import { itemSellValue } from '../data/formulas';
+import { itemSellValue, lukRarityShift, lukBonusStatMultiplier, lukDropChance, lukBossMinRarityIndex } from '../data/formulas';
 
 // --- Rarity Config ---
 
@@ -11,7 +11,7 @@ interface RarityConfig {
   bonusStatCount: [number, number]; // [min, max]
 }
 
-const RARITY_CONFIG: Record<Rarity, RarityConfig> = {
+export const RARITY_CONFIG: Record<Rarity, RarityConfig> = {
   common:    { dropWeight: 50, statMultiplier: 1.0, bonusStatCount: [0, 0] },
   uncommon:  { dropWeight: 30, statMultiplier: 1.3, bonusStatCount: [1, 1] },
   rare:      { dropWeight: 14, statMultiplier: 1.7, bonusStatCount: [1, 2] },
@@ -22,7 +22,7 @@ const RARITY_CONFIG: Record<Rarity, RarityConfig> = {
 const RARITIES: Rarity[] = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
 
 const BONUS_STAT_POOL: BonusStatType[] = [
-  'str', 'dex', 'int', 'vit', 'critChance', 'dodgeChance', 'hp', 'defense',
+  'str', 'dex', 'int', 'vit', 'luk', 'critChance', 'dodgeChance', 'hp', 'defense',
 ];
 
 // --- Salvage Mapping ---
@@ -63,20 +63,26 @@ function pickRandom<T>(arr: T[]): T {
 
 // --- Roll Rarity ---
 
-function rollRarity(minRarity?: Rarity): Rarity {
+function rollRarity(minRarity?: Rarity, luk: number = 0): Rarity {
   const minIndex = minRarity ? RARITIES.indexOf(minRarity) : 0;
   const eligible = RARITIES.slice(minIndex);
-  const weights = eligible.map(r => RARITY_CONFIG[r].dropWeight);
+  const shift = lukRarityShift(luk);
+  const weights = eligible.map(r => {
+    const base = RARITY_CONFIG[r].dropWeight;
+    // Boost uncommon+ weights by LUK shift factor
+    return r === 'common' ? base : base * shift;
+  });
   return weightedRandom(eligible, weights);
 }
 
 // --- Roll Bonus Stats ---
 
-function rollBonusStats(rarity: Rarity, itemLevel: number): BonusStat[] {
+function rollBonusStats(rarity: Rarity, itemLevel: number, luk: number = 0): BonusStat[] {
   const config = RARITY_CONFIG[rarity];
   const count = randomInt(config.bonusStatCount[0], config.bonusStatCount[1]);
   const stats: BonusStat[] = [];
   const usedTypes = new Set<BonusStatType>();
+  const lukMult = lukBonusStatMultiplier(luk);
 
   for (let i = 0; i < count; i++) {
     // Pick a stat type not already used on this item
@@ -89,13 +95,14 @@ function rollBonusStats(rarity: Rarity, itemLevel: number): BonusStat[] {
     if (type === 'critChance' || type === 'dodgeChance') {
       // Percentage-based: 0.01 to 0.05 scaled by level
       value = parseFloat((0.01 + Math.random() * 0.04 * (1 + itemLevel * 0.1)).toFixed(3));
+      value = parseFloat((value * lukMult).toFixed(3));
     } else if (type === 'hp') {
-      value = randomInt(5, 15) + Math.floor(itemLevel * 2);
+      value = Math.floor((randomInt(5, 15) + Math.floor(itemLevel * 2)) * lukMult);
     } else if (type === 'defense') {
-      value = randomInt(1, 5) + Math.floor(itemLevel * 0.5);
+      value = Math.floor((randomInt(1, 5) + Math.floor(itemLevel * 0.5)) * lukMult);
     } else {
-      // Primary stat bonus: str, dex, int, vit
-      value = randomInt(1, 3) + Math.floor(itemLevel * 0.3);
+      // Primary stat bonus: str, dex, int, vit, luk
+      value = Math.floor((randomInt(1, 3) + Math.floor(itemLevel * 0.3)) * lukMult);
     }
 
     stats.push({ type, value });
@@ -147,6 +154,7 @@ export const AFFIX_MAP: Record<BonusStatType, string> = {
   dex: 'of Agility',
   int: 'of Wisdom',
   vit: 'of Vitality',
+  luk: 'of Fortune',
   critChance: 'of Precision',
   dodgeChance: 'of Evasion',
   hp: 'of Endurance',
@@ -155,9 +163,9 @@ export const AFFIX_MAP: Record<BonusStatType, string> = {
 
 // --- Generate a Single Item ---
 
-export function generateItem(itemLevel: number, minRarity?: Rarity): Item {
+export function generateItem(itemLevel: number, minRarity?: Rarity, luk: number = 0): Item {
   const slot: EquipSlot = pickRandom(ALL_EQUIP_SLOTS);
-  const rarity = rollRarity(minRarity);
+  const rarity = rollRarity(minRarity, luk);
   const config = RARITY_CONFIG[rarity];
 
   const baseItems = getBaseItemsForSlot(slot);
@@ -167,7 +175,7 @@ export function generateItem(itemLevel: number, minRarity?: Rarity): Item {
     baseDef.basePrimaryStat * (1 + 0.2 * itemLevel) * config.statMultiplier
   );
 
-  const bonusStats = rollBonusStats(rarity, itemLevel);
+  const bonusStats = rollBonusStats(rarity, itemLevel, luk);
 
   // Generate name with affix for uncommon+
   let name = baseDef.name;
@@ -191,13 +199,15 @@ export function generateItem(itemLevel: number, minRarity?: Rarity): Item {
 
 // --- Should Drop Loot? ---
 
-export function shouldDropLoot(isBoss: boolean): boolean {
+export function shouldDropLoot(isBoss: boolean, luk: number = 0): boolean {
   if (isBoss) return true;
-  return Math.random() < 0.6; // 60% drop rate for regular mobs
+  return Math.random() < lukDropChance(luk);
 }
 
-// --- Generate Boss Loot (guaranteed rare+) ---
+// --- Generate Boss Loot (guaranteed rare+ or better with LUK) ---
 
-export function generateBossLoot(itemLevel: number): Item {
-  return generateItem(itemLevel, 'rare');
+export function generateBossLoot(itemLevel: number, luk: number = 0): Item {
+  const minRarityIdx = lukBossMinRarityIndex(luk);
+  const minRarity = RARITY_ORDER[minRarityIdx];
+  return generateItem(itemLevel, minRarity, luk);
 }

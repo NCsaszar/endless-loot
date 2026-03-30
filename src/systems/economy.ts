@@ -24,7 +24,7 @@ export function salvageItem(state: GameState, itemId: string): boolean {
   return true;
 }
 
-export function trainStat(state: GameState, stat: 'str' | 'dex' | 'int' | 'vit'): boolean {
+export function trainStat(state: GameState, stat: 'str' | 'dex' | 'int' | 'vit' | 'luk'): boolean {
   const currentLevel = state.trainingLevels[stat];
   const cost = trainingCost(currentLevel);
   if (state.gold < cost) return false;
@@ -102,7 +102,7 @@ export function enchantItem(state: GameState, itemId: string): boolean {
 
   // Strip existing prefix and affix to get base name
   const prefixPattern = /^(Fine|Keen|Sturdy|Superior|Masterwork|Exquisite|Mythic|Arcane|Transcendent|Godforged|Eternal|Primordial) /;
-  const affixPattern = / of (Might|Agility|Wisdom|Vitality|Precision|Evasion|Endurance|Fortitude)$/;
+  const affixPattern = / of (Might|Agility|Wisdom|Vitality|Fortune|Precision|Evasion|Endurance|Fortitude)$/;
   const baseName = item.name.replace(prefixPattern, '').replace(affixPattern, '');
 
   // Build new name with rarity prefix

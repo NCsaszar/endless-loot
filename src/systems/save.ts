@@ -12,11 +12,11 @@ export function createDefaultState(): GameState {
       xp: 0,
       xpToNextLevel: xpForLevel(1),
       unspentStatPoints: 0,
-      baseStats: { str: 5, dex: 5, int: 5, vit: 5 },
-      trainingStats: { str: 0, dex: 0, int: 0, vit: 0 },
+      baseStats: { str: 5, dex: 5, int: 5, vit: 5, luk: 5 },
+      trainingStats: { str: 0, dex: 0, int: 0, vit: 0, luk: 0 },
       currentHp: 90, // BASE_HP(50) + 5 VIT * 8 = 90
     },
-    trainingLevels: { str: 0, dex: 0, int: 0, vit: 0 },
+    trainingLevels: { str: 0, dex: 0, int: 0, vit: 0, luk: 0 },
     equipment: {},
     inventory: [],
     gold: 0,
@@ -76,6 +76,10 @@ export function loadGame(): GameState | null {
     parsed.combatLog = [];
     // Migration: add fields that may be missing from older saves
     if (!parsed.autoSellRarities) parsed.autoSellRarities = [];
+    // Migration: add LUK stat
+    if ((parsed.character.baseStats as any).luk === undefined) (parsed.character.baseStats as any).luk = 5;
+    if ((parsed.character.trainingStats as any).luk === undefined) (parsed.character.trainingStats as any).luk = 0;
+    if ((parsed.trainingLevels as any).luk === undefined) (parsed.trainingLevels as any).luk = 0;
     // Migration: add locked field to items
     for (const item of parsed.inventory) {
       if ((item as any).locked === undefined) (item as any).locked = false;

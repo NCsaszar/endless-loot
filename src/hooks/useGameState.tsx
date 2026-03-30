@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
-import type { GameState, DerivedStats, Item, ActivePanel, Rarity } from '../types';
+import type { GameState, DerivedStats, Item, ActivePanel, Rarity, PrimaryStat } from '../types';
 import { getTotalPrimaryStats, calculateDerivedStats } from '../data/formulas';
 import { tick } from '../systems/gameLoop';
 import { saveGame, loadGame, createDefaultState, calculateOfflineProgress } from '../systems/save';
@@ -13,12 +13,12 @@ interface GameContextValue {
   derived: DerivedStats;
   activePanel: ActivePanel;
   setActivePanel: (p: ActivePanel) => void;
-  doAllocateStat: (stat: 'str' | 'dex' | 'int' | 'vit') => void;
+  doAllocateStat: (stat: PrimaryStat) => void;
   doEquipItem: (item: Item) => void;
   doUnequipItem: (slot: Item['slot']) => void;
   doSellItem: (itemId: string) => void;
   doSalvageItem: (itemId: string) => void;
-  doTrainStat: (stat: 'str' | 'dex' | 'int' | 'vit') => void;
+  doTrainStat: (stat: PrimaryStat) => void;
   doChangeZone: (zoneId: number) => void;
   doResetGame: () => void;
   doToggleAutoSell: (rarity: Rarity) => void;
@@ -45,6 +45,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
   const stateRef = useRef<GameState>(null!);
   const derivedRef = useRef<DerivedStats>(null!);
+  const primaryStatsRef = useRef<import('../types').PrimaryStats>(null!);
   const lastTickRef = useRef(0);
   const saveTimerRef = useRef(0);
 
@@ -69,6 +70,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
     stateRef.current = state;
     const primary = getTotalPrimaryStats(state.character, state.trainingLevels, state.equipment);
+    primaryStatsRef.current = primary;
     derivedRef.current = calculateDerivedStats(primary, state.equipment);
     state.character.currentHp = Math.min(state.character.currentHp, derivedRef.current.maxHp);
     if (state.character.currentHp <= 0) state.character.currentHp = derivedRef.current.maxHp;
@@ -77,6 +79,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const recalcDerived = useCallback(() => {
     const s = stateRef.current;
     const primary = getTotalPrimaryStats(s.character, s.trainingLevels, s.equipment);
+    primaryStatsRef.current = primary;
     derivedRef.current = calculateDerivedStats(primary, s.equipment);
   }, []);
 
@@ -89,7 +92,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       lastTickRef.current = now;
 
       recalcDerived();
-      tick(stateRef.current, derivedRef.current, dt);
+      tick(stateRef.current, derivedRef.current, dt, primaryStatsRef.current);
 
       // Auto-save every 30s
       saveTimerRef.current += dt;
@@ -106,7 +109,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     return () => cancelAnimationFrame(frameId);
   }, [recalcDerived]);
 
-  const doAllocateStat = useCallback((stat: 'str' | 'dex' | 'int' | 'vit') => {
+  const doAllocateStat = useCallback((stat: PrimaryStat) => {
     allocateStat(stateRef.current, stat);
     recalcDerived();
     // Heal to new max if vit increased
@@ -134,7 +137,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     salvageItem(stateRef.current, itemId);
   }, []);
 
-  const doTrainStat = useCallback((stat: 'str' | 'dex' | 'int' | 'vit') => {
+  const doTrainStat = useCallback((stat: PrimaryStat) => {
     trainStat(stateRef.current, stat);
     recalcDerived();
   }, [recalcDerived]);

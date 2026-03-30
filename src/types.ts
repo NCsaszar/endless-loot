@@ -9,7 +9,10 @@ export interface PrimaryStats {
   dex: number;
   int: number;
   vit: number;
+  luk: number;
 }
+
+export type PrimaryStat = keyof PrimaryStats;
 
 // --- Derived Stats (calculated from primary + gear) ---
 
@@ -70,7 +73,7 @@ export const SLOT_LABELS: Record<EquipSlot, string> = {
 // --- Bonus Stat Types ---
 
 export type BonusStatType =
-  | 'str' | 'dex' | 'int' | 'vit'
+  | 'str' | 'dex' | 'int' | 'vit' | 'luk'
   | 'critChance' | 'dodgeChance' | 'hp' | 'defense';
 
 export interface BonusStat {
@@ -200,6 +203,7 @@ export interface TrainingLevels {
   dex: number;
   int: number;
   vit: number;
+  luk: number;
 }
 
 // --- Game State ---
