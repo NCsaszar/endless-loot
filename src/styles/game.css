@@ -696,19 +696,14 @@ button {
 }
 
 .inv-grid-wrapper {
-  max-height: 500px;
+  max-height: calc(100vh - 280px);
   overflow-y: auto;
   padding: 4px;
 }
 .inv-grid {
   display: grid;
-  grid-template-columns: repeat(10, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
   gap: 4px;
-}
-@media (max-width: 900px) {
-  .inv-grid {
-    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-  }
 }
 .inv-slot {
   border-radius: 6px;
@@ -716,6 +711,7 @@ button {
   background: rgba(255, 255, 255, 0.02);
   box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.4);
   min-height: 70px;
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: center;
