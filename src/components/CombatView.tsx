@@ -1,5 +1,7 @@
+import { useRef, useEffect, useState } from 'react';
 import { useGameState } from '../hooks/useGameState';
 import StatBar from './StatBar';
+import AttackBar from './AttackBar';
 import { getZone } from '../data/zones';
 import type { DamagePopup } from '../types';
 import { calculateActualDps, calculateTheoreticalPlayerDps, calculateTheoreticalMobDps } from '../systems/dps';
@@ -23,6 +25,26 @@ export default function CombatView() {
   const playerHitClass = getHitClass(combat.damagePopups, 'player');
   const mobHitClass = getHitClass(combat.damagePopups, 'mob');
 
+  // Portrait flash on attack fire
+  const prevPlayerProg = useRef(combat.playerAttackProgress);
+  const prevMobProg = useRef(combat.mobAttackProgress);
+  const [playerFireKey, setPlayerFireKey] = useState(0);
+  const [mobFireKey, setMobFireKey] = useState(0);
+
+  useEffect(() => {
+    if (prevPlayerProg.current > 0.7 && combat.playerAttackProgress < 0.2) {
+      setMobFireKey(k => k + 1); // player attacks mob -> flash mob portrait
+    }
+    prevPlayerProg.current = combat.playerAttackProgress;
+  }, [combat.playerAttackProgress]);
+
+  useEffect(() => {
+    if (prevMobProg.current > 0.7 && combat.mobAttackProgress < 0.2) {
+      setPlayerFireKey(k => k + 1); // mob attacks player -> flash player portrait
+    }
+    prevMobProg.current = combat.mobAttackProgress;
+  }, [combat.mobAttackProgress]);
+
   return (
     <div className="combat-view">
       <div className="zone-header">
@@ -35,6 +57,7 @@ export default function CombatView() {
         <div className={`combatant player-side ${combat.isPlayerDead ? 'anim-dead' : ''}`}>
           <div className={`combatant-portrait player-portrait ${playerHitClass}`}>
             <img src="/portraits/hero.svg" alt="Hero" className="portrait-img" />
+            {playerFireKey > 0 && <div key={playerFireKey} className="portrait-flash-overlay" />}
             {combat.damagePopups
               .filter(p => p.target === 'player')
               .map(p => (
@@ -51,12 +74,10 @@ export default function CombatView() {
             label="HP"
           />
           <div className="attack-bar-container">
-            <StatBar
-              current={combat.playerAttackProgress}
-              max={1}
+            <AttackBar
+              progress={combat.playerAttackProgress}
               color="#4af"
               height={10}
-              showText={false}
             />
           </div>
           <div className="dps-display">
@@ -77,6 +98,7 @@ export default function CombatView() {
                 ) : (
                   <span className="portrait-emoji">{mob.def.isBoss ? '💀' : '👾'}</span>
                 )}
+                {mobFireKey > 0 && <div key={mobFireKey} className="portrait-flash-overlay" />}
                 {combat.damagePopups
                   .filter(p => p.target === 'mob')
                   .map(p => (
@@ -96,12 +118,10 @@ export default function CombatView() {
                 label="HP"
               />
               <div className="attack-bar-container">
-                <StatBar
-                  current={combat.mobAttackProgress}
-                  max={1}
+                <AttackBar
+                  progress={combat.mobAttackProgress}
                   color="#f84"
                   height={10}
-                  showText={false}
                 />
               </div>
               <div className="dps-display">
