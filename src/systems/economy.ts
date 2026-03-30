@@ -56,8 +56,28 @@ export function unequipItem(state: GameState, slot: Item['slot']): boolean {
   return true;
 }
 
+export function bulkSell(state: GameState, itemIds: string[]): void {
+  const idSet = new Set(itemIds);
+  state.inventory = state.inventory.filter(item => {
+    if (!idSet.has(item.id) || item.locked) return true;
+    state.gold += item.sellValue;
+    state.totalGoldEarned += item.sellValue;
+    return false;
+  });
+}
+
+export function bulkSalvage(state: GameState, itemIds: string[]): void {
+  const idSet = new Set(itemIds);
+  state.inventory = state.inventory.filter(item => {
+    if (!idSet.has(item.id) || item.locked) return true;
+    state.materials[item.salvageResult.material] += item.salvageResult.amount;
+    return false;
+  });
+}
+
 export function enchantItem(state: GameState, itemId: string): boolean {
-  const item = state.inventory.find(i => i.id === itemId);
+  let item: Item | undefined = state.inventory.find(i => i.id === itemId)
+    ?? Object.values(state.equipment).find(i => i?.id === itemId) as Item | undefined;
   if (!item) return false;
 
   const rarityIdx = RARITY_ORDER.indexOf(item.rarity);

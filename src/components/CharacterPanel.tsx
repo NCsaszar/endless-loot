@@ -1,21 +1,11 @@
 import { useState } from 'react';
 import { useGameState } from '../hooks/useGameState';
 import type { EquipSlot } from '../types';
+import { SLOT_LABELS } from '../types';
 import StatBar from './StatBar';
 import ItemCard from './ItemCard';
 import Tooltip from './Tooltip';
 import EquipSlotPopover from './EquipSlotPopover';
-
-const SLOT_LABELS: Record<EquipSlot, string> = {
-  weapon: 'Weapon',
-  offhand: 'Offhand',
-  helmet: 'Helmet',
-  chest: 'Chest',
-  legs: 'Legs',
-  boots: 'Boots',
-  ring: 'Ring',
-  amulet: 'Amulet',
-};
 
 const LEFT_SLOTS: EquipSlot[] = ['helmet', 'chest', 'legs', 'boots'];
 const RIGHT_SLOTS: EquipSlot[] = ['weapon', 'offhand', 'ring', 'amulet'];

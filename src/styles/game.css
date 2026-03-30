@@ -695,18 +695,54 @@ button {
   margin-bottom: 4px;
 }
 
-.inv-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 6px;
-  max-height: 400px;
+.inv-grid-wrapper {
+  max-height: 500px;
   overflow-y: auto;
   padding: 4px;
+}
+.inv-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 4px;
+}
+@media (max-width: 900px) {
+  .inv-grid {
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  }
+}
+.inv-slot {
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.4);
+  min-height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.inv-slot.empty {
+  opacity: 0.35;
+  border-style: dashed;
+}
+.inv-slot.filled {
+  padding: 0;
+  border-color: transparent;
+  background: none;
+  box-shadow: none;
+}
+.inv-slot.filled .item-card.grid {
+  width: 100%;
+  height: 100%;
+  min-height: 70px;
+  margin: 0;
+  border-radius: 6px;
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.25);
 }
 .inv-empty {
   text-align: center;
   color: var(--text-dim);
   padding: 20px;
+  grid-column: 1 / -1;
 }
 
 /* Training Panel */
@@ -1028,8 +1064,8 @@ button {
   box-shadow: inset 0 0 0 1px rgba(255, 193, 7, 0.3);
 }
 
-/* Bulk Sell */
-.btn-bulk-sell {
+/* Bulk Actions */
+.btn-bulk-action {
   background: var(--bg-card);
   border: 1px solid var(--border);
   color: var(--text);
@@ -1038,7 +1074,9 @@ button {
   font-size: 11px;
   cursor: pointer;
 }
-.btn-bulk-sell:hover { background: var(--bg-hover); border-color: var(--gold); color: var(--gold); }
+.btn-bulk-action.btn-bulk-sell:hover { background: var(--bg-hover); border-color: var(--gold); color: var(--gold); }
+.btn-bulk-action.btn-bulk-salvage { border-color: var(--purple); color: var(--purple); }
+.btn-bulk-action.btn-bulk-salvage:hover { background: rgba(170, 10, 255, 0.15); }
 .sell-below-group {
   display: inline-flex;
   align-items: center;
@@ -1054,23 +1092,23 @@ button {
   font-size: 11px;
   text-align: center;
 }
-.bulk-sell-modal {
+.bulk-action-modal {
   max-width: 420px;
   width: 95%;
 }
-.bulk-sell-modal h2 {
+.bulk-action-modal h2 {
   font-size: 16px;
-  color: var(--gold);
+  color: var(--text-bright);
   margin-bottom: 8px;
 }
-.bulk-sell-list {
+.bulk-action-list {
   max-height: 300px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
-.bulk-sell-row {
+.bulk-action-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1080,16 +1118,35 @@ button {
   font-size: 12px;
   gap: 8px;
 }
-.bulk-sell-name { flex: 1; font-weight: 600; }
-.bulk-sell-info { color: var(--text-dim); }
-.bulk-sell-gold { color: var(--gold); font-weight: 600; }
-.bulk-sell-total {
+.bulk-action-name { flex: 1; font-weight: 600; }
+.bulk-action-info { color: var(--text-dim); }
+.bulk-action-gold { color: var(--gold); font-weight: 600; }
+.bulk-action-material { color: var(--purple); font-weight: 600; font-size: 11px; }
+.bulk-action-total {
   font-size: 16px;
   font-weight: 700;
   color: var(--gold);
   text-align: center;
   padding: 12px 0;
 }
+.bulk-action-material-totals {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  color: var(--purple);
+  font-size: 14px;
+}
+.btn-salvage {
+  background: rgba(170, 10, 255, 0.1);
+  border: 1px solid var(--purple);
+  color: var(--purple);
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-salvage:hover { background: rgba(170, 10, 255, 0.25); }
 
 /* Upgrade Indicators */
 .upgrade-indicator {
@@ -1290,18 +1347,106 @@ button {
 .enchant-materials span { color: var(--text-dim); }
 .enchant-materials strong { color: var(--text-bright); }
 
+/* Equipped Items Section */
+.enchant-equipped-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px;
+}
+.enchant-equipped-section h3 {
+  color: var(--text-bright);
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+.enchant-equipped-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+@media (max-width: 700px) {
+  .enchant-equipped-grid { grid-template-columns: repeat(2, 1fr); }
+}
+.enchant-equip-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 6px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  min-height: 80px;
+  text-align: center;
+}
+.enchant-equip-slot.has-item:hover { background: var(--bg-hover); }
+.enchant-equip-slot.selected { box-shadow: 0 0 8px rgba(255, 255, 255, 0.2); }
+.enchant-equip-slot:not(.has-item) { cursor: default; opacity: 0.5; }
+.enchant-slot-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.enchant-slot-name {
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.enchant-slot-level {
+  font-size: 10px;
+  color: var(--text-dim);
+}
+.enchant-slot-max {
+  font-size: 10px;
+  color: var(--orange);
+  font-weight: 600;
+}
+.enchant-empty-slot {
+  font-size: 11px;
+  color: var(--text-dim);
+  opacity: 0.5;
+}
+.enchant-quick-btn {
+  background: rgba(170, 10, 255, 0.1);
+  border: 1px solid var(--purple);
+  color: var(--purple);
+  padding: 3px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.enchant-quick-btn:hover:not(:disabled) { background: rgba(170, 10, 255, 0.25); }
+.enchant-quick-btn:disabled { opacity: 0.3; cursor: default; }
+
+/* Inventory Items in Enchant */
+.enchant-inv-header {
+  color: var(--text-bright);
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+.enchant-inv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 6px;
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 4px;
+}
+
 .enchant-layout {
   display: flex;
   gap: 16px;
 }
 .enchant-grid {
   flex: 1;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 6px;
-  max-height: 400px;
-  overflow-y: auto;
-  padding: 4px;
 }
 
 .enchant-detail {

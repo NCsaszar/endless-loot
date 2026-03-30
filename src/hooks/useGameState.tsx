@@ -3,7 +3,7 @@ import type { GameState, DerivedStats, Item, ActivePanel, Rarity } from '../type
 import { getTotalPrimaryStats, calculateDerivedStats } from '../data/formulas';
 import { tick } from '../systems/gameLoop';
 import { saveGame, loadGame, createDefaultState, calculateOfflineProgress } from '../systems/save';
-import { sellItem, salvageItem, trainStat, equipItem, unequipItem, enchantItem } from '../systems/economy';
+import { sellItem, salvageItem, trainStat, equipItem, unequipItem, enchantItem, bulkSell, bulkSalvage } from '../systems/economy';
 import { allocateStat, changeZone } from '../systems/progression';
 import { generateItem } from '../systems/loot';
 import type { OfflineProgress } from '../systems/save';
@@ -24,6 +24,7 @@ interface GameContextValue {
   doToggleAutoSell: (rarity: Rarity) => void;
   doToggleLock: (itemId: string) => void;
   doBulkSell: (itemIds: string[]) => void;
+  doBulkSalvage: (itemIds: string[]) => void;
   doEnchantItem: (itemId: string) => boolean;
   offlineProgress: OfflineProgress | null;
   dismissOfflineProgress: () => void;
@@ -165,21 +166,18 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const doBulkSell = useCallback((itemIds: string[]) => {
-    const s = stateRef.current;
-    for (const id of itemIds) {
-      const idx = s.inventory.findIndex(i => i.id === id);
-      if (idx === -1) continue;
-      const item = s.inventory[idx];
-      if (item.locked) continue;
-      s.gold += item.sellValue;
-      s.totalGoldEarned += item.sellValue;
-      s.inventory.splice(idx, 1);
-    }
+    bulkSell(stateRef.current, itemIds);
+  }, []);
+
+  const doBulkSalvage = useCallback((itemIds: string[]) => {
+    bulkSalvage(stateRef.current, itemIds);
   }, []);
 
   const doEnchantItem = useCallback((itemId: string) => {
-    return enchantItem(stateRef.current, itemId);
-  }, []);
+    const result = enchantItem(stateRef.current, itemId);
+    if (result) recalcDerived();
+    return result;
+  }, [recalcDerived]);
 
   const dismissOfflineProgress = useCallback(() => {
     setOfflineProgress(null);
@@ -201,6 +199,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     doToggleAutoSell,
     doToggleLock,
     doBulkSell,
+    doBulkSalvage,
     doEnchantItem,
     offlineProgress,
     dismissOfflineProgress,

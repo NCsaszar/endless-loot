@@ -30,6 +30,8 @@ export type Rarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 
 export const RARITY_ORDER: Rarity[] = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
 
+export type BulkActionMode = 'sell' | 'salvage';
+
 export const RARITY_COLORS: Record<Rarity, string> = {
   common: '#CCCCCC',
   uncommon: '#00CC00',
@@ -53,6 +55,17 @@ export type EquipSlot =
 export const ALL_EQUIP_SLOTS: EquipSlot[] = [
   'weapon', 'offhand', 'helmet', 'chest', 'legs', 'boots', 'ring', 'amulet',
 ];
+
+export const SLOT_LABELS: Record<EquipSlot, string> = {
+  weapon: 'Weapon',
+  offhand: 'Offhand',
+  helmet: 'Helmet',
+  chest: 'Chest',
+  legs: 'Legs',
+  boots: 'Boots',
+  ring: 'Ring',
+  amulet: 'Amulet',
+};
 
 // --- Bonus Stat Types ---
 

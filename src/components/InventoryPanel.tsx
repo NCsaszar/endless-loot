@@ -1,40 +1,40 @@
 import { useState, useMemo } from 'react';
 import { useGameState } from '../hooks/useGameState';
-import type { EquipSlot, Rarity, Item } from '../types';
-import { RARITY_ORDER, RARITY_COLORS } from '../types';
+import type { EquipSlot, Rarity, Item, BulkActionMode } from '../types';
+import { RARITY_ORDER, RARITY_COLORS, ALL_EQUIP_SLOTS, SLOT_LABELS } from '../types';
 import { getTotalPrimaryStats, calculateDerivedStats } from '../data/formulas';
 import { computeItemDpsDelta } from '../systems/dps';
 import ItemCard from './ItemCard';
 import ComparisonModal from './ComparisonModal';
-import BulkSellConfirmModal from './BulkSellConfirmModal';
+import BulkActionConfirmModal from './BulkActionConfirmModal';
 
 type SortBy = 'rarity' | 'level' | 'slot' | 'value';
 
 export default function InventoryPanel() {
-  const { state, derived, doSellItem, doSalvageItem, doEquipItem, doToggleAutoSell, doToggleLock, doBulkSell } = useGameState();
+  const { state, derived, doSellItem, doSalvageItem, doEquipItem, doToggleAutoSell, doToggleLock, doBulkSell, doBulkSalvage } = useGameState();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortBy>('rarity');
   const [filterSlot, setFilterSlot] = useState<EquipSlot | 'all'>('all');
   const [filterRarity, setFilterRarity] = useState<Rarity | 'all'>('all');
-  const [bulkSellItems, setBulkSellItems] = useState<Item[] | null>(null);
+  const [bulkAction, setBulkAction] = useState<{ items: Item[]; mode: BulkActionMode } | null>(null);
   const [sellBelowLevel, setSellBelowLevel] = useState(5);
 
-  let items = [...state.inventory];
-
-  // Filter
-  if (filterSlot !== 'all') items = items.filter(i => i.slot === filterSlot);
-  if (filterRarity !== 'all') {
-    const minIdx = RARITY_ORDER.indexOf(filterRarity);
-    items = items.filter(i => RARITY_ORDER.indexOf(i.rarity) >= minIdx);
-  }
-
-  // Sort
-  items.sort((a, b) => {
-    if (sortBy === 'rarity') return RARITY_ORDER.indexOf(b.rarity) - RARITY_ORDER.indexOf(a.rarity);
-    if (sortBy === 'level') return b.itemLevel - a.itemLevel;
-    if (sortBy === 'slot') return a.slot.localeCompare(b.slot);
-    return b.sellValue - a.sellValue;
-  });
+  // Filter for display (uses >= for rarity)
+  const items = useMemo(() => {
+    let result = [...state.inventory];
+    if (filterSlot !== 'all') result = result.filter(i => i.slot === filterSlot);
+    if (filterRarity !== 'all') {
+      const minIdx = RARITY_ORDER.indexOf(filterRarity);
+      result = result.filter(i => RARITY_ORDER.indexOf(i.rarity) >= minIdx);
+    }
+    result.sort((a, b) => {
+      if (sortBy === 'rarity') return RARITY_ORDER.indexOf(b.rarity) - RARITY_ORDER.indexOf(a.rarity);
+      if (sortBy === 'level') return b.itemLevel - a.itemLevel;
+      if (sortBy === 'slot') return a.slot.localeCompare(b.slot);
+      return b.sellValue - a.sellValue;
+    });
+    return result;
+  }, [state.inventory, filterSlot, filterRarity, sortBy]);
 
   // Compute upgrade status for each item
   const upgradeMap = useMemo(() => {
@@ -65,10 +65,13 @@ export default function InventoryPanel() {
   const handleEquip = () => {
     if (selected) { doEquipItem(selected); setSelectedId(null); }
   };
-  const handleSellAll = (rarity: Rarity) => {
-    const toSell = state.inventory.filter(i => i.rarity === rarity && !i.locked);
-    toSell.forEach(i => doSellItem(i.id));
-    setSelectedId(null);
+
+  // Get items matching current filters for bulk actions (exact rarity match, not >= like display)
+  const handleBulkAction = (mode: BulkActionMode) => {
+    let result = state.inventory.filter(i => !i.locked);
+    if (filterSlot !== 'all') result = result.filter(i => i.slot === filterSlot);
+    if (filterRarity !== 'all') result = result.filter(i => i.rarity === filterRarity);
+    if (result.length > 0) setBulkAction({ items: result, mode });
   };
 
   const handleSellNonUpgrades = () => {
@@ -77,7 +80,7 @@ export default function InventoryPanel() {
       const delta = upgradeMap.get(item.id) ?? 0;
       return delta <= 0.02;
     });
-    if (toSell.length > 0) setBulkSellItems(toSell);
+    if (toSell.length > 0) setBulkAction({ items: toSell, mode: 'sell' });
   };
 
   const handleSellBelowLevel = () => {
@@ -85,16 +88,19 @@ export default function InventoryPanel() {
       if (item.locked) return false;
       return item.itemLevel < sellBelowLevel;
     });
-    if (toSell.length > 0) setBulkSellItems(toSell);
+    if (toSell.length > 0) setBulkAction({ items: toSell, mode: 'sell' });
   };
 
-  const confirmBulkSell = () => {
-    if (bulkSellItems) {
-      doBulkSell(bulkSellItems.map(i => i.id));
-      setBulkSellItems(null);
-      setSelectedId(null);
-    }
+  const confirmBulkAction = () => {
+    if (!bulkAction) return;
+    const ids = bulkAction.items.map(i => i.id);
+    if (bulkAction.mode === 'sell') doBulkSell(ids);
+    else doBulkSalvage(ids);
+    setBulkAction(null);
+    setSelectedId(null);
   };
+
+  const emptySlotCount = Math.max(0, 60 - items.length);
 
   return (
     <div className="inventory-panel">
@@ -115,8 +121,8 @@ export default function InventoryPanel() {
         <div className="inv-filter">
           <select value={filterSlot} onChange={e => setFilterSlot(e.target.value as EquipSlot | 'all')}>
             <option value="all">All Slots</option>
-            {(['weapon', 'offhand', 'helmet', 'chest', 'legs', 'boots', 'ring', 'amulet'] as EquipSlot[]).map(s => (
-              <option key={s} value={s}>{s}</option>
+            {ALL_EQUIP_SLOTS.map(s => (
+              <option key={s} value={s}>{SLOT_LABELS[s]}</option>
             ))}
           </select>
           <select value={filterRarity} onChange={e => setFilterRarity(e.target.value as Rarity | 'all')}>
@@ -129,19 +135,17 @@ export default function InventoryPanel() {
       </div>
 
       <div className="inv-actions">
-        <span className="sell-all-group">
-          Sell all:
-          {(['common', 'uncommon'] as Rarity[]).map(r => (
-            <button key={r} onClick={() => handleSellAll(r)} style={{ color: RARITY_COLORS[r] }}>
-              {r}
-            </button>
-          ))}
-        </span>
-        <button className="btn-bulk-sell" onClick={handleSellNonUpgrades}>
+        <button className="btn-bulk-action btn-bulk-sell" onClick={() => handleBulkAction('sell')}>
+          Sell Filtered
+        </button>
+        <button className="btn-bulk-action btn-bulk-salvage" onClick={() => handleBulkAction('salvage')}>
+          Salvage Filtered
+        </button>
+        <button className="btn-bulk-action btn-bulk-sell" onClick={handleSellNonUpgrades}>
           Sell Non-Upgrades
         </button>
         <span className="sell-below-group">
-          <button className="btn-bulk-sell" onClick={handleSellBelowLevel}>
+          <button className="btn-bulk-action btn-bulk-sell" onClick={handleSellBelowLevel}>
             Sell Below Lv.
           </button>
           <input
@@ -171,19 +175,24 @@ export default function InventoryPanel() {
         ))}
       </div>
 
-      <div className="inv-grid">
-        {items.map(item => (
-          <ItemCard
-            key={item.id}
-            item={item}
-            grid
-            selected={item.id === selectedId}
-            upgradePct={upgradeMap.get(item.id) ?? 0}
-            onToggleLock={() => doToggleLock(item.id)}
-            onClick={() => setSelectedId(item.id === selectedId ? null : item.id)}
-          />
-        ))}
-        {items.length === 0 && <div className="inv-empty">No items</div>}
+      <div className="inv-grid-wrapper">
+        <div className="inv-grid">
+          {items.map(item => (
+            <div key={item.id} className="inv-slot filled">
+              <ItemCard
+                item={item}
+                grid
+                selected={item.id === selectedId}
+                upgradePct={upgradeMap.get(item.id) ?? 0}
+                onToggleLock={() => doToggleLock(item.id)}
+                onClick={() => setSelectedId(item.id === selectedId ? null : item.id)}
+              />
+            </div>
+          ))}
+          {Array.from({ length: emptySlotCount }, (_, i) => (
+            <div key={`empty-${i}`} className="inv-slot empty" />
+          ))}
+        </div>
       </div>
 
       {selected && (
@@ -199,11 +208,12 @@ export default function InventoryPanel() {
         />
       )}
 
-      {bulkSellItems && (
-        <BulkSellConfirmModal
-          items={bulkSellItems}
-          onConfirm={confirmBulkSell}
-          onCancel={() => setBulkSellItems(null)}
+      {bulkAction && (
+        <BulkActionConfirmModal
+          items={bulkAction.items}
+          mode={bulkAction.mode}
+          onConfirm={confirmBulkAction}
+          onCancel={() => setBulkAction(null)}
         />
       )}
     </div>
