@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { useGameState } from '../hooks/useGameState';
 import type { EquipSlot, Rarity } from '../types';
 import { RARITY_ORDER, RARITY_COLORS } from '../types';
+import { getTotalPrimaryStats, calculateDerivedStats } from '../data/formulas';
 import ItemCard from './ItemCard';
+import ComparisonModal from './ComparisonModal';
 
 type SortBy = 'rarity' | 'level' | 'slot' | 'value';
 
 export default function InventoryPanel() {
-  const { state, doSellItem, doSalvageItem, doEquipItem, doToggleAutoSell } = useGameState();
+  const { state, derived, doSellItem, doSalvageItem, doEquipItem, doToggleAutoSell } = useGameState();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortBy>('rarity');
   const [filterSlot, setFilterSlot] = useState<EquipSlot | 'all'>('all');
@@ -31,6 +33,15 @@ export default function InventoryPanel() {
   });
 
   const selected = items.find(i => i.id === selectedId) ?? null;
+
+  // Compute "what-if" derived stats when an item is selected
+  const equipped = selected ? (state.equipment[selected.slot] ?? null) : null;
+  let newDerived = derived;
+  if (selected) {
+    const hypotheticalEquipment = { ...state.equipment, [selected.slot]: selected };
+    const hypotheticalPrimary = getTotalPrimaryStats(state.character, state.trainingLevels, hypotheticalEquipment);
+    newDerived = calculateDerivedStats(hypotheticalPrimary, hypotheticalEquipment);
+  }
 
   const handleSell = () => {
     if (selectedId) { doSellItem(selectedId); setSelectedId(null); }
@@ -80,9 +91,6 @@ export default function InventoryPanel() {
       </div>
 
       <div className="inv-actions">
-        <button disabled={!selected} onClick={handleEquip}>Equip</button>
-        <button disabled={!selected} onClick={handleSell}>Sell</button>
-        <button disabled={!selected} onClick={handleSalvage}>Salvage</button>
         <span className="sell-all-group">
           Sell all:
           {(['common', 'uncommon'] as Rarity[]).map(r => (
@@ -110,30 +118,31 @@ export default function InventoryPanel() {
         ))}
       </div>
 
-      {selected && (
-        <div className="inv-detail">
-          <ItemCard item={selected} />
-          {state.equipment[selected.slot] && (
-            <div className="compare-section">
-              <div className="compare-label">Currently Equipped:</div>
-              <ItemCard item={state.equipment[selected.slot]!} />
-            </div>
-          )}
-        </div>
-      )}
-
-      <div className="inv-list">
+      <div className="inv-grid">
         {items.map(item => (
           <ItemCard
             key={item.id}
             item={item}
-            compact
+            grid
             selected={item.id === selectedId}
             onClick={() => setSelectedId(item.id === selectedId ? null : item.id)}
           />
         ))}
         {items.length === 0 && <div className="inv-empty">No items</div>}
       </div>
+
+      {selected && (
+        <ComparisonModal
+          item={selected}
+          equipped={equipped}
+          currentDerived={derived}
+          newDerived={newDerived}
+          onEquip={handleEquip}
+          onSell={handleSell}
+          onSalvage={handleSalvage}
+          onClose={() => setSelectedId(null)}
+        />
+      )}
     </div>
   );
 }

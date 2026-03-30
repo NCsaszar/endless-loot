@@ -6,10 +6,30 @@ interface ItemCardProps {
   onClick?: () => void;
   selected?: boolean;
   compact?: boolean;
+  grid?: boolean;
 }
 
-export default function ItemCard({ item, onClick, selected, compact }: ItemCardProps) {
+const SLOT_ABBREV: Record<string, string> = {
+  weapon: 'WPN', offhand: 'OFF', helmet: 'HLM', chest: 'CHT',
+  legs: 'LGS', boots: 'BTS', ring: 'RNG', amulet: 'AMU',
+};
+
+export default function ItemCard({ item, onClick, selected, compact, grid }: ItemCardProps) {
   const color = RARITY_COLORS[item.rarity];
+
+  if (grid) {
+    return (
+      <div
+        className={`item-card grid ${selected ? 'selected' : ''}`}
+        style={{ borderColor: color }}
+        onClick={onClick}
+      >
+        <span className="grid-slot" style={{ color }}>{SLOT_ABBREV[item.slot] ?? item.slot}</span>
+        <span className="grid-name" style={{ color }}>{item.name}</span>
+        <span className="grid-level">Lv.{item.itemLevel}</span>
+      </div>
+    );
+  }
 
   if (compact) {
     return (

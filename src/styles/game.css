@@ -574,12 +574,13 @@ button {
   margin-bottom: 4px;
 }
 
-.inv-list {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+.inv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 6px;
   max-height: 400px;
   overflow-y: auto;
+  padding: 4px;
 }
 .inv-empty {
   text-align: center;
@@ -839,6 +840,206 @@ button {
 .combatant.anim-dead {
   animation: death-fade 0.5s ease-out forwards;
 }
+
+/* Item Card Grid Mode */
+.item-card.grid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 6px;
+  background: var(--bg-card);
+  border: 2px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  min-height: 60px;
+  text-align: center;
+  gap: 2px;
+}
+.item-card.grid:hover { background: var(--bg-hover); }
+.item-card.grid.selected {
+  background: var(--bg-hover);
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.15);
+}
+.grid-slot {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+.grid-name {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.grid-level {
+  font-size: 10px;
+  color: var(--text-dim);
+}
+
+/* Comparison Modal */
+.comparison-modal {
+  max-width: 520px;
+  width: 95%;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+.comparison-modal h2 {
+  font-size: 18px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.comparison-slot {
+  font-size: 12px;
+  color: var(--text-dim);
+  font-weight: 400;
+}
+
+.comparison-columns {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.comparison-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.comparison-col-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  letter-spacing: 0.5px;
+}
+.comparison-empty {
+  padding: 16px;
+  text-align: center;
+  color: var(--text-dim);
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+/* Stat Deltas */
+.stat-deltas {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+  padding: 8px;
+  background: var(--bg);
+  border-radius: 6px;
+}
+.stat-delta {
+  display: grid;
+  grid-template-columns: 55px 60px 30px 60px 1fr;
+  align-items: center;
+  font-size: 13px;
+  gap: 4px;
+}
+.delta-label {
+  font-weight: 700;
+  color: var(--text-dim);
+}
+.delta-arrow {
+  text-align: center;
+  color: var(--text-dim);
+}
+.stat-delta .positive { color: var(--green); font-weight: 600; }
+.stat-delta .negative { color: var(--red); font-weight: 600; }
+.stat-delta .neutral { color: var(--text-dim); }
+
+/* DPS Comparison */
+.dps-comparison {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--bg);
+  border-radius: 6px;
+  margin-bottom: 16px;
+}
+.dps-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.dps-row .positive { color: var(--green); }
+.dps-row .negative { color: var(--red); }
+.dps-row .neutral { color: var(--text-dim); }
+
+.dps-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.dps-badge.upgrade {
+  background: rgba(68, 170, 68, 0.2);
+  color: var(--green);
+  border: 1px solid var(--green);
+}
+.dps-badge.downgrade {
+  background: rgba(238, 68, 68, 0.2);
+  color: var(--red);
+  border: 1px solid var(--red);
+}
+.dps-badge.sidegrade {
+  background: rgba(122, 123, 134, 0.2);
+  color: var(--text-dim);
+  border: 1px solid var(--border-light);
+}
+
+/* Comparison Actions */
+.comparison-actions {
+  display: flex;
+  gap: 8px;
+}
+.comparison-actions button {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  transition: background 0.15s;
+}
+.btn-equip {
+  background: rgba(68, 170, 68, 0.2);
+  color: var(--green);
+  border-color: var(--green) !important;
+}
+.btn-equip:hover { background: rgba(68, 170, 68, 0.35); }
+.btn-sell {
+  background: rgba(255, 193, 7, 0.15);
+  color: var(--gold);
+  border-color: var(--gold) !important;
+}
+.btn-sell:hover { background: rgba(255, 193, 7, 0.3); }
+.btn-salvage {
+  background: rgba(170, 10, 255, 0.15);
+  color: var(--purple);
+  border-color: var(--purple) !important;
+}
+.btn-salvage:hover { background: rgba(170, 10, 255, 0.3); }
+.btn-close {
+  background: var(--bg-card);
+  color: var(--text-dim);
+}
+.btn-close:hover { background: var(--bg-hover); }
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
