@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <radialGradient id="gobBg" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#1a2e1a"/>
+      <stop offset="100%" stop-color="#0d0d1a"/>
+    </radialGradient>
+    <linearGradient id="gobSkin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#66aa44"/>
+      <stop offset="100%" stop-color="#336622"/>
+    </linearGradient>
+    <filter id="gobGlow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="fireGlow">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="200" height="200" fill="url(#gobBg)"/>
+  <!-- Torch light effect -->
+  <circle cx="155" cy="80" r="40" fill="#ff8833" opacity="0.08" filter="url(#fireGlow)"/>
+  <!-- Body -->
+  <path d="M70,170 Q65,145 75,130 L80,125 Q85,120 90,125 L90,135 Q95,130 100,130 Q105,130 110,135 L110,125 Q115,120 120,125 L125,130 Q135,145 130,170Z" fill="#445533"/>
+  <!-- Ragged cloth -->
+  <path d="M80,130 Q85,125 100,123 Q115,125 120,130 Q118,155 100,160 Q82,155 80,130Z" fill="#554422"/>
+  <path d="M85,155 L83,170" stroke="#554422" stroke-width="2"/>
+  <path d="M115,155 L117,170" stroke="#554422" stroke-width="2"/>
+  <!-- Head -->
+  <ellipse cx="100" cy="90" rx="30" ry="32" fill="url(#gobSkin)"/>
+  <!-- Big pointed ears -->
+  <path d="M68,90 L40,70 L65,82Z" fill="#55993a"/>
+  <path d="M132,90 L160,70 L135,82Z" fill="#55993a"/>
+  <path d="M66,88 L45,72 L64,83Z" fill="#448830"/>
+  <path d="M134,88 L155,72 L136,83Z" fill="#448830"/>
+  <!-- Brow ridge -->
+  <path d="M75,78 Q100,70 125,78" fill="none" stroke="#336622" stroke-width="3"/>
+  <!-- Eyes - yellow, menacing -->
+  <ellipse cx="88" cy="88" rx="8" ry="6" fill="#111"/>
+  <ellipse cx="112" cy="88" rx="8" ry="6" fill="#111"/>
+  <ellipse cx="89" cy="87" rx="5" ry="4.5" fill="#ffcc00" filter="url(#gobGlow)"/>
+  <ellipse cx="113" cy="87" rx="5" ry="4.5" fill="#ffcc00" filter="url(#gobGlow)"/>
+  <ellipse cx="90" cy="87" rx="2.5" ry="3" fill="#111"/>
+  <ellipse cx="114" cy="87" rx="2.5" ry="3" fill="#111"/>
+  <!-- Big nose -->
+  <ellipse cx="100" cy="98" rx="6" ry="5" fill="#448830"/>
+  <circle cx="96" cy="99" r="2" fill="#336622"/>
+  <circle cx="104" cy="99" r="2" fill="#336622"/>
+  <!-- Mouth with fangs -->
+  <path d="M85,108 Q100,115 115,108" fill="none" stroke="#224411" stroke-width="2"/>
+  <path d="M90,108 L88,115" stroke="#eeddaa" stroke-width="2" stroke-linecap="round"/>
+  <path d="M110,108 L112,115" stroke="#eeddaa" stroke-width="2" stroke-linecap="round"/>
+  <!-- Crude weapon (club/stick) -->
+  <line x1="140" y1="75" x2="155" y2="170" stroke="#665533" stroke-width="5" stroke-linecap="round"/>
+  <ellipse cx="142" cy="78" rx="8" ry="10" fill="#554422"/>
+  <!-- Nails in club -->
+  <line x1="136" y1="73" x2="133" y2="70" stroke="#999" stroke-width="1.5"/>
+  <line x1="146" y1="70" x2="149" y2="66" stroke="#999" stroke-width="1.5"/>
+  <line x1="138" y1="82" x2="134" y2="83" stroke="#999" stroke-width="1.5"/>
+  <!-- Warts -->
+  <circle cx="78" cy="95" r="2" fill="#448830"/>
+  <circle cx="118" cy="93" r="1.5" fill="#448830"/>
+  <!-- Border -->
+  <rect x="2" y="2" width="196" height="196" rx="8" fill="none" stroke="#55993a" stroke-width="1.5" opacity="0.3"/>
+</svg>

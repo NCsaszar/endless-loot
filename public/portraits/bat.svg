@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <radialGradient id="batBg" cx="50%" cy="40%" r="70%">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="100%" stop-color="#08080f"/>
+    </radialGradient>
+    <linearGradient id="wingGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#443355"/>
+      <stop offset="100%" stop-color="#221133"/>
+    </linearGradient>
+    <filter id="batEyeGlow">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="batShadow">
+      <feGaussianBlur stdDeviation="6"/>
+    </filter>
+  </defs>
+  <rect width="200" height="200" fill="url(#batBg)"/>
+  <!-- Cave ceiling texture -->
+  <path d="M0,0 Q20,15 40,5 Q60,18 80,8 Q100,20 120,6 Q140,16 160,4 Q180,14 200,0" fill="#15152a" stroke="#222240" stroke-width="1"/>
+  <path d="M0,10 Q30,25 50,12 Q80,28 110,14 Q140,26 170,10 Q185,22 200,15" fill="#12122a" stroke="none"/>
+  <!-- Wing shadow -->
+  <ellipse cx="100" cy="150" rx="70" ry="15" fill="#000" opacity="0.3" filter="url(#batShadow)"/>
+  <!-- Left wing -->
+  <path d="M95,95 L20,50 L35,80 L10,65 L30,90 L5,85 L35,105 L25,120 L55,110 L50,130 L75,115 L80,135 L95,110Z" fill="url(#wingGrad)" stroke="#553366" stroke-width="0.5"/>
+  <!-- Wing membrane lines left -->
+  <path d="M95,95 L20,55" stroke="#332244" stroke-width="0.8" opacity="0.5"/>
+  <path d="M90,100 L12,70" stroke="#332244" stroke-width="0.8" opacity="0.5"/>
+  <path d="M85,108 L30,95" stroke="#332244" stroke-width="0.8" opacity="0.5"/>
+  <!-- Right wing -->
+  <path d="M105,95 L180,50 L165,80 L190,65 L170,90 L195,85 L165,105 L175,120 L145,110 L150,130 L125,115 L120,135 L105,110Z" fill="url(#wingGrad)" stroke="#553366" stroke-width="0.5"/>
+  <!-- Wing membrane lines right -->
+  <path d="M105,95 L180,55" stroke="#332244" stroke-width="0.8" opacity="0.5"/>
+  <path d="M110,100 L188,70" stroke="#332244" stroke-width="0.8" opacity="0.5"/>
+  <path d="M115,108 L170,95" stroke="#332244" stroke-width="0.8" opacity="0.5"/>
+  <!-- Body -->
+  <ellipse cx="100" cy="110" rx="18" ry="25" fill="#332244"/>
+  <ellipse cx="100" cy="105" rx="15" ry="20" fill="#3a2850"/>
+  <!-- Head -->
+  <ellipse cx="100" cy="82" rx="16" ry="15" fill="#3a2850"/>
+  <!-- Ears -->
+  <path d="M88,72 L82,48 L92,68Z" fill="#3a2850"/>
+  <path d="M112,72 L118,48 L108,68Z" fill="#3a2850"/>
+  <path d="M89,70 L84,52 L93,68Z" fill="#4a3660"/>
+  <path d="M111,70 L116,52 L107,68Z" fill="#4a3660"/>
+  <!-- Eyes - glowing red -->
+  <ellipse cx="93" cy="80" rx="5" ry="4" fill="#cc0000" filter="url(#batEyeGlow)"/>
+  <ellipse cx="107" cy="80" rx="5" ry="4" fill="#cc0000" filter="url(#batEyeGlow)"/>
+  <ellipse cx="93" cy="80" rx="2" ry="3" fill="#ff3333"/>
+  <ellipse cx="107" cy="80" rx="2" ry="3" fill="#ff3333"/>
+  <!-- Nose -->
+  <path d="M97,86 L100,90 L103,86" fill="none" stroke="#221133" stroke-width="1.5"/>
+  <!-- Mouth with fangs -->
+  <path d="M93,92 Q100,96 107,92" fill="none" stroke="#221133" stroke-width="1"/>
+  <line x1="96" y1="92" x2="95" y2="97" stroke="#ddd" stroke-width="1.2" stroke-linecap="round"/>
+  <line x1="104" y1="92" x2="105" y2="97" stroke="#ddd" stroke-width="1.2" stroke-linecap="round"/>
+  <!-- Fur texture on body -->
+  <path d="M85,100 L83,98" stroke="#4a3660" stroke-width="1"/>
+  <path d="M115,100 L117,98" stroke="#4a3660" stroke-width="1"/>
+  <path d="M88,115 L86,117" stroke="#4a3660" stroke-width="1"/>
+  <path d="M112,115 L114,117" stroke="#4a3660" stroke-width="1"/>
+  <!-- Feet/claws -->
+  <path d="M90,132 L88,140 M92,133 L92,141 M94,132 L95,140" stroke="#332244" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M106,132 L105,140 M108,133 L108,141 M110,132 L112,140" stroke="#332244" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Border -->
+  <rect x="2" y="2" width="196" height="196" rx="8" fill="none" stroke="#553366" stroke-width="1.5" opacity="0.3"/>
+</svg>

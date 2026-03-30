@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <radialGradient id="ctBg" cx="50%" cy="40%" r="70%">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="100%" stop-color="#0a0a12"/>
+    </radialGradient>
+    <linearGradient id="ctSkin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#667766"/>
+      <stop offset="100%" stop-color="#334433"/>
+    </linearGradient>
+    <filter id="ctRuneGlow">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="ctEyeGlow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="200" height="200" fill="url(#ctBg)"/>
+  <!-- Cave environment hints -->
+  <path d="M0,190 Q20,175 40,185 Q60,170 80,182 Q100,168 120,180 Q140,172 160,183 Q180,170 200,185 L200,200 L0,200Z" fill="#222235"/>
+  <!-- Massive body -->
+  <path d="M30,200 Q25,160 35,130 Q45,115 65,105 Q80,100 100,98 Q120,100 135,105 Q155,115 165,130 Q175,160 170,200Z" fill="url(#ctSkin)"/>
+  <!-- Rocky texture patches -->
+  <ellipse cx="60" cy="140" rx="12" ry="10" fill="#556655" opacity="0.6"/>
+  <ellipse cx="140" cy="145" rx="10" ry="12" fill="#556655" opacity="0.6"/>
+  <ellipse cx="100" cy="160" rx="15" ry="10" fill="#4a5a4a" opacity="0.5"/>
+  <ellipse cx="75" cy="170" rx="8" ry="6" fill="#445544" opacity="0.5"/>
+  <ellipse cx="130" cy="165" rx="9" ry="7" fill="#445544" opacity="0.5"/>
+  <!-- Massive shoulders -->
+  <ellipse cx="55" cy="108" rx="28" ry="18" fill="#556655"/>
+  <ellipse cx="145" cy="108" rx="28" ry="18" fill="#556655"/>
+  <!-- Rocky shoulder spikes -->
+  <path d="M40,100 L35,82 L48,96Z" fill="#778877"/>
+  <path d="M50,95 L52,78 L58,94Z" fill="#667766"/>
+  <path d="M160,100 L165,82 L152,96Z" fill="#778877"/>
+  <path d="M150,95 L148,78 L142,94Z" fill="#667766"/>
+  <!-- Massive arms -->
+  <path d="M32,115 Q20,140 18,170 Q22,175 28,172 Q30,145 40,125Z" fill="#556655"/>
+  <path d="M168,115 Q180,140 182,170 Q178,175 172,172 Q170,145 160,125Z" fill="#556655"/>
+  <!-- Fists -->
+  <ellipse cx="22" cy="173" rx="10" ry="8" fill="#4a5a4a"/>
+  <ellipse cx="178" cy="173" rx="10" ry="8" fill="#4a5a4a"/>
+  <!-- Head - small relative to body -->
+  <ellipse cx="100" cy="72" rx="28" ry="25" fill="url(#ctSkin)"/>
+  <!-- Heavy brow ridge -->
+  <path d="M72,68 Q86,58 100,60 Q114,58 128,68" fill="#556655" stroke="#445544" stroke-width="1"/>
+  <!-- Small deep-set eyes -->
+  <ellipse cx="88" cy="70" rx="6" ry="5" fill="#111"/>
+  <ellipse cx="112" cy="70" rx="6" ry="5" fill="#111"/>
+  <ellipse cx="88" cy="70" rx="3.5" ry="3" fill="#ffaa00" filter="url(#ctEyeGlow)"/>
+  <ellipse cx="112" cy="70" rx="3.5" ry="3" fill="#ffaa00" filter="url(#ctEyeGlow)"/>
+  <ellipse cx="89" cy="69" rx="1.5" ry="2" fill="#ffdd44"/>
+  <ellipse cx="113" cy="69" rx="1.5" ry="2" fill="#ffdd44"/>
+  <!-- Flat nose -->
+  <ellipse cx="100" cy="78" rx="8" ry="5" fill="#4a5a4a"/>
+  <circle cx="96" cy="79" r="2.5" fill="#3a4a3a"/>
+  <circle cx="104" cy="79" r="2.5" fill="#3a4a3a"/>
+  <!-- Underbite jaw -->
+  <path d="M78,88 Q100,98 122,88 Q118,92 100,95 Q82,92 78,88Z" fill="#4a5a4a"/>
+  <!-- Tusks -->
+  <path d="M84,88 L80,78" stroke="#ccbb88" stroke-width="3" stroke-linecap="round"/>
+  <path d="M116,88 L120,78" stroke="#ccbb88" stroke-width="3" stroke-linecap="round"/>
+  <!-- Glowing runes on body -->
+  <path d="M80,130 L85,120 L90,130 L85,125Z" fill="none" stroke="#44ddff" stroke-width="1.5" filter="url(#ctRuneGlow)"/>
+  <path d="M110,125 L120,120 L118,132 L112,128Z" fill="none" stroke="#44ddff" stroke-width="1.5" filter="url(#ctRuneGlow)"/>
+  <path d="M95,150 L100,142 L105,150" fill="none" stroke="#44ddff" stroke-width="1.5" filter="url(#ctRuneGlow)"/>
+  <line x1="100" y1="142" x2="100" y2="155" stroke="#44ddff" stroke-width="1.5" filter="url(#ctRuneGlow)"/>
+  <!-- Rune on forehead -->
+  <path d="M95,60 L100,52 L105,60 M100,52 L100,64" stroke="#44ddff" stroke-width="1.2" fill="none" filter="url(#ctRuneGlow)"/>
+  <!-- Runes on arms -->
+  <path d="M28,148 L32,140 L36,148" stroke="#44ddff" stroke-width="1" fill="none" filter="url(#ctRuneGlow)"/>
+  <path d="M164,148 L168,140 L172,148" stroke="#44ddff" stroke-width="1" fill="none" filter="url(#ctRuneGlow)"/>
+  <!-- Border - boss gold -->
+  <rect x="2" y="2" width="196" height="196" rx="8" fill="none" stroke="#ccaa44" stroke-width="2" opacity="0.4"/>
+</svg>

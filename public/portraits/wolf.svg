@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <radialGradient id="wolfBg" cx="50%" cy="40%" r="70%">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="100%" stop-color="#0a0a15"/>
+    </radialGradient>
+    <linearGradient id="wolfFur" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#888899"/>
+      <stop offset="50%" stop-color="#555566"/>
+      <stop offset="100%" stop-color="#333344"/>
+    </linearGradient>
+    <filter id="eyeGlow">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="moonGlow">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <radialGradient id="moonGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#eeeeff"/>
+      <stop offset="100%" stop-color="#8888bb"/>
+    </radialGradient>
+  </defs>
+  <rect width="200" height="200" fill="url(#wolfBg)"/>
+  <!-- Moon -->
+  <circle cx="155" cy="35" r="18" fill="url(#moonGrad)" opacity="0.6" filter="url(#moonGlow)"/>
+  <!-- Fog/atmosphere -->
+  <ellipse cx="100" cy="180" rx="100" ry="30" fill="#334" opacity="0.3"/>
+  <!-- Wolf body silhouette -->
+  <path d="M40,170 Q35,140 50,120 L55,105 Q60,95 65,100 L68,108 Q75,90 85,85 Q95,80 100,78 Q110,80 118,88 Q125,95 128,108 L132,100 Q137,95 140,105 L145,120 Q155,135 160,170Z" fill="url(#wolfFur)"/>
+  <!-- Head shape -->
+  <path d="M65,120 Q65,100 75,90 L68,68 Q72,72 80,78 Q90,72 100,70 Q110,72 120,78 Q128,72 132,68 L125,90 Q135,100 135,120 Q130,140 100,145 Q70,140 65,120Z" fill="url(#wolfFur)"/>
+  <!-- Lighter muzzle -->
+  <path d="M80,115 Q85,108 100,106 Q115,108 120,115 Q118,130 100,135 Q82,130 80,115Z" fill="#777788"/>
+  <!-- Snout -->
+  <ellipse cx="100" cy="118" rx="8" ry="5" fill="#222233"/>
+  <!-- Nostrils -->
+  <ellipse cx="96" cy="118" rx="2.5" ry="2" fill="#111"/>
+  <ellipse cx="104" cy="118" rx="2.5" ry="2" fill="#111"/>
+  <!-- Mouth line -->
+  <path d="M92,123 Q100,127 108,123" fill="none" stroke="#333" stroke-width="1"/>
+  <!-- Fangs -->
+  <path d="M92,123 L90,130" stroke="#ddd" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M108,123 L110,130" stroke="#ddd" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Eyes - glowing amber -->
+  <ellipse cx="85" cy="100" rx="7" ry="5" fill="#111"/>
+  <ellipse cx="115" cy="100" rx="7" ry="5" fill="#111"/>
+  <ellipse cx="85" cy="100" rx="5" ry="4" fill="#ffaa22" filter="url(#eyeGlow)"/>
+  <ellipse cx="115" cy="100" rx="5" ry="4" fill="#ffaa22" filter="url(#eyeGlow)"/>
+  <ellipse cx="85" cy="100" rx="2" ry="3.5" fill="#111"/>
+  <ellipse cx="115" cy="100" rx="2" ry="3.5" fill="#111"/>
+  <circle cx="83" cy="98" r="1.5" fill="#ffdd88" opacity="0.7"/>
+  <circle cx="113" cy="98" r="1.5" fill="#ffdd88" opacity="0.7"/>
+  <!-- Ears - inner -->
+  <path d="M70,72 L68,68 L78,80Z" fill="#554455"/>
+  <path d="M130,72 L132,68 L122,80Z" fill="#554455"/>
+  <!-- Fur tufts on cheeks -->
+  <path d="M60,115 L55,120 L62,118Z" fill="#666677"/>
+  <path d="M140,115 L145,120 L138,118Z" fill="#666677"/>
+  <path d="M58,110 L52,112 L60,112Z" fill="#555566"/>
+  <path d="M142,110 L148,112 L140,112Z" fill="#555566"/>
+  <!-- Border -->
+  <rect x="2" y="2" width="196" height="196" rx="8" fill="none" stroke="#555577" stroke-width="1.5" opacity="0.3"/>
+</svg>

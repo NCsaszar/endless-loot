@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <radialGradient id="gcBg" cx="50%" cy="40%" r="70%">
+      <stop offset="0%" stop-color="#2e1a1a"/>
+      <stop offset="100%" stop-color="#0d0d1a"/>
+    </radialGradient>
+    <linearGradient id="gcSkin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#5a9938"/>
+      <stop offset="100%" stop-color="#2d5518"/>
+    </linearGradient>
+    <linearGradient id="gcArmor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#887744"/>
+      <stop offset="50%" stop-color="#665533"/>
+      <stop offset="100%" stop-color="#443322"/>
+    </linearGradient>
+    <linearGradient id="gcCrown" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ccaa44"/>
+      <stop offset="100%" stop-color="#886622"/>
+    </linearGradient>
+    <filter id="gcEyeGlow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="gcGemGlow">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="200" height="200" fill="url(#gcBg)"/>
+  <!-- Atmospheric red tint -->
+  <circle cx="100" cy="100" r="80" fill="#ff3300" opacity="0.04"/>
+  <!-- Armored body -->
+  <path d="M55,170 Q50,145 60,125 Q70,115 85,112 Q95,110 100,110 Q105,110 115,112 Q130,115 140,125 Q150,145 145,170Z" fill="url(#gcArmor)"/>
+  <!-- Shoulder pauldrons -->
+  <ellipse cx="65" cy="120" rx="18" ry="12" fill="#776633"/>
+  <ellipse cx="135" cy="120" rx="18" ry="12" fill="#776633"/>
+  <!-- Spikes on shoulders -->
+  <path d="M55,115 L48,100 L60,112Z" fill="#998844"/>
+  <path d="M145,115 L152,100 L140,112Z" fill="#998844"/>
+  <path d="M50,120 L42,108 L56,118Z" fill="#887733"/>
+  <path d="M150,120 L158,108 L144,118Z" fill="#887733"/>
+  <!-- Chest plate detail -->
+  <path d="M85,120 L100,115 L115,120 L110,145 L90,145Z" fill="#887744" stroke="#aa9955" stroke-width="0.5"/>
+  <!-- Skull emblem on chest -->
+  <circle cx="100" cy="132" r="6" fill="#554433"/>
+  <circle cx="97" cy="130" r="1.5" fill="#221100"/>
+  <circle cx="103" cy="130" r="1.5" fill="#221100"/>
+  <path d="M96,134 L100,136 L104,134" fill="none" stroke="#221100" stroke-width="1"/>
+  <!-- Head - bigger than normal goblin -->
+  <ellipse cx="100" cy="78" rx="35" ry="35" fill="url(#gcSkin)"/>
+  <!-- Big pointed ears -->
+  <path d="M63,82 L30,58 L60,72Z" fill="#4a882e"/>
+  <path d="M137,82 L170,58 L140,72Z" fill="#4a882e"/>
+  <path d="M62,80 L35,60 L60,73Z" fill="#3d7525"/>
+  <path d="M138,80 L165,60 L140,73Z" fill="#3d7525"/>
+  <!-- Ear rings -->
+  <circle cx="42" cy="65" r="3" fill="none" stroke="#ccaa44" stroke-width="1.5"/>
+  <circle cx="158" cy="65" r="3" fill="none" stroke="#ccaa44" stroke-width="1.5"/>
+  <!-- Crown/Helmet -->
+  <path d="M65,72 Q65,50 75,45 L80,38 L85,48 L92,35 L100,48 L108,35 L115,48 L120,38 L125,45 Q135,50 135,72Z" fill="url(#gcCrown)"/>
+  <path d="M65,72 Q100,65 135,72" fill="none" stroke="#aa8833" stroke-width="2"/>
+  <!-- Crown gem -->
+  <circle cx="100" cy="52" r="5" fill="#ff2222" filter="url(#gcGemGlow)"/>
+  <circle cx="100" cy="51" r="2" fill="#ff6666"/>
+  <!-- Scar across face -->
+  <path d="M78,75 L92,95" stroke="#2d5518" stroke-width="2.5" opacity="0.7"/>
+  <path d="M78,75 L92,95" stroke="#448830" stroke-width="1" opacity="0.5"/>
+  <!-- Heavy brow -->
+  <path d="M72,70 Q100,62 128,70" fill="none" stroke="#2d5518" stroke-width="4"/>
+  <!-- Eyes - red, menacing -->
+  <ellipse cx="86" cy="78" rx="8" ry="6" fill="#111"/>
+  <ellipse cx="114" cy="78" rx="8" ry="6" fill="#111"/>
+  <ellipse cx="87" cy="77" rx="5.5" ry="4.5" fill="#ff4422" filter="url(#gcEyeGlow)"/>
+  <ellipse cx="115" cy="77" rx="5.5" ry="4.5" fill="#ff4422" filter="url(#gcEyeGlow)"/>
+  <ellipse cx="88" cy="77" rx="2.5" ry="3" fill="#111"/>
+  <ellipse cx="116" cy="77" rx="2.5" ry="3" fill="#111"/>
+  <!-- Big warty nose -->
+  <ellipse cx="100" cy="88" rx="7" ry="6" fill="#3d7525"/>
+  <circle cx="96" cy="90" r="2.5" fill="#2d5518"/>
+  <circle cx="104" cy="90" r="2.5" fill="#2d5518"/>
+  <circle cx="108" cy="85" r="2" fill="#3d7525"/>
+  <!-- Mouth with big fangs -->
+  <path d="M82,100 Q100,108 118,100" fill="#1a3310" stroke="#1a3310" stroke-width="1"/>
+  <path d="M88,100 L85,110" stroke="#eeddaa" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M112,100 L115,110" stroke="#eeddaa" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M96,105 L95,109" stroke="#ccbb88" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M104,105 L105,109" stroke="#ccbb88" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Border - gold tint for boss -->
+  <rect x="2" y="2" width="196" height="196" rx="8" fill="none" stroke="#ccaa44" stroke-width="2" opacity="0.4"/>
+</svg>

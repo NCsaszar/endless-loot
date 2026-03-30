@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <radialGradient id="wrBg" cx="50%" cy="40%" r="70%">
+      <stop offset="0%" stop-color="#151528"/>
+      <stop offset="100%" stop-color="#08080f"/>
+    </radialGradient>
+    <radialGradient id="wrAura" cx="50%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#6644cc" stop-opacity="0.15"/>
+      <stop offset="50%" stop-color="#4422aa" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="wrBody" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#4433aa" stop-opacity="0.6"/>
+      <stop offset="40%" stop-color="#332288" stop-opacity="0.4"/>
+      <stop offset="100%" stop-color="#221166" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="wrGlow">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="wrEyeGlow">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="wrDistort">
+      <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="2" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="8"/>
+    </filter>
+  </defs>
+  <rect width="200" height="200" fill="url(#wrBg)"/>
+  <!-- Ethereal aura -->
+  <ellipse cx="100" cy="90" rx="80" ry="70" fill="url(#wrAura)"/>
+  <!-- Wispy trail particles -->
+  <circle cx="80" cy="170" r="8" fill="#4433aa" opacity="0.08" filter="url(#wrGlow)"/>
+  <circle cx="120" cy="180" r="6" fill="#5544bb" opacity="0.06" filter="url(#wrGlow)"/>
+  <circle cx="95" cy="185" r="10" fill="#3322aa" opacity="0.05" filter="url(#wrGlow)"/>
+  <circle cx="110" cy="160" r="5" fill="#6655cc" opacity="0.07" filter="url(#wrGlow)"/>
+  <!-- Ghostly flowing body -->
+  <path d="M65,80 Q60,110 55,140 Q52,160 60,185 Q70,195 80,190 Q85,175 82,155 Q88,170 95,192 Q100,195 105,192 Q112,170 118,155 Q115,175 120,190 Q130,195 140,185 Q148,160 145,140 Q140,110 135,80 Q130,70 100,65 Q70,70 65,80Z" fill="url(#wrBody)" filter="url(#wrDistort)"/>
+  <!-- Inner ghostly shape -->
+  <path d="M72,85 Q68,115 65,145 Q68,165 80,175 Q90,155 95,180 Q100,185 105,180 Q110,155 120,175 Q132,165 135,145 Q132,115 128,85 Q120,75 100,72 Q80,75 72,85Z" fill="#4433aa" opacity="0.15"/>
+  <!-- Tattered shroud -->
+  <path d="M68,75 Q65,55 75,45 Q85,38 100,36 Q115,38 125,45 Q135,55 132,75 Q125,68 100,65 Q75,68 68,75Z" fill="#332266" opacity="0.6"/>
+  <!-- Hood shape -->
+  <path d="M70,80 Q68,55 78,44 Q88,36 100,34 Q112,36 122,44 Q132,55 130,80 Q122,72 100,70 Q78,72 70,80Z" fill="#221155" opacity="0.5"/>
+  <!-- Dark face void -->
+  <ellipse cx="100" cy="68" rx="20" ry="18" fill="#0a0a15"/>
+  <!-- Glowing eyes -->
+  <ellipse cx="90" cy="65" rx="6" ry="4" fill="#8866ff" filter="url(#wrEyeGlow)"/>
+  <ellipse cx="110" cy="65" rx="6" ry="4" fill="#8866ff" filter="url(#wrEyeGlow)"/>
+  <ellipse cx="90" cy="65" rx="3" ry="2.5" fill="#bbaaff"/>
+  <ellipse cx="110" cy="65" rx="3" ry="2.5" fill="#bbaaff"/>
+  <!-- Eye trails -->
+  <path d="M85,67 Q78,72 72,80" stroke="#6644cc" stroke-width="1.5" opacity="0.4" fill="none"/>
+  <path d="M115,67 Q122,72 128,80" stroke="#6644cc" stroke-width="1.5" opacity="0.4" fill="none"/>
+  <!-- Mouth - dark void scream -->
+  <ellipse cx="100" cy="76" rx="6" ry="4" fill="#0a0a15"/>
+  <ellipse cx="100" cy="76" rx="4" ry="2.5" fill="#221144" opacity="0.5"/>
+  <!-- Ghostly hands reaching -->
+  <path d="M55,120 Q45,115 38,105 Q36,100 35,95 M38,105 Q34,100 30,98 M38,105 Q36,102 33,103" stroke="#5544aa" stroke-width="1.5" fill="none" opacity="0.4"/>
+  <path d="M145,120 Q155,115 162,105 Q164,100 165,95 M162,105 Q166,100 170,98 M162,105 Q164,102 167,103" stroke="#5544aa" stroke-width="1.5" fill="none" opacity="0.4"/>
+  <!-- Floating particles -->
+  <circle cx="60" cy="60" r="2" fill="#7766dd" opacity="0.3" filter="url(#wrGlow)"/>
+  <circle cx="140" cy="55" r="1.5" fill="#8877ee" opacity="0.25" filter="url(#wrGlow)"/>
+  <circle cx="50" cy="100" r="1.5" fill="#6655cc" opacity="0.2" filter="url(#wrGlow)"/>
+  <circle cx="150" cy="95" r="2" fill="#7766dd" opacity="0.2" filter="url(#wrGlow)"/>
+  <circle cx="75" cy="40" r="1" fill="#9988ff" opacity="0.3"/>
+  <circle cx="130" cy="42" r="1.2" fill="#9988ff" opacity="0.25"/>
+  <!-- Border -->
+  <rect x="2" y="2" width="196" height="196" rx="8" fill="none" stroke="#6644cc" stroke-width="1.5" opacity="0.3"/>
+</svg>

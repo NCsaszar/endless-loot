@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <radialGradient id="banBg" cx="50%" cy="40%" r="70%">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="100%" stop-color="#0a0a12"/>
+    </radialGradient>
+    <linearGradient id="banCloak" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#3a3040"/>
+      <stop offset="100%" stop-color="#1a1520"/>
+    </linearGradient>
+    <filter id="banShadow">
+      <feGaussianBlur stdDeviation="3"/>
+    </filter>
+    <filter id="banBladeGlint">
+      <feGaussianBlur stdDeviation="2" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="200" height="200" fill="url(#banBg)"/>
+  <!-- Fog at bottom -->
+  <ellipse cx="100" cy="195" rx="100" ry="20" fill="#222233" opacity="0.4"/>
+  <!-- Cloak body -->
+  <path d="M50,200 Q45,160 55,120 Q60,110 75,105 L80,102 Q90,98 100,97 Q110,98 120,102 L125,105 Q140,110 145,120 Q155,160 150,200Z" fill="url(#banCloak)"/>
+  <!-- Cloak folds -->
+  <path d="M65,130 Q68,155 62,190" stroke="#2a2030" stroke-width="1.5" fill="none"/>
+  <path d="M135,130 Q132,155 138,190" stroke="#2a2030" stroke-width="1.5" fill="none"/>
+  <path d="M90,120 Q88,150 92,190" stroke="#2a2030" stroke-width="1" fill="none" opacity="0.5"/>
+  <!-- Belt -->
+  <path d="M65,145 Q100,140 135,145" fill="none" stroke="#665533" stroke-width="3"/>
+  <rect x="95" y="141" width="10" height="8" rx="1" fill="#887744"/>
+  <!-- Hood -->
+  <path d="M55,105 Q50,70 65,50 Q80,35 100,32 Q120,35 135,50 Q150,70 145,105 Q130,95 100,92 Q70,95 55,105Z" fill="#332838"/>
+  <!-- Hood shadow inside -->
+  <path d="M65,100 Q65,65 80,52 Q90,45 100,44 Q110,45 120,52 Q135,65 135,100 Q120,90 100,88 Q80,90 65,100Z" fill="#1a1520"/>
+  <!-- Face in shadow -->
+  <ellipse cx="100" cy="78" rx="22" ry="24" fill="#886655"/>
+  <!-- Face shadow from hood -->
+  <path d="M78,60 Q100,50 122,60 Q120,68 100,65 Q80,68 78,60Z" fill="#1a1520" opacity="0.7"/>
+  <!-- Eyes - cold and calculating -->
+  <ellipse cx="90" cy="73" rx="5" ry="3" fill="#111"/>
+  <ellipse cx="110" cy="73" rx="5" ry="3" fill="#111"/>
+  <ellipse cx="91" cy="73" rx="3" ry="2.5" fill="#889988"/>
+  <ellipse cx="111" cy="73" rx="3" ry="2.5" fill="#889988"/>
+  <ellipse cx="91" cy="73" rx="1.5" ry="2" fill="#111"/>
+  <ellipse cx="111" cy="73" rx="1.5" ry="2" fill="#111"/>
+  <!-- Scar across right eye -->
+  <path d="M104,65 L115,80" stroke="#aa7766" stroke-width="2" opacity="0.7"/>
+  <path d="M104,65 L115,80" stroke="#cc9988" stroke-width="0.8" opacity="0.5"/>
+  <!-- Nose -->
+  <path d="M98,77 L100,83 L102,80" fill="none" stroke="#775544" stroke-width="1"/>
+  <!-- Mouth - thin, grim -->
+  <path d="M92,88 Q100,90 108,88" fill="none" stroke="#664433" stroke-width="1.5"/>
+  <!-- Stubble dots -->
+  <g fill="#664433" opacity="0.4">
+    <circle cx="90" cy="90" r="0.5"/>
+    <circle cx="93" cy="92" r="0.5"/>
+    <circle cx="96" cy="91" r="0.5"/>
+    <circle cx="104" cy="91" r="0.5"/>
+    <circle cx="107" cy="92" r="0.5"/>
+    <circle cx="110" cy="90" r="0.5"/>
+  </g>
+  <!-- Dagger in hand -->
+  <g transform="rotate(-15, 145, 140)">
+    <!-- Blade -->
+    <path d="M150,120 L155,95 L152,93 L147,118Z" fill="#aabbcc" filter="url(#banBladeGlint)"/>
+    <!-- Blade edge highlight -->
+    <line x1="154" y1="96" x2="150" y2="119" stroke="#ddeeff" stroke-width="0.5" opacity="0.6"/>
+    <!-- Handle -->
+    <rect x="147" y="120" width="6" height="15" rx="1" fill="#553322"/>
+    <!-- Crossguard -->
+    <rect x="144" y="118" width="12" height="3" rx="1" fill="#665533"/>
+  </g>
+  <!-- Arm holding dagger -->
+  <path d="M130,115 Q140,125 145,135" stroke="url(#banCloak)" stroke-width="8" fill="none" stroke-linecap="round"/>
+  <!-- Border -->
+  <rect x="2" y="2" width="196" height="196" rx="8" fill="none" stroke="#554455" stroke-width="1.5" opacity="0.3"/>
+</svg>

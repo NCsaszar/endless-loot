@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <radialGradient id="slimeBg" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#1a2e1a"/>
+      <stop offset="100%" stop-color="#0d0d1a"/>
+    </radialGradient>
+    <radialGradient id="slimeBody" cx="45%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#7fff7f" stop-opacity="0.9"/>
+      <stop offset="40%" stop-color="#33cc33" stop-opacity="0.7"/>
+      <stop offset="100%" stop-color="#116611" stop-opacity="0.5"/>
+    </radialGradient>
+    <radialGradient id="slimeCore" cx="50%" cy="45%" r="30%">
+      <stop offset="0%" stop-color="#aaffaa" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#33cc33" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="slimeGlow">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="slimeInnerGlow">
+      <feGaussianBlur stdDeviation="10" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="200" height="200" fill="url(#slimeBg)"/>
+  <!-- Ground shadow -->
+  <ellipse cx="100" cy="165" rx="55" ry="10" fill="#000" opacity="0.5"/>
+  <!-- Slime body outer glow -->
+  <ellipse cx="100" cy="120" rx="52" ry="45" fill="#33cc33" opacity="0.15" filter="url(#slimeGlow)"/>
+  <!-- Main slime body -->
+  <path d="M50,140 Q45,100 60,80 Q70,60 100,55 Q130,60 140,80 Q155,100 150,140 Q145,160 100,162 Q55,160 50,140Z" fill="url(#slimeBody)" filter="url(#slimeGlow)"/>
+  <!-- Inner glow core -->
+  <ellipse cx="95" cy="105" rx="25" ry="22" fill="url(#slimeCore)" filter="url(#slimeInnerGlow)"/>
+  <!-- Highlight bubble -->
+  <ellipse cx="82" cy="90" rx="10" ry="8" fill="#aaffaa" opacity="0.4"/>
+  <ellipse cx="78" cy="87" rx="5" ry="4" fill="#ccffcc" opacity="0.6"/>
+  <!-- Small bubbles inside -->
+  <circle cx="110" cy="115" r="4" fill="#88ff88" opacity="0.3"/>
+  <circle cx="90" cy="125" r="3" fill="#88ff88" opacity="0.25"/>
+  <circle cx="105" cy="98" r="2.5" fill="#aaffaa" opacity="0.35"/>
+  <!-- Eyes -->
+  <ellipse cx="85" cy="105" rx="6" ry="7" fill="#111" opacity="0.7"/>
+  <ellipse cx="112" cy="105" rx="6" ry="7" fill="#111" opacity="0.7"/>
+  <ellipse cx="86" cy="103" rx="3" ry="3.5" fill="#eeffee" opacity="0.9"/>
+  <ellipse cx="113" cy="103" rx="3" ry="3.5" fill="#eeffee" opacity="0.9"/>
+  <!-- Drip -->
+  <path d="M65,145 Q63,155 66,162 Q68,155 65,145Z" fill="#33cc33" opacity="0.4"/>
+  <!-- Floor reflection -->
+  <ellipse cx="100" cy="170" rx="40" ry="5" fill="#33cc33" opacity="0.1" filter="url(#slimeGlow)"/>
+  <!-- Border -->
+  <rect x="2" y="2" width="196" height="196" rx="8" fill="none" stroke="#33cc33" stroke-width="1.5" opacity="0.3"/>
+</svg>

@@ -19,7 +19,7 @@ export default function CombatView() {
         {/* Player side */}
         <div className="combatant player-side">
           <div className="combatant-portrait player-portrait">
-            <span className="portrait-emoji">&#x2694;</span>
+            <img src="/portraits/hero.svg" alt="Hero" className="portrait-img" />
           </div>
           <div className="combatant-name">{character.name} Lv.{character.level}</div>
           <StatBar
@@ -46,7 +46,11 @@ export default function CombatView() {
           {mob ? (
             <>
               <div className={`combatant-portrait mob-portrait ${mob.def.isBoss ? 'boss' : ''}`}>
-                <span className="portrait-emoji">{mob.def.isBoss ? '&#x1F480;' : '&#x1F47E;'}</span>
+                {mob.def.portrait ? (
+                  <img src={mob.def.portrait} alt={mob.def.name} className="portrait-img" />
+                ) : (
+                  <span className="portrait-emoji">{mob.def.isBoss ? '💀' : '👾'}</span>
+                )}
               </div>
               <div className="combatant-name">
                 {mob.def.isBoss && <span className="boss-tag">BOSS </span>}

@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <radialGradient id="fcBg" cx="50%" cy="40%" r="70%">
+      <stop offset="0%" stop-color="#2e1a1a"/>
+      <stop offset="100%" stop-color="#0a0808"/>
+    </radialGradient>
+    <linearGradient id="fcArmor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#445"/>
+      <stop offset="40%" stop-color="#223"/>
+      <stop offset="100%" stop-color="#112"/>
+    </linearGradient>
+    <linearGradient id="fcSword" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ccc"/>
+      <stop offset="50%" stop-color="#889"/>
+      <stop offset="100%" stop-color="#667"/>
+    </linearGradient>
+    <filter id="fcRedGlow">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="fcFaintGlow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="fcAuraGlow">
+      <feGaussianBlur stdDeviation="8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="200" height="200" fill="url(#fcBg)"/>
+  <!-- Red aura -->
+  <circle cx="100" cy="90" r="70" fill="#ff2200" opacity="0.04" filter="url(#fcAuraGlow)"/>
+  <circle cx="100" cy="100" r="50" fill="#ff0000" opacity="0.03" filter="url(#fcAuraGlow)"/>
+  <!-- Great sword behind (blade going up-right) -->
+  <path d="M135,180 L145,170 L165,20 L160,15 L155,18 L140,168Z" fill="url(#fcSword)" opacity="0.9"/>
+  <line x1="162" y1="18" x2="158" y2="30" stroke="#dde" stroke-width="0.5" opacity="0.4"/>
+  <!-- Sword crossguard -->
+  <rect x="130" y="168" width="25" height="5" rx="2" fill="#887744" transform="rotate(-5, 142, 170)"/>
+  <!-- Sword runes -->
+  <line x1="157" y1="60" x2="159" y2="50" stroke="#ff3322" stroke-width="1" filter="url(#fcFaintGlow)"/>
+  <line x1="156" y1="80" x2="158" y2="70" stroke="#ff3322" stroke-width="1" filter="url(#fcFaintGlow)"/>
+  <line x1="155" y1="100" x2="157" y2="90" stroke="#ff3322" stroke-width="1" filter="url(#fcFaintGlow)"/>
+  <line x1="153" y1="130" x2="155" y2="120" stroke="#ff3322" stroke-width="1" filter="url(#fcFaintGlow)"/>
+  <!-- Massive shoulder armor -->
+  <path d="M25,125 Q30,98 50,90 Q65,86 80,90 L80,118 Q55,122 35,130Z" fill="url(#fcArmor)" stroke="#556" stroke-width="0.5"/>
+  <path d="M170,125 Q165,98 148,90 Q133,86 120,90 L120,118 Q140,122 160,130Z" fill="url(#fcArmor)" stroke="#556" stroke-width="0.5"/>
+  <!-- Shoulder spikes with red tips -->
+  <path d="M35,100 L22,70 L45,95Z" fill="#445"/>
+  <circle cx="23" cy="71" r="3" fill="#ff2200" opacity="0.5" filter="url(#fcRedGlow)"/>
+  <path d="M160,100 L173,70 L150,95Z" fill="#445"/>
+  <circle cx="172" cy="71" r="3" fill="#ff2200" opacity="0.5" filter="url(#fcRedGlow)"/>
+  <path d="M42,92 L35,68 L50,90Z" fill="#334"/>
+  <path d="M155,92 L162,68 L148,90Z" fill="#334"/>
+  <!-- Chest armor -->
+  <path d="M65,100 Q70,90 100,87 Q130,90 135,100 Q140,145 135,200 L65,200 Q60,145 65,100Z" fill="url(#fcArmor)" stroke="#445" stroke-width="0.5"/>
+  <!-- Chest plate details -->
+  <line x1="100" y1="90" x2="100" y2="200" stroke="#334" stroke-width="1.5"/>
+  <path d="M78,108 L100,100 L122,108" fill="none" stroke="#556" stroke-width="1"/>
+  <path d="M80,118 L100,112 L120,118" fill="none" stroke="#445" stroke-width="0.8"/>
+  <!-- Skull emblem on chest glowing red -->
+  <circle cx="100" cy="135" r="14" fill="#1a1118" stroke="#ff3322" stroke-width="1" filter="url(#fcFaintGlow)"/>
+  <ellipse cx="94" cy="132" rx="3" ry="3.5" fill="#ff2200" filter="url(#fcRedGlow)"/>
+  <ellipse cx="106" cy="132" rx="3" ry="3.5" fill="#ff2200" filter="url(#fcRedGlow)"/>
+  <path d="M93,140 L100,143 L107,140" fill="none" stroke="#ff2200" stroke-width="1" opacity="0.6"/>
+  <!-- Gorget -->
+  <path d="M72,92 Q100,85 128,92 Q125,98 100,96 Q75,98 72,92Z" fill="#445"/>
+  <!-- Helmet - undead commander style -->
+  <path d="M65,85 Q65,42 100,30 Q135,42 135,85 Q128,92 100,94 Q72,92 65,85Z" fill="#334"/>
+  <!-- Helmet face plate -->
+  <path d="M72,60 Q100,55 128,60 L128,88 Q100,92 72,88Z" fill="#1a1118"/>
+  <!-- Helmet center ridge -->
+  <path d="M100,30 L100,94" stroke="#556" stroke-width="2.5"/>
+  <!-- Crown-like helmet top -->
+  <path d="M70,50 L65,30 L78,45Z" fill="#445"/>
+  <path d="M85,40 L82,22 L92,38Z" fill="#445"/>
+  <path d="M100,35 L100,18 L105,35Z" fill="#556"/>
+  <path d="M115,40 L118,22 L108,38Z" fill="#445"/>
+  <path d="M130,50 L135,30 L122,45Z" fill="#445"/>
+  <!-- Glowing red eyes -->
+  <ellipse cx="88" cy="72" rx="7" ry="4" fill="#ff1100" filter="url(#fcRedGlow)"/>
+  <ellipse cx="112" cy="72" rx="7" ry="4" fill="#ff1100" filter="url(#fcRedGlow)"/>
+  <ellipse cx="88" cy="72" rx="4" ry="2.5" fill="#ff5544"/>
+  <ellipse cx="112" cy="72" rx="4" ry="2.5" fill="#ff5544"/>
+  <!-- Eye trails -->
+  <path d="M82,74 Q75,78 70,80" stroke="#ff2200" stroke-width="1" opacity="0.3" fill="none"/>
+  <path d="M118,74 Q125,78 130,80" stroke="#ff2200" stroke-width="1" opacity="0.3" fill="none"/>
+  <!-- Jaw area - exposed bone -->
+  <path d="M82,82 Q100,88 118,82 Q115,86 100,88 Q85,86 82,82Z" fill="#887766" opacity="0.6"/>
+  <!-- Visor lines -->
+  <line x1="72" y1="80" x2="128" y2="80" stroke="#223" stroke-width="0.5"/>
+  <line x1="73" y1="84" x2="127" y2="84" stroke="#223" stroke-width="0.5"/>
+  <!-- Red mist particles -->
+  <circle cx="70" cy="50" r="2" fill="#ff2200" opacity="0.15" filter="url(#fcRedGlow)"/>
+  <circle cx="135" cy="45" r="2.5" fill="#ff2200" opacity="0.12" filter="url(#fcRedGlow)"/>
+  <circle cx="55" cy="80" r="1.5" fill="#ff3300" opacity="0.1" filter="url(#fcRedGlow)"/>
+  <circle cx="148" cy="85" r="1.8" fill="#ff3300" opacity="0.1" filter="url(#fcRedGlow)"/>
+  <!-- Border - epic gold boss -->
+  <rect x="2" y="2" width="196" height="196" rx="8" fill="none" stroke="#cc8800" stroke-width="2.5" opacity="0.5"/>
+  <!-- Corner accents -->
+  <path d="M2,20 L2,2 L20,2" fill="none" stroke="#cc8800" stroke-width="2" opacity="0.6"/>
+  <path d="M180,2 L198,2 L198,20" fill="none" stroke="#cc8800" stroke-width="2" opacity="0.6"/>
+  <path d="M2,180 L2,198 L20,198" fill="none" stroke="#cc8800" stroke-width="2" opacity="0.6"/>
+  <path d="M180,198 L198,198 L198,180" fill="none" stroke="#cc8800" stroke-width="2" opacity="0.6"/>
+</svg>

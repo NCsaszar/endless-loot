@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <radialGradient id="spBg" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#1a1520"/>
+      <stop offset="100%" stop-color="#0a0810"/>
+    </radialGradient>
+    <radialGradient id="spBody" cx="45%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#443355"/>
+      <stop offset="100%" stop-color="#1a1122"/>
+    </radialGradient>
+    <filter id="spEyeGlow">
+      <feGaussianBlur stdDeviation="2.5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="spWebGlow">
+      <feGaussianBlur stdDeviation="1" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="200" height="200" fill="url(#spBg)"/>
+  <!-- Web in background -->
+  <g opacity="0.15" filter="url(#spWebGlow)">
+    <line x1="0" y1="0" x2="200" y2="200" stroke="#aaa" stroke-width="0.5"/>
+    <line x1="200" y1="0" x2="0" y2="200" stroke="#aaa" stroke-width="0.5"/>
+    <line x1="100" y1="0" x2="100" y2="200" stroke="#aaa" stroke-width="0.5"/>
+    <line x1="0" y1="100" x2="200" y2="100" stroke="#aaa" stroke-width="0.5"/>
+    <circle cx="100" cy="100" r="30" fill="none" stroke="#aaa" stroke-width="0.5"/>
+    <circle cx="100" cy="100" r="55" fill="none" stroke="#aaa" stroke-width="0.5"/>
+    <circle cx="100" cy="100" r="80" fill="none" stroke="#aaa" stroke-width="0.5"/>
+  </g>
+  <!-- Legs - back pair -->
+  <path d="M75,105 Q40,80 15,50 Q20,60 25,75" stroke="#221133" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M125,105 Q160,80 185,50 Q180,60 175,75" stroke="#221133" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- Legs - mid back -->
+  <path d="M72,110 Q35,100 10,90 Q18,98 22,110" stroke="#2a1540" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M128,110 Q165,100 190,90 Q182,98 178,110" stroke="#2a1540" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- Legs - mid front -->
+  <path d="M70,115 Q35,120 10,135 Q20,128 28,132" stroke="#332244" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M130,115 Q165,120 190,135 Q180,128 172,132" stroke="#332244" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- Legs - front pair -->
+  <path d="M75,120 Q45,140 20,170 Q28,160 32,158" stroke="#3a2850" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M125,120 Q155,140 180,170 Q172,160 168,158" stroke="#3a2850" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- Abdomen -->
+  <ellipse cx="100" cy="130" rx="30" ry="28" fill="url(#spBody)"/>
+  <!-- Abdomen markings -->
+  <path d="M90,118 L100,110 L110,118" fill="none" stroke="#664488" stroke-width="1.5"/>
+  <path d="M88,126 L100,118 L112,126" fill="none" stroke="#553377" stroke-width="1.5"/>
+  <path d="M90,134 L100,126 L110,134" fill="none" stroke="#442266" stroke-width="1"/>
+  <!-- Cephalothorax -->
+  <ellipse cx="100" cy="95" rx="22" ry="20" fill="#332244"/>
+  <ellipse cx="100" cy="92" rx="19" ry="17" fill="#3a2850"/>
+  <!-- Eyes - 8 eyes, multiple glowing -->
+  <!-- Main eyes -->
+  <circle cx="93" cy="86" r="4.5" fill="#111"/>
+  <circle cx="107" cy="86" r="4.5" fill="#111"/>
+  <circle cx="93" cy="86" r="3" fill="#ff3344" filter="url(#spEyeGlow)"/>
+  <circle cx="107" cy="86" r="3" fill="#ff3344" filter="url(#spEyeGlow)"/>
+  <circle cx="92" cy="85" r="1.2" fill="#ff8899"/>
+  <circle cx="106" cy="85" r="1.2" fill="#ff8899"/>
+  <!-- Secondary eyes -->
+  <circle cx="86" cy="82" r="2.5" fill="#cc2233" filter="url(#spEyeGlow)"/>
+  <circle cx="114" cy="82" r="2.5" fill="#cc2233" filter="url(#spEyeGlow)"/>
+  <!-- Small upper eyes -->
+  <circle cx="90" cy="78" r="1.8" fill="#aa1122" filter="url(#spEyeGlow)"/>
+  <circle cx="110" cy="78" r="1.8" fill="#aa1122" filter="url(#spEyeGlow)"/>
+  <!-- Tiny top eyes -->
+  <circle cx="95" cy="76" r="1.2" fill="#881122" filter="url(#spEyeGlow)"/>
+  <circle cx="105" cy="76" r="1.2" fill="#881122" filter="url(#spEyeGlow)"/>
+  <!-- Fangs / chelicerae -->
+  <path d="M95,95 Q93,100 90,108" stroke="#776688" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M105,95 Q107,100 110,108" stroke="#776688" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <!-- Fang tips -->
+  <circle cx="89" cy="109" r="1.5" fill="#aa8899"/>
+  <circle cx="111" cy="109" r="1.5" fill="#aa8899"/>
+  <!-- Dripping venom -->
+  <path d="M89,111 Q88,116 89,120" stroke="#66ff66" stroke-width="1" opacity="0.5"/>
+  <circle cx="89" cy="121" r="1.5" fill="#66ff66" opacity="0.4"/>
+  <!-- Carapace shine -->
+  <ellipse cx="95" cy="90" rx="6" ry="4" fill="#554466" opacity="0.3"/>
+  <!-- Border -->
+  <rect x="2" y="2" width="196" height="196" rx="8" fill="none" stroke="#553366" stroke-width="1.5" opacity="0.3"/>
+</svg>

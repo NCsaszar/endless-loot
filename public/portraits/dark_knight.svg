@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <radialGradient id="dkBg" cx="50%" cy="40%" r="70%">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="100%" stop-color="#08080f"/>
+    </radialGradient>
+    <linearGradient id="dkArmor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#445"/>
+      <stop offset="40%" stop-color="#334"/>
+      <stop offset="100%" stop-color="#112"/>
+    </linearGradient>
+    <linearGradient id="dkHelmet" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#556"/>
+      <stop offset="100%" stop-color="#223"/>
+    </linearGradient>
+    <filter id="dkVisorGlow">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="dkShine">
+      <feGaussianBlur stdDeviation="1.5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="200" height="200" fill="url(#dkBg)"/>
+  <!-- Dark ambient -->
+  <circle cx="100" cy="80" r="50" fill="#8833ff" opacity="0.03"/>
+  <!-- Shoulder armor -->
+  <path d="M30,120 Q35,100 55,95 Q70,92 80,95 L80,115 Q60,118 40,125Z" fill="url(#dkArmor)" stroke="#556" stroke-width="0.5"/>
+  <path d="M170,120 Q165,100 145,95 Q130,92 120,95 L120,115 Q140,118 160,125Z" fill="url(#dkArmor)" stroke="#556" stroke-width="0.5"/>
+  <!-- Shoulder spikes -->
+  <path d="M40,105 L30,80 L50,100Z" fill="#445"/>
+  <path d="M160,105 L170,80 L150,100Z" fill="#445"/>
+  <path d="M48,98 L42,78 L55,96Z" fill="#334"/>
+  <path d="M152,98 L158,78 L145,96Z" fill="#334"/>
+  <!-- Chest plate -->
+  <path d="M65,105 Q70,95 100,92 Q130,95 135,105 Q140,140 135,190 L65,190 Q60,140 65,105Z" fill="url(#dkArmor)" stroke="#445" stroke-width="0.5"/>
+  <!-- Chest plate center line -->
+  <line x1="100" y1="95" x2="100" y2="190" stroke="#334" stroke-width="1.5"/>
+  <!-- Chest plate details -->
+  <path d="M80,110 L100,105 L120,110" fill="none" stroke="#556" stroke-width="0.8"/>
+  <path d="M82,120 L100,115 L118,120" fill="none" stroke="#445" stroke-width="0.8"/>
+  <!-- Dark emblem on chest -->
+  <circle cx="100" cy="135" r="12" fill="#223" stroke="#556" stroke-width="1"/>
+  <path d="M94,130 L100,122 L106,130 M100,122 L100,142 M94,138 L106,138" stroke="#8844aa" stroke-width="1.2" fill="none" filter="url(#dkShine)"/>
+  <!-- Gorget / neck armor -->
+  <path d="M75,95 Q100,88 125,95 Q122,102 100,100 Q78,102 75,95Z" fill="#445"/>
+  <!-- Helmet -->
+  <path d="M68,88 Q68,45 100,35 Q132,45 132,88 Q125,95 100,97 Q75,95 68,88Z" fill="url(#dkHelmet)"/>
+  <!-- Helmet center ridge -->
+  <path d="M100,35 L100,97" stroke="#667" stroke-width="2"/>
+  <!-- Helmet face plate -->
+  <path d="M75,65 Q100,60 125,65 L125,90 Q100,95 75,90Z" fill="#223"/>
+  <!-- Visor slit - glowing -->
+  <path d="M80,75 Q100,70 120,75 Q100,72 80,75Z" fill="#ff2244" filter="url(#dkVisorGlow)"/>
+  <path d="M82,75 Q100,71 118,75" fill="none" stroke="#ff4466" stroke-width="2" filter="url(#dkVisorGlow)"/>
+  <!-- Visor detail lines -->
+  <line x1="75" y1="82" x2="125" y2="82" stroke="#334" stroke-width="0.5"/>
+  <line x1="76" y1="86" x2="124" y2="86" stroke="#334" stroke-width="0.5"/>
+  <!-- Breathing holes -->
+  <g fill="#112">
+    <circle cx="92" cy="87" r="1.2"/>
+    <circle cx="96" cy="87" r="1.2"/>
+    <circle cx="100" cy="87" r="1.2"/>
+    <circle cx="104" cy="87" r="1.2"/>
+    <circle cx="108" cy="87" r="1.2"/>
+  </g>
+  <!-- Helmet crown horns -->
+  <path d="M72,55 L62,32 L78,50Z" fill="#445"/>
+  <path d="M128,55 L138,32 L122,50Z" fill="#445"/>
+  <!-- Armor shine highlights -->
+  <path d="M75,100 Q78,110 76,125" stroke="#667" stroke-width="0.5" opacity="0.4"/>
+  <path d="M125,100 Q122,110 124,125" stroke="#667" stroke-width="0.5" opacity="0.4"/>
+  <!-- Border -->
+  <rect x="2" y="2" width="196" height="196" rx="8" fill="none" stroke="#8844aa" stroke-width="1.5" opacity="0.3"/>
+</svg>

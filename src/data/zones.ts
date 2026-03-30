@@ -12,6 +12,7 @@ const slime: MobDef = {
   baseDef: 1,
   baseXp: 10,
   baseGold: 5,
+  portrait: '/portraits/slime.svg',
 };
 
 const wolf: MobDef = {
@@ -23,6 +24,7 @@ const wolf: MobDef = {
   baseDef: 2,
   baseXp: 12,
   baseGold: 6,
+  portrait: '/portraits/wolf.svg',
 };
 
 const goblin: MobDef = {
@@ -34,6 +36,7 @@ const goblin: MobDef = {
   baseDef: 3,
   baseXp: 14,
   baseGold: 8,
+  portrait: '/portraits/goblin.svg',
 };
 
 const goblinChief: MobDef = {
@@ -45,6 +48,7 @@ const goblinChief: MobDef = {
   baseDef: 5,
   baseXp: 50,
   baseGold: 30,
+  portrait: '/portraits/goblin_chief.svg',
 };
 
 // Zone 2: Dusty Caverns
@@ -57,6 +61,7 @@ const bat: MobDef = {
   baseDef: 3,
   baseXp: 18,
   baseGold: 10,
+  portrait: '/portraits/bat.svg',
 };
 
 const skeleton: MobDef = {
@@ -68,6 +73,7 @@ const skeleton: MobDef = {
   baseDef: 6,
   baseXp: 22,
   baseGold: 12,
+  portrait: '/portraits/skeleton.svg',
 };
 
 const spider: MobDef = {
@@ -79,6 +85,7 @@ const spider: MobDef = {
   baseDef: 4,
   baseXp: 20,
   baseGold: 11,
+  portrait: '/portraits/spider.svg',
 };
 
 const caveTroll: MobDef = {
@@ -90,6 +97,7 @@ const caveTroll: MobDef = {
   baseDef: 10,
   baseXp: 100,
   baseGold: 60,
+  portrait: '/portraits/cave_troll.svg',
 };
 
 // Zone 3: Ruined Fortress
@@ -102,6 +110,7 @@ const bandit: MobDef = {
   baseDef: 8,
   baseXp: 30,
   baseGold: 16,
+  portrait: '/portraits/bandit.svg',
 };
 
 const darkKnight: MobDef = {
@@ -113,6 +122,7 @@ const darkKnight: MobDef = {
   baseDef: 12,
   baseXp: 38,
   baseGold: 20,
+  portrait: '/portraits/dark_knight.svg',
 };
 
 const wraith: MobDef = {
@@ -124,6 +134,7 @@ const wraith: MobDef = {
   baseDef: 5,
   baseXp: 35,
   baseGold: 18,
+  portrait: '/portraits/wraith.svg',
 };
 
 const fallenCommander: MobDef = {
@@ -135,6 +146,7 @@ const fallenCommander: MobDef = {
   baseDef: 18,
   baseXp: 200,
   baseGold: 120,
+  portrait: '/portraits/fallen_commander.svg',
 };
 
 // --- Zone Definitions ---

@@ -1,0 +1,135 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <radialGradient id="heroBg" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="100%" stop-color="#0a0a12"/>
+    </radialGradient>
+    <radialGradient id="heroAura" cx="50%" cy="60%" r="50%">
+      <stop offset="0%" stop-color="#ffcc44" stop-opacity="0.12"/>
+      <stop offset="60%" stop-color="#ffaa22" stop-opacity="0.04"/>
+      <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="heroArmor" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#667788"/>
+      <stop offset="50%" stop-color="#556677"/>
+      <stop offset="100%" stop-color="#334455"/>
+    </linearGradient>
+    <linearGradient id="heroSword" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#ccddef"/>
+      <stop offset="50%" stop-color="#eef0ff"/>
+      <stop offset="100%" stop-color="#99aabb"/>
+    </linearGradient>
+    <linearGradient id="heroCloak" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#224488"/>
+      <stop offset="100%" stop-color="#112244"/>
+    </linearGradient>
+    <filter id="heroGoldGlow">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="heroSwordGlow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="heroShine">
+      <feGaussianBlur stdDeviation="1.5" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="200" height="200" fill="url(#heroBg)"/>
+  <!-- Golden aura -->
+  <ellipse cx="100" cy="100" rx="85" ry="80" fill="url(#heroAura)"/>
+  <!-- Light rays from behind -->
+  <g opacity="0.06">
+    <path d="M100,60 L90,0 L110,0Z" fill="#ffcc44"/>
+    <path d="M80,70 L40,0 L60,0Z" fill="#ffcc44"/>
+    <path d="M120,70 L140,0 L160,0Z" fill="#ffcc44"/>
+    <path d="M65,85 L0,30 L0,50Z" fill="#ffcc44"/>
+    <path d="M135,85 L200,30 L200,50Z" fill="#ffcc44"/>
+  </g>
+  <!-- Cloak -->
+  <path d="M55,110 Q48,145 42,200 L70,200 Q65,160 68,130Z" fill="url(#heroCloak)"/>
+  <path d="M145,110 Q152,145 158,200 L130,200 Q135,160 132,130Z" fill="url(#heroCloak)"/>
+  <!-- Cloak inner -->
+  <path d="M62,115 Q56,150 50,200 L65,200 Q63,155 65,125Z" fill="#1a3366" opacity="0.5"/>
+  <path d="M138,115 Q144,150 150,200 L135,200 Q137,155 135,125Z" fill="#1a3366" opacity="0.5"/>
+  <!-- Body / armor -->
+  <path d="M65,105 Q70,95 100,92 Q130,95 135,105 Q140,140 138,200 L62,200 Q60,140 65,105Z" fill="url(#heroArmor)"/>
+  <!-- Shoulder armor -->
+  <path d="M45,115 Q48,98 60,93 Q72,90 82,93 L82,112 Q65,115 50,120Z" fill="#778899" stroke="#8899aa" stroke-width="0.5"/>
+  <path d="M155,115 Q152,98 140,93 Q128,90 118,93 L118,112 Q135,115 150,120Z" fill="#778899" stroke="#8899aa" stroke-width="0.5"/>
+  <!-- Chest detail -->
+  <line x1="100" y1="95" x2="100" y2="170" stroke="#556677" stroke-width="1"/>
+  <path d="M80,108 L100,102 L120,108" fill="none" stroke="#8899aa" stroke-width="0.8"/>
+  <path d="M82,116 L100,110 L118,116" fill="none" stroke="#778899" stroke-width="0.8"/>
+  <!-- Belt -->
+  <path d="M68,148 Q100,143 132,148" fill="none" stroke="#aa8844" stroke-width="3"/>
+  <rect x="95" y="144" width="10" height="8" rx="1" fill="#cc9944"/>
+  <!-- Gorget -->
+  <path d="M75,93 Q100,86 125,93 Q122,100 100,98 Q78,100 75,93Z" fill="#8899aa"/>
+  <!-- Head -->
+  <ellipse cx="100" cy="68" rx="20" ry="23" fill="#997766"/>
+  <!-- Hair -->
+  <path d="M80,55 Q80,40 90,35 Q100,32 110,35 Q120,40 120,55 Q115,48 100,45 Q85,48 80,55Z" fill="#443322"/>
+  <path d="M78,60 Q78,48 82,42" stroke="#443322" stroke-width="3" fill="none"/>
+  <path d="M122,60 Q122,48 118,42" stroke="#443322" stroke-width="3" fill="none"/>
+  <!-- Eyes - determined -->
+  <ellipse cx="92" cy="66" rx="4" ry="3" fill="#111"/>
+  <ellipse cx="108" cy="66" rx="4" ry="3" fill="#111"/>
+  <ellipse cx="92" cy="66" rx="2.5" ry="2.5" fill="#4488cc"/>
+  <ellipse cx="108" cy="66" rx="2.5" ry="2.5" fill="#4488cc"/>
+  <ellipse cx="92" cy="66" rx="1.2" ry="1.5" fill="#111"/>
+  <ellipse cx="108" cy="66" rx="1.2" ry="1.5" fill="#111"/>
+  <circle cx="91" cy="65" r="0.8" fill="#88bbee" opacity="0.7"/>
+  <circle cx="107" cy="65" r="0.8" fill="#88bbee" opacity="0.7"/>
+  <!-- Eyebrows -->
+  <path d="M85,62 Q92,59 98,62" fill="none" stroke="#443322" stroke-width="1.5"/>
+  <path d="M102,62 Q108,59 115,62" fill="none" stroke="#443322" stroke-width="1.5"/>
+  <!-- Nose -->
+  <path d="M99,68 L100,74 L103,72" fill="none" stroke="#886655" stroke-width="1"/>
+  <!-- Mouth -->
+  <path d="M94,78 Q100,80 106,78" fill="none" stroke="#775544" stroke-width="1.2"/>
+  <!-- Jaw line -->
+  <path d="M80,72 Q82,85 100,90 Q118,85 120,72" fill="none" stroke="#886655" stroke-width="0.5" opacity="0.3"/>
+  <!-- Sword held on right side -->
+  <g transform="rotate(15, 45, 100)">
+    <!-- Blade -->
+    <rect x="28" y="15" width="6" height="85" rx="2" fill="url(#heroSword)" filter="url(#heroSwordGlow)"/>
+    <!-- Blade tip -->
+    <path d="M28,15 L31,5 L34,15Z" fill="#ddeeff" filter="url(#heroSwordGlow)"/>
+    <!-- Blade edge glow -->
+    <line x1="31" y1="10" x2="31" y2="95" stroke="#ffffff" stroke-width="0.5" opacity="0.4"/>
+    <!-- Crossguard -->
+    <rect x="22" y="98" width="18" height="4" rx="2" fill="#ccaa44" filter="url(#heroShine)"/>
+    <!-- Gem in crossguard -->
+    <circle cx="31" cy="100" r="2.5" fill="#4488ff" filter="url(#heroShine)"/>
+    <!-- Handle -->
+    <rect x="28" y="102" width="6" height="18" rx="1" fill="#664422"/>
+    <!-- Handle wrap -->
+    <line x1="28" y1="106" x2="34" y2="104" stroke="#885533" stroke-width="1"/>
+    <line x1="28" y1="110" x2="34" y2="108" stroke="#885533" stroke-width="1"/>
+    <line x1="28" y1="114" x2="34" y2="112" stroke="#885533" stroke-width="1"/>
+    <!-- Pommel -->
+    <circle cx="31" cy="122" r="4" fill="#ccaa44"/>
+  </g>
+  <!-- Golden particles -->
+  <circle cx="45" cy="55" r="1.5" fill="#ffcc44" opacity="0.5" filter="url(#heroGoldGlow)"/>
+  <circle cx="160" cy="60" r="1.2" fill="#ffcc44" opacity="0.4" filter="url(#heroGoldGlow)"/>
+  <circle cx="35" cy="90" r="1" fill="#ffdd66" opacity="0.3" filter="url(#heroGoldGlow)"/>
+  <circle cx="165" cy="100" r="1.3" fill="#ffdd66" opacity="0.35" filter="url(#heroGoldGlow)"/>
+  <circle cx="50" cy="140" r="1" fill="#ffcc44" opacity="0.25"/>
+  <circle cx="155" cy="135" r="1.2" fill="#ffcc44" opacity="0.2"/>
+  <!-- Border - heroic gold -->
+  <rect x="2" y="2" width="196" height="196" rx="8" fill="none" stroke="#ccaa44" stroke-width="2" opacity="0.5"/>
+</svg>
