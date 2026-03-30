@@ -196,11 +196,37 @@ button {
   justify-content: center;
   font-size: 28px;
   border: 2px solid var(--border-light);
+  position: relative;
+  overflow: visible;
 }
 .player-portrait { background: #1a2a1a; border-color: var(--green); }
 .mob-portrait { background: #2a1a1a; border-color: var(--red); }
 .mob-portrait.boss { border-color: var(--orange); box-shadow: 0 0 12px rgba(255, 136, 0, 0.3); }
 .portrait-img { width: 100%; height: 100%; object-fit: cover; border-radius: 6px; }
+
+/* Floating damage popups */
+@keyframes popup-float {
+  0% { opacity: 1; transform: translateY(0) scale(1); }
+  50% { opacity: 1; transform: translateY(-20px) scale(1.1); }
+  100% { opacity: 0; transform: translateY(-40px) scale(0.8); }
+}
+.damage-popup {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-weight: 800;
+  font-size: 16px;
+  pointer-events: none;
+  animation: popup-float 0.8s ease-out forwards;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+  z-index: 10;
+  white-space: nowrap;
+}
+.damage-popup.damage { color: #ff4444; }
+.damage-popup.dodge { color: #88ccff; font-size: 13px; font-style: italic; }
+.damage-popup.heal { color: #44ff44; }
+.damage-popup.crit { color: #ffcc00; font-size: 22px; }
 .combatant-name {
   font-size: 13px;
   font-weight: 600;

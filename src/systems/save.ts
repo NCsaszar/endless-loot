@@ -30,6 +30,7 @@ export function createDefaultState(): GameState {
       mobAttackProgress: 0,
       killCount: 0,
       isPlayerDead: false,
+      damagePopups: [],
     },
     combatLog: [],
     totalKills: 0,
@@ -66,6 +67,7 @@ export function loadGame(): GameState | null {
     parsed.combat.currentMob = null;
     parsed.combat.playerAttackProgress = 0;
     parsed.combat.mobAttackProgress = 0;
+    parsed.combat.damagePopups = [];
     parsed.combatLog = [];
     return parsed;
   } catch {

@@ -5,6 +5,10 @@ import { shouldDropLoot, generateItem, generateBossLoot } from './loot';
 import { addLog } from './combat';
 
 export function tick(state: GameState, derived: DerivedStats, dt: number): void {
+  // Clean up expired damage popups (800ms lifetime)
+  const now = Date.now();
+  state.combat.damagePopups = state.combat.damagePopups.filter(p => now - p.timestamp < 800);
+
   if (state.combat.isPlayerDead) {
     handlePlayerDeath(state, derived);
     return;

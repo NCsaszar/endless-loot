@@ -126,6 +126,17 @@ export interface ZoneDef {
   unlockCost: number; // gold cost to unlock (0 for zone 1)
 }
 
+// --- Damage Popup ---
+
+export interface DamagePopup {
+  id: number;
+  amount: number;
+  isCrit: boolean;
+  target: 'mob' | 'player';
+  type: 'damage' | 'dodge' | 'heal';
+  timestamp: number;
+}
+
 // --- Combat State ---
 
 export interface CombatState {
@@ -134,6 +145,7 @@ export interface CombatState {
   mobAttackProgress: number; // 0 to 1
   killCount: number;
   isPlayerDead: boolean;
+  damagePopups: DamagePopup[];
 }
 
 // --- Combat Log Entry ---

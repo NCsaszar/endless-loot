@@ -1,8 +1,13 @@
-import type { GameState, MobInstance, MobDef, CombatLogEntry, DerivedStats } from '../types';
+import type { GameState, MobInstance, MobDef, CombatLogEntry, DerivedStats, DamagePopup } from '../types';
 import { scaleMobStat, mobXpReward, mobGoldReward } from '../data/formulas';
 import { getZone } from '../data/zones';
 
 let logId = 0;
+let popupId = 0;
+
+function addPopup(state: GameState, amount: number, target: DamagePopup['target'], type: DamagePopup['type'], isCrit = false): void {
+  state.combat.damagePopups.push({ id: ++popupId, amount, isCrit, target, type, timestamp: Date.now() });
+}
 
 function addLog(state: GameState, message: string, type: CombatLogEntry['type']): void {
   state.combatLog.unshift({ id: ++logId, timestamp: Date.now(), message, type });
@@ -57,6 +62,7 @@ export function playerAttack(state: GameState, derived: DerivedStats): { killed:
   const dmgDealt = Math.max(1, Math.floor(finalDmg - mob.defense));
 
   mob.currentHp -= dmgDealt;
+  addPopup(state, dmgDealt, 'mob', 'damage', isCrit);
 
   const critText = isCrit ? ' (CRIT!)' : '';
   addLog(state, `You deal ${dmgDealt} damage to ${mob.def.name}${critText}`, 'damage');
@@ -77,6 +83,7 @@ export function mobAttack(state: GameState, derived: DerivedStats): { playerDied
 
   // Dodge check
   if (Math.random() < derived.dodgeChance) {
+    addPopup(state, 0, 'player', 'dodge');
     addLog(state, `You dodged ${mob.def.name}'s attack!`, 'info');
     return { playerDied: false };
   }
@@ -85,6 +92,7 @@ export function mobAttack(state: GameState, derived: DerivedStats): { playerDied
   const dmgTaken = Math.max(1, Math.floor(rawDmg - derived.defense));
 
   state.character.currentHp -= dmgTaken;
+  addPopup(state, dmgTaken, 'player', 'damage');
 
   addLog(state, `${mob.def.name} deals ${dmgTaken} damage to you`, 'playerDamage');
 

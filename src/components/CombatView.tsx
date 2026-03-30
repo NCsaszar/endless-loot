@@ -20,6 +20,13 @@ export default function CombatView() {
         <div className="combatant player-side">
           <div className="combatant-portrait player-portrait">
             <img src="/portraits/hero.svg" alt="Hero" className="portrait-img" />
+            {combat.damagePopups
+              .filter(p => p.target === 'player')
+              .map(p => (
+                <span key={p.id} className={`damage-popup ${p.type} ${p.isCrit ? 'crit' : ''}`}>
+                  {p.type === 'dodge' ? 'DODGE' : p.amount}
+                </span>
+              ))}
           </div>
           <div className="combatant-name">{character.name} Lv.{character.level}</div>
           <StatBar
@@ -51,6 +58,13 @@ export default function CombatView() {
                 ) : (
                   <span className="portrait-emoji">{mob.def.isBoss ? '💀' : '👾'}</span>
                 )}
+                {combat.damagePopups
+                  .filter(p => p.target === 'mob')
+                  .map(p => (
+                    <span key={p.id} className={`damage-popup ${p.type} ${p.isCrit ? 'crit' : ''}`}>
+                      {p.amount}
+                    </span>
+                  ))}
               </div>
               <div className="combatant-name">
                 {mob.def.isBoss && <span className="boss-tag">BOSS </span>}
