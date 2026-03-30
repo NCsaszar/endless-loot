@@ -40,6 +40,7 @@ export function createDefaultState(): GameState {
     lastSaveTimestamp: Date.now(),
     saveVersion: SAVE_VERSION,
     autoSellRarities: [],
+    combatActive: false,
   };
 }
 
@@ -80,6 +81,8 @@ export function loadGame(): GameState | null {
     if ((parsed.character.baseStats as any).luk === undefined) (parsed.character.baseStats as any).luk = 5;
     if ((parsed.character.trainingStats as any).luk === undefined) (parsed.character.trainingStats as any).luk = 0;
     if ((parsed.trainingLevels as any).luk === undefined) (parsed.trainingLevels as any).luk = 0;
+    // Migration: add combatActive (existing saves should default to active)
+    if ((parsed as any).combatActive === undefined) (parsed as any).combatActive = true;
     // Migration: add locked field to items
     for (const item of parsed.inventory) {
       if ((item as any).locked === undefined) (item as any).locked = false;

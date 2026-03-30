@@ -37,12 +37,24 @@ export function handleBossKill(state: GameState, mob: MobInstance): void {
 
 export function changeZone(state: GameState, zoneId: number): boolean {
   if (!state.unlockedZoneIds.includes(zoneId)) return false;
+  stopCombat(state);
   state.currentZoneId = zoneId;
   state.combat.killCount = 0;
+  return true;
+}
+
+export function startCombat(state: GameState): void {
+  state.combatActive = true;
+  state.combat.currentMob = null;
+  state.combat.playerAttackProgress = 0;
+  state.combat.mobAttackProgress = 0;
+}
+
+export function stopCombat(state: GameState): void {
+  state.combatActive = false;
   state.combat.currentMob = null;
   state.combat.playerAttackProgress = 0;
   state.combat.mobAttackProgress = 0;
   state.combat.playerDamageLog = [];
   state.combat.mobDamageLog = [];
-  return true;
 }

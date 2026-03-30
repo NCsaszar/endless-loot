@@ -13,6 +13,8 @@ export function tick(state: GameState, derived: DerivedStats, dt: number, primar
   state.combat.playerDamageLog = state.combat.playerDamageLog.filter(e => now - e.timestamp < 10_000);
   state.combat.mobDamageLog = state.combat.mobDamageLog.filter(e => now - e.timestamp < 10_000);
 
+  if (!state.combatActive) return;
+
   if (state.combat.isPlayerDead) {
     handlePlayerDeath(state, derived);
     return;

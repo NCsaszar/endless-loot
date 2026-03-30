@@ -4,7 +4,7 @@ import { getTotalPrimaryStats, calculateDerivedStats } from '../data/formulas';
 import { tick } from '../systems/gameLoop';
 import { saveGame, loadGame, createDefaultState, calculateOfflineProgress } from '../systems/save';
 import { sellItem, salvageItem, trainStat, equipItem, unequipItem, enchantItem, bulkSell, bulkSalvage } from '../systems/economy';
-import { allocateStat, changeZone } from '../systems/progression';
+import { allocateStat, changeZone, startCombat, stopCombat } from '../systems/progression';
 import { generateItem } from '../systems/loot';
 import type { OfflineProgress } from '../systems/save';
 
@@ -20,6 +20,8 @@ interface GameContextValue {
   doSalvageItem: (itemId: string) => void;
   doTrainStat: (stat: PrimaryStat) => void;
   doChangeZone: (zoneId: number) => void;
+  doStartCombat: () => void;
+  doStopCombat: () => void;
   doResetGame: () => void;
   doToggleAutoSell: (rarity: Rarity) => void;
   doToggleLock: (itemId: string) => void;
@@ -146,6 +148,14 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     changeZone(stateRef.current, zoneId);
   }, []);
 
+  const doStartCombat = useCallback(() => {
+    startCombat(stateRef.current);
+  }, []);
+
+  const doStopCombat = useCallback(() => {
+    stopCombat(stateRef.current);
+  }, []);
+
   const doResetGame = useCallback(() => {
     stateRef.current = createDefaultState();
     recalcDerived();
@@ -198,6 +208,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     doSalvageItem,
     doTrainStat,
     doChangeZone,
+    doStartCombat,
+    doStopCombat,
     doResetGame,
     doToggleAutoSell,
     doToggleLock,

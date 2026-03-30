@@ -2,7 +2,7 @@ import { useGameState } from '../hooks/useGameState';
 import { ZONES } from '../data/zones';
 
 export default function ZonePanel() {
-  const { state, doChangeZone } = useGameState();
+  const { state, doChangeZone, doStartCombat, doStopCombat } = useGameState();
 
   return (
     <div className="zone-panel">
@@ -12,12 +12,13 @@ export default function ZonePanel() {
           const unlocked = state.unlockedZoneIds.includes(zone.id);
           const active = state.currentZoneId === zone.id;
           const bossDefeated = state.bossesDefeated.includes(zone.id);
+          const isRunning = active && state.combatActive;
 
           return (
             <div
               key={zone.id}
               className={`zone-card ${active ? 'active' : ''} ${!unlocked ? 'locked' : ''}`}
-              onClick={() => unlocked && doChangeZone(zone.id)}
+              onClick={() => unlocked && !active && doChangeZone(zone.id)}
             >
               <div className="zone-card-header">
                 <span className="zone-card-name">{zone.name}</span>
@@ -29,6 +30,25 @@ export default function ZonePanel() {
                 <span>Mobs: {zone.mobs.map(m => m.name).join(', ')}</span>
                 <span>Boss: {zone.boss.name} {bossDefeated ? '(Defeated)' : ''}</span>
               </div>
+              {unlocked && (
+                <button
+                  className={`zone-combat-btn ${isRunning ? 'stop' : 'start'}`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (!active) {
+                      doChangeZone(zone.id);
+                      // Use setTimeout to ensure zone change completes first
+                      setTimeout(() => doStartCombat(), 0);
+                    } else if (isRunning) {
+                      doStopCombat();
+                    } else {
+                      doStartCombat();
+                    }
+                  }}
+                >
+                  {isRunning ? 'Stop' : 'Start'}
+                </button>
+              )}
             </div>
           );
         })}

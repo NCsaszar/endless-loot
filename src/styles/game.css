@@ -864,6 +864,22 @@ button {
   color: var(--text-dim);
 }
 
+.zone-combat-btn {
+  padding: 4px 16px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: transparent;
+  font-weight: 600;
+  font-size: 13px;
+  margin-top: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.zone-combat-btn.start { border-color: #4caf50; color: #4caf50; }
+.zone-combat-btn.start:hover { background: rgba(76, 175, 80, 0.15); }
+.zone-combat-btn.stop { border-color: #f44336; color: #f44336; }
+.zone-combat-btn.stop:hover { background: rgba(244, 67, 54, 0.15); }
+
 .zone-stats {
   padding: 12px;
   background: var(--bg-card);

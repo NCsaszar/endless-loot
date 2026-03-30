@@ -225,6 +225,7 @@ export interface GameState {
   lastSaveTimestamp: number;
   saveVersion: number;
   autoSellRarities: Rarity[];
+  combatActive: boolean;
 }
 
 // --- UI State (not persisted) ---
