@@ -415,17 +415,47 @@ button {
 .derived-grid .tooltip-wrapper > div span:first-child { color: var(--text-dim); }
 .derived-grid .tooltip-wrapper > div span:last-child { color: var(--text-bright); font-weight: 600; }
 
-/* Equipment Grid */
-.equip-grid {
+/* Paper Doll Equipment Layout */
+.paper-doll {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 12px;
+  align-items: center;
+}
+.paper-doll-col {
+  display: flex;
+  flex-direction: column;
   gap: 6px;
 }
-.equip-slot {
+.paper-doll-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+}
+.paper-doll-portrait {
+  width: 96px;
+  height: 96px;
+  border-radius: 12px;
+  border: 2px solid var(--border-light);
+  background: var(--bg-card);
+  object-fit: cover;
+}
+.paper-doll-slot {
+  position: relative;
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 6px;
   padding: 8px;
+  cursor: pointer;
+  transition: background 0.1s, border-color 0.1s;
+}
+.paper-doll-slot:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-light);
+}
+.paper-doll-slot.active {
+  border-color: var(--blue);
 }
 .equip-label {
   font-size: 11px;
@@ -434,11 +464,64 @@ button {
   letter-spacing: 0.5px;
   margin-bottom: 4px;
 }
-.equip-empty {
+.equip-empty-doll {
   color: var(--text-dim);
   font-style: italic;
   font-size: 12px;
-  padding: 4px 0;
+  padding: 6px 0;
+  text-align: center;
+  border: 1px dashed var(--border);
+  border-radius: 4px;
+}
+
+/* Equip Slot Popover */
+.equip-popover {
+  position: absolute;
+  top: 100%;
+  z-index: 50;
+  min-width: 220px;
+  max-height: 280px;
+  overflow-y: auto;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  padding: 4px;
+  margin-top: 4px;
+}
+.equip-popover.left { left: 0; }
+.equip-popover.right { right: 0; }
+.equip-popover-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  gap: 8px;
+}
+.equip-popover-item:hover { background: var(--bg-hover); }
+.popover-level { color: var(--text-dim); font-size: 11px; }
+.popover-delta {
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.popover-delta.positive { color: var(--green); }
+.popover-delta.negative { color: var(--red); }
+.popover-empty {
+  padding: 12px;
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 12px;
+}
+.popover-unequip {
+  color: var(--red);
+  border-top: 1px solid var(--border);
+  margin-top: 4px;
+  justify-content: center;
+  font-weight: 600;
 }
 
 /* Item Card */

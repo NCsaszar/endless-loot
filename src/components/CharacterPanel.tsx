@@ -1,9 +1,10 @@
+import { useState } from 'react';
 import { useGameState } from '../hooks/useGameState';
-import { ALL_EQUIP_SLOTS } from '../types';
 import type { EquipSlot } from '../types';
 import StatBar from './StatBar';
 import ItemCard from './ItemCard';
 import Tooltip from './Tooltip';
+import EquipSlotPopover from './EquipSlotPopover';
 
 const SLOT_LABELS: Record<EquipSlot, string> = {
   weapon: 'Weapon',
@@ -15,6 +16,9 @@ const SLOT_LABELS: Record<EquipSlot, string> = {
   ring: 'Ring',
   amulet: 'Amulet',
 };
+
+const LEFT_SLOTS: EquipSlot[] = ['helmet', 'chest', 'legs', 'boots'];
+const RIGHT_SLOTS: EquipSlot[] = ['weapon', 'offhand', 'ring', 'amulet'];
 
 const STAT_TIPS: Record<string, string> = {
   str: 'Strength\n+2.5 Attack Power per point',
@@ -34,8 +38,40 @@ const DERIVED_TIPS: Record<string, string> = {
 };
 
 export default function CharacterPanel() {
-  const { state, derived, doAllocateStat, doUnequipItem } = useGameState();
+  const { state, derived, doAllocateStat, doEquipItem, doUnequipItem } = useGameState();
   const { character } = state;
+  const [activePopoverSlot, setActivePopoverSlot] = useState<EquipSlot | null>(null);
+
+  const renderSlot = (slot: EquipSlot, align: 'left' | 'right') => {
+    const item = state.equipment[slot];
+    return (
+      <div
+        key={slot}
+        className={`paper-doll-slot ${activePopoverSlot === slot ? 'active' : ''}`}
+        onClick={() => setActivePopoverSlot(activePopoverSlot === slot ? null : slot)}
+      >
+        <div className="equip-label">{SLOT_LABELS[slot]}</div>
+        {item ? (
+          <ItemCard item={item} compact />
+        ) : (
+          <div className="equip-empty-doll">&mdash;</div>
+        )}
+        {activePopoverSlot === slot && (
+          <EquipSlotPopover
+            slot={slot}
+            items={state.inventory.filter(i => i.slot === slot)}
+            currentDerived={derived}
+            state={state}
+            hasEquipped={!!item}
+            align={align}
+            onSelect={(newItem) => { doEquipItem(newItem); setActivePopoverSlot(null); }}
+            onUnequip={() => { doUnequipItem(slot); setActivePopoverSlot(null); }}
+            onClose={() => setActivePopoverSlot(null)}
+          />
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="character-panel">
@@ -95,22 +131,16 @@ export default function CharacterPanel() {
 
       <div className="equipment-section">
         <h3>Equipment</h3>
-        <div className="equip-grid">
-          {ALL_EQUIP_SLOTS.map(slot => {
-            const item = state.equipment[slot];
-            return (
-              <div key={slot} className="equip-slot">
-                <div className="equip-label">{SLOT_LABELS[slot]}</div>
-                {item ? (
-                  <div className="equip-item">
-                    <ItemCard item={item} compact onClick={() => doUnequipItem(slot)} />
-                  </div>
-                ) : (
-                  <div className="equip-empty">Empty</div>
-                )}
-              </div>
-            );
-          })}
+        <div className="paper-doll">
+          <div className="paper-doll-col paper-doll-left">
+            {LEFT_SLOTS.map(slot => renderSlot(slot, 'left'))}
+          </div>
+          <div className="paper-doll-center">
+            <img src="/portraits/hero.svg" alt="Hero" className="paper-doll-portrait" />
+          </div>
+          <div className="paper-doll-col paper-doll-right">
+            {RIGHT_SLOTS.map(slot => renderSlot(slot, 'right'))}
+          </div>
         </div>
       </div>
     </div>
