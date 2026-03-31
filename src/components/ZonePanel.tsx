@@ -1,30 +1,24 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useGameState } from '../hooks/useGameState';
-import { ZONES, ACT_NAMES } from '../data/zones';
-import { RARITY_ORDER, RARITY_COLORS, ALL_EQUIP_SLOTS, SLOT_LABELS } from '../types';
+import { ZONES, ACT_NAMES, ACT_THEMES } from '../data/zones';
+import { EQUIPMENT_RARITIES, RARITY_COLORS } from '../types';
 import type { Rarity, ZoneDef } from '../types';
 import { getTotalPrimaryStats, lukRarityShift, lukDropChance } from '../data/formulas';
-import { RARITY_CONFIG, SALVAGE_MAP } from '../systems/loot';
-import { BASE_ITEMS } from '../data/items';
+import { RARITY_CONFIG } from '../systems/loot';
 
 function computeRarityPercents(luk: number, zoneRarityBonus: number = 0): Record<Rarity, number> {
   const shift = lukRarityShift(luk);
-  const weights = RARITY_ORDER.map(r => {
+  const weights = EQUIPMENT_RARITIES.map(r => {
     const base = RARITY_CONFIG[r].dropWeight;
     return r === 'common' ? base : base * shift * (1 + zoneRarityBonus);
   });
   const total = weights.reduce((s, w) => s + w, 0);
   const result: Record<string, number> = {};
-  RARITY_ORDER.forEach((r, i) => {
+  EQUIPMENT_RARITIES.forEach((r, i) => {
     result[r] = (weights[i] / total) * 100;
   });
   return result as Record<Rarity, number>;
 }
-
-const itemsBySlot = ALL_EQUIP_SLOTS.map(slot => ({
-  slot,
-  items: BASE_ITEMS.filter(i => i.slot === slot).map(i => i.name),
-}));
 
 // Group zones by act
 const ACTS = [1, 2, 3, 4, 5].map(actNum => ({
@@ -46,19 +40,16 @@ export default function ZonePanel() {
   const luk = primaryStats.luk;
   const dropChance = useMemo(() => lukDropChance(luk), [luk]);
 
-  // Determine current act from current zone
   const currentAct = useMemo(() => {
     const zone = ZONES.find(z => z.id === state.currentZoneId);
     return zone?.act ?? 1;
   }, [state.currentZoneId]);
 
-  // Highest unlocked zone for progress display
   const highestUnlockedZone = useMemo(
     () => Math.max(...state.unlockedZoneIds),
     [state.unlockedZoneIds]
   );
 
-  // Scroll to current zone on mount
   useEffect(() => {
     if (currentZoneRef.current) {
       currentZoneRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -84,35 +75,43 @@ export default function ZonePanel() {
     const bossDefeated = state.bossesDefeated.includes(zone.id);
     const isRunning = active && state.combatActive;
     const isExpanded = expandedZoneId === zone.id;
+    const theme = ACT_THEMES[zone.act];
 
     return (
       <div
         key={zone.id}
         ref={active ? currentZoneRef : undefined}
         className={`zone-card ${active ? 'active' : ''} ${!unlocked ? 'locked' : ''}`}
+        style={{
+          borderColor: unlocked ? theme.borderColor : undefined,
+          boxShadow: active ? `0 0 14px ${theme.glowColor}, inset 0 0 30px rgba(0,0,0,0.3)` : `inset 0 0 30px rgba(0,0,0,0.3)`,
+        }}
       >
+        {/* Gradient overlay */}
+        <div className="zone-card-gradient" style={{ background: theme.gradient }} />
+
         <div
           className="zone-card-clickable"
-          onClick={() => {
-            if (unlocked) toggleExpand(zone.id);
-          }}
+          onClick={() => { if (unlocked) toggleExpand(zone.id); }}
         >
           <div className="zone-card-header">
-            <span className="zone-card-name">
-              <span className="zone-card-number">#{zone.id}</span> {zone.name}
-            </span>
-            {active && <span className="zone-active-badge">CURRENT</span>}
-            {!unlocked && <span className="zone-locked-badge">LOCKED</span>}
-            {unlocked && (
-              <span className={`zone-expand-chevron ${isExpanded ? 'expanded' : ''}`}>
-                &#9660;
-              </span>
-            )}
+            <div className="zone-card-title">
+              <span className="zone-card-number" style={{ color: theme.accentColor }}>#{zone.id}</span>
+              <span className="zone-card-name">{zone.name}</span>
+            </div>
+            <div className="zone-card-badges">
+              {active && <span className="zone-active-badge">CURRENT</span>}
+              {!unlocked && <span className="zone-locked-badge">LOCKED</span>}
+              {bossDefeated && unlocked && <span className="zone-cleared-badge">CLEARED</span>}
+            </div>
           </div>
+
           <div className="zone-card-info">
-            <span>Levels {zone.levelRange[0]}–{zone.levelRange[1]}</span>
-            <span>Mobs: {zone.mobs.map(m => m.name).join(', ')}</span>
-            <span>Boss: {zone.boss.name} {bossDefeated ? '(Defeated)' : ''}</span>
+            <span className="zone-level-range">Lv. {zone.levelRange[0]}–{zone.levelRange[1]}</span>
+            <span className="zone-card-divider">&middot;</span>
+            <span className={`zone-boss-name ${!bossDefeated && unlocked ? 'boss-pulse' : ''}`}>
+              Boss: {zone.boss.name}
+            </span>
           </div>
         </div>
 
@@ -138,49 +137,26 @@ export default function ZonePanel() {
         {isExpanded && unlocked && (() => {
           const zoneRarityPercents = computeRarityPercents(luk, zone.rarityBonus);
           return (
-          <div className="zone-details">
-            <div className="zone-details-section">
-              <h4>Drop Rates</h4>
-              <div className="zone-drop-chance">
-                Mob drop chance: <strong>{(dropChance * 100).toFixed(1)}%</strong>
-                {luk > 0 && <span className="zone-luk-note"> (LUK boosted)</span>}
+            <div className="zone-details-compact">
+              <div className="zone-detail-row">
+                <span>Drop chance: <strong>{(dropChance * 100).toFixed(1)}%</strong></span>
+                {luk > 0 && <span className="zone-luk-note">LUK boosted</span>}
               </div>
-              <div className="zone-rarity-row">
-                {RARITY_ORDER.map(r => (
-                  <span key={r} className="zone-rarity-item">
-                    <span className="zone-rarity-dot" style={{ background: RARITY_COLORS[r] }} />
-                    <span style={{ color: RARITY_COLORS[r] }}>
-                      {r}: {zoneRarityPercents[r].toFixed(1)}%
+              <div className="zone-rarity-compact">
+                {EQUIPMENT_RARITIES.map(r => {
+                  const pct = zoneRarityPercents[r];
+                  if (pct < 0.05) return null;
+                  return (
+                    <span key={r} className="zone-rarity-chip" style={{
+                      borderColor: RARITY_COLORS[r],
+                      color: RARITY_COLORS[r],
+                    }}>
+                      {r}: {pct.toFixed(1)}%
                     </span>
-                  </span>
-                ))}
+                  );
+                })}
               </div>
             </div>
-
-            <div className="zone-details-section">
-              <h4>Possible Items</h4>
-              <div className="zone-items-grid">
-                {itemsBySlot.map(({ slot, items }) => (
-                  <div key={slot} className="zone-items-slot">
-                    <span className="zone-items-slot-label">{SLOT_LABELS[slot]}:</span>
-                    <span className="zone-items-list">{items.join(', ')}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="zone-details-section">
-              <h4>Salvage Yields</h4>
-              <div className="zone-salvage-row">
-                {RARITY_ORDER.map(r => (
-                  <span key={r} className="zone-salvage-item">
-                    <span style={{ color: RARITY_COLORS[r] }}>{r}</span>
-                    {' → '}{SALVAGE_MAP[r].amount} {SALVAGE_MAP[r].material}
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
           );
         })()}
       </div>
@@ -199,11 +175,13 @@ export default function ZonePanel() {
           const bossesInAct = zones.filter(z => state.bossesDefeated.includes(z.id)).length;
           const unlockedInAct = zones.filter(z => state.unlockedZoneIds.includes(z.id)).length;
           const isCurrentAct = act === currentAct;
+          const theme = ACT_THEMES[act];
 
           return (
             <div key={act} className={`zone-act ${isCurrentAct ? 'current-act' : ''}`}>
               <div
                 className="zone-act-header"
+                style={{ background: theme.gradient }}
                 onClick={() => toggleAct(act)}
               >
                 <span className={`zone-act-chevron ${isCollapsed ? '' : 'expanded'}`}>&#9660;</span>

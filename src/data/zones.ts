@@ -127,6 +127,44 @@ export const ACT_NAMES: Record<number, string> = {
   5: 'The Demonic Wastes',
 };
 
+export const ACT_THEMES: Record<number, {
+  gradient: string;
+  borderColor: string;
+  glowColor: string;
+  accentColor: string;
+}> = {
+  1: {
+    gradient: 'linear-gradient(135deg, #0d1f0d 0%, #1a2a1a 50%, #0d1f0d 100%)',
+    borderColor: '#2d5a2d',
+    glowColor: 'rgba(45, 90, 45, 0.4)',
+    accentColor: '#3a7a3a',
+  },
+  2: {
+    gradient: 'linear-gradient(135deg, #0d1520 0%, #142838 50%, #0d1520 100%)',
+    borderColor: '#2d4a6a',
+    glowColor: 'rgba(45, 74, 106, 0.4)',
+    accentColor: '#3a6a9a',
+  },
+  3: {
+    gradient: 'linear-gradient(135deg, #201008 0%, #3a1a0a 50%, #201008 100%)',
+    borderColor: '#6a3a1a',
+    glowColor: 'rgba(106, 58, 26, 0.4)',
+    accentColor: '#aa5522',
+  },
+  4: {
+    gradient: 'linear-gradient(135deg, #121828 0%, #1a2844 50%, #121828 100%)',
+    borderColor: '#4a6088',
+    glowColor: 'rgba(74, 96, 136, 0.4)',
+    accentColor: '#6a88bb',
+  },
+  5: {
+    gradient: 'linear-gradient(135deg, #1a0a1a 0%, #2a1028 50%, #1a0a1a 100%)',
+    borderColor: '#6a2a5a',
+    glowColor: 'rgba(106, 42, 90, 0.4)',
+    accentColor: '#aa44aa',
+  },
+};
+
 // ============================================================
 // Zone Definitions — 50 Zones across 5 Acts
 // ============================================================
