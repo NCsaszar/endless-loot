@@ -1,8 +1,9 @@
 import { useState, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import type { Item } from '../types';
+import type { Item, Affix } from '../types';
 import { RARITY_COLORS } from '../types';
 import { SLOT_ICONS } from './icons';
+import { getAffixDisplayName } from '../data/affixes';
 
 interface ItemCardProps {
   item: Item;
@@ -14,6 +15,43 @@ interface ItemCardProps {
   onToggleLock?: () => void;
 }
 
+function formatAffix(affix: Affix): string {
+  return `[T${affix.tier}] +${(affix.value * 100).toFixed(1)}% ${getAffixDisplayName(affix.id).replace('% Increased ', '')}`;
+}
+
+function countFilled(slots: (Affix | null)[]): number {
+  return slots.filter(a => a !== null).length;
+}
+
+function renderAffixTooltip(item: Item) {
+  const filledPrefixes = item.prefixes.filter((a): a is Affix => a !== null);
+  const filledSuffixes = item.suffixes.filter((a): a is Affix => a !== null);
+
+  return (
+    <>
+      <div className="tooltip-stat">
+        Primary: +{item.primaryStatValue} {item.slot === 'weapon' || item.slot === 'ring' || item.slot === 'amulet' ? 'ATK' : 'DEF'}
+      </div>
+      <div className="tooltip-stat">
+        +{item.randomPrimaryStatValue} {item.randomPrimaryStat.toUpperCase()}
+      </div>
+      <div className="tooltip-meta" style={{ marginTop: 4, fontSize: '0.8em', opacity: 0.7 }}>
+        Prefixes: {countFilled(item.prefixes)}/3 &middot; Suffixes: {countFilled(item.suffixes)}/3
+      </div>
+      {(filledPrefixes.length > 0 || filledSuffixes.length > 0) && (
+        <div className="tooltip-bonuses">
+          {filledPrefixes.map((a, i) => (
+            <div key={`p${i}`} style={{ color: '#ffcc44' }}>{formatAffix(a)}</div>
+          ))}
+          {filledSuffixes.map((a, i) => (
+            <div key={`s${i}`} style={{ color: '#44ccff' }}>{formatAffix(a)}</div>
+          ))}
+        </div>
+      )}
+    </>
+  );
+}
+
 export default function ItemCard({ item, onClick, selected, compact, grid, upgradePct, onToggleLock }: ItemCardProps) {
   const color = RARITY_COLORS[item.rarity];
   const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null);
@@ -22,7 +60,7 @@ export default function ItemCard({ item, onClick, selected, compact, grid, upgra
   const showTooltip = useCallback(() => {
     if (!cardRef.current) return;
     const rect = cardRef.current.getBoundingClientRect();
-    const tooltipWidth = 210; // approximate width (min 180, max 240)
+    const tooltipWidth = 210;
     const halfW = tooltipWidth / 2;
     const x = Math.max(halfW + 4, Math.min(window.innerWidth - halfW - 4, rect.left + rect.width / 2));
     setTooltipPos({ x, y: rect.top });
@@ -68,20 +106,7 @@ export default function ItemCard({ item, onClick, selected, compact, grid, upgra
           >
             <div className="tooltip-name" style={{ color }}>{item.name}</div>
             <div className="tooltip-meta">{item.slot} &middot; Lv.{item.itemLevel} &middot; <span style={{ color }}>({item.rarity})</span></div>
-            <div className="tooltip-stat">
-              Primary: +{item.primaryStatValue} {item.slot === 'weapon' || item.slot === 'ring' || item.slot === 'amulet' ? 'ATK' : 'DEF'}
-            </div>
-            {item.bonusStats.length > 0 && (
-              <div className="tooltip-bonuses">
-                {item.bonusStats.map((b, i) => (
-                  <div key={i}>
-                    +{b.type === 'critChance' || b.type === 'dodgeChance'
-                      ? `${(b.value * 100).toFixed(1)}% ${b.type === 'critChance' ? 'Crit' : 'Dodge'}`
-                      : `${b.value} ${b.type.toUpperCase()}`}
-                  </div>
-                ))}
-              </div>
-            )}
+            {renderAffixTooltip(item)}
             <div className="tooltip-value">{item.sellValue}g</div>
           </div>,
           document.body
@@ -104,6 +129,9 @@ export default function ItemCard({ item, onClick, selected, compact, grid, upgra
     );
   }
 
+  const filledPrefixes = item.prefixes.filter((a): a is Affix => a !== null);
+  const filledSuffixes = item.suffixes.filter((a): a is Affix => a !== null);
+
   return (
     <div
       className={`item-card ${selected ? 'selected' : ''}`}
@@ -118,15 +146,18 @@ export default function ItemCard({ item, onClick, selected, compact, grid, upgra
         <span>Slot: {item.slot}</span>
         <span>Level: {item.itemLevel}</span>
         <span>Primary: +{item.primaryStatValue} {item.slot === 'weapon' || item.slot === 'ring' || item.slot === 'amulet' ? 'ATK' : 'DEF'}</span>
+        <span>+{item.randomPrimaryStatValue} {item.randomPrimaryStat.toUpperCase()}</span>
       </div>
-      {item.bonusStats.length > 0 && (
+      <div className="item-details" style={{ fontSize: '0.8em', opacity: 0.7 }}>
+        <span>Prefixes: {countFilled(item.prefixes)}/3 &middot; Suffixes: {countFilled(item.suffixes)}/3</span>
+      </div>
+      {(filledPrefixes.length > 0 || filledSuffixes.length > 0) && (
         <div className="item-bonuses">
-          {item.bonusStats.map((b, i) => (
-            <span key={i} className="bonus-stat">
-              +{b.type === 'critChance' || b.type === 'dodgeChance'
-                ? `${(b.value * 100).toFixed(1)}% ${b.type === 'critChance' ? 'Crit' : 'Dodge'}`
-                : `${b.value} ${b.type.toUpperCase()}`}
-            </span>
+          {filledPrefixes.map((a, i) => (
+            <span key={`p${i}`} className="bonus-stat" style={{ color: '#ffcc44' }}>{formatAffix(a)}</span>
+          ))}
+          {filledSuffixes.map((a, i) => (
+            <span key={`s${i}`} className="bonus-stat" style={{ color: '#44ccff' }}>{formatAffix(a)}</span>
           ))}
         </div>
       )}

@@ -1,29 +1,27 @@
-import type { Item, Rarity, EquipSlot, BonusStat, BonusStatType, MaterialType } from '../types';
+import type { Item, Rarity, EquipSlot, PrimaryStat, MaterialType } from '../types';
 import { ALL_EQUIP_SLOTS, RARITY_ORDER } from '../types';
 import { getBaseItemsForSlot } from '../data/items';
-import { itemSellValue, lukRarityShift, lukBonusStatMultiplier, lukDropChance, lukBossMinRarityIndex } from '../data/formulas';
+import { itemSellValue, lukRarityShift, lukDropChance, lukBossMinRarityIndex } from '../data/formulas';
+import { rollAffixes } from '../data/affixes';
 
 // --- Rarity Config ---
 
 interface RarityConfig {
   dropWeight: number;
   statMultiplier: number;
-  bonusStatCount: [number, number]; // [min, max]
 }
 
 export const RARITY_CONFIG: Record<Rarity, RarityConfig> = {
-  common:    { dropWeight: 50, statMultiplier: 1.0, bonusStatCount: [0, 0] },
-  uncommon:  { dropWeight: 30, statMultiplier: 1.3, bonusStatCount: [1, 1] },
-  rare:      { dropWeight: 14, statMultiplier: 1.7, bonusStatCount: [1, 2] },
-  epic:      { dropWeight: 5,  statMultiplier: 2.2, bonusStatCount: [2, 3] },
-  legendary: { dropWeight: 1,  statMultiplier: 3.0, bonusStatCount: [3, 3] },
+  common:    { dropWeight: 50, statMultiplier: 1.0 },
+  uncommon:  { dropWeight: 30, statMultiplier: 1.3 },
+  rare:      { dropWeight: 14, statMultiplier: 1.7 },
+  epic:      { dropWeight: 5,  statMultiplier: 2.2 },
+  legendary: { dropWeight: 1,  statMultiplier: 3.0 },
 };
 
 const RARITIES: Rarity[] = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
 
-const BONUS_STAT_POOL: BonusStatType[] = [
-  'str', 'dex', 'int', 'vit', 'luk', 'critChance', 'dodgeChance', 'hp', 'defense',
-];
+const PRIMARY_STATS: PrimaryStat[] = ['str', 'dex', 'int', 'vit', 'luk'];
 
 // --- Salvage Mapping ---
 
@@ -69,97 +67,18 @@ function rollRarity(minRarity?: Rarity, luk: number = 0, zoneRarityBonus: number
   const shift = lukRarityShift(luk);
   const weights = eligible.map(r => {
     const base = RARITY_CONFIG[r].dropWeight;
-    // Boost uncommon+ weights by LUK shift factor and zone bonus
     return r === 'common' ? base : base * shift * (1 + zoneRarityBonus);
   });
   return weightedRandom(eligible, weights);
 }
 
-// --- Roll Bonus Stats ---
+// --- Roll Random Primary Stat ---
 
-function rollBonusStats(rarity: Rarity, itemLevel: number, luk: number = 0): BonusStat[] {
-  const config = RARITY_CONFIG[rarity];
-  const count = randomInt(config.bonusStatCount[0], config.bonusStatCount[1]);
-  const stats: BonusStat[] = [];
-  const usedTypes = new Set<BonusStatType>();
-  const lukMult = lukBonusStatMultiplier(luk);
-
-  for (let i = 0; i < count; i++) {
-    // Pick a stat type not already used on this item
-    const available = BONUS_STAT_POOL.filter(t => !usedTypes.has(t));
-    if (available.length === 0) break;
-    const type = pickRandom(available);
-    usedTypes.add(type);
-
-    let value: number;
-    if (type === 'critChance' || type === 'dodgeChance') {
-      // Percentage-based: 0.01 to 0.05 scaled by level
-      value = parseFloat((0.01 + Math.random() * 0.04 * (1 + itemLevel * 0.1)).toFixed(3));
-      value = parseFloat((value * lukMult).toFixed(3));
-    } else if (type === 'hp') {
-      value = Math.floor((randomInt(5, 15) + Math.floor(itemLevel * 2)) * lukMult);
-    } else if (type === 'defense') {
-      value = Math.floor((randomInt(1, 5) + Math.floor(itemLevel * 0.5)) * lukMult);
-    } else {
-      // Primary stat bonus: str, dex, int, vit, luk
-      value = Math.floor((randomInt(1, 3) + Math.floor(itemLevel * 0.3)) * lukMult);
-    }
-
-    stats.push({ type, value });
-  }
-
-  return stats;
+function rollRandomPrimaryStat(itemLevel: number, rarityMultiplier: number): { stat: PrimaryStat; value: number } {
+  const stat = pickRandom(PRIMARY_STATS);
+  const value = Math.floor((randomInt(1, 3) + Math.floor(itemLevel * 0.3)) * rarityMultiplier);
+  return { stat, value };
 }
-
-// --- Generate a Single Bonus Stat (for enchanting) ---
-
-export function generateSingleBonusStat(itemLevel: number, existingTypes: BonusStatType[]): BonusStat | null {
-  const available = BONUS_STAT_POOL.filter(t => !existingTypes.includes(t));
-  if (available.length === 0) return null;
-  const type = pickRandom(available);
-  let value: number;
-  if (type === 'critChance' || type === 'dodgeChance') {
-    value = parseFloat((0.01 + Math.random() * 0.04 * (1 + itemLevel * 0.1)).toFixed(3));
-  } else if (type === 'hp') {
-    value = randomInt(5, 15) + Math.floor(itemLevel * 2);
-  } else if (type === 'defense') {
-    value = randomInt(1, 5) + Math.floor(itemLevel * 0.5);
-  } else {
-    value = randomInt(1, 3) + Math.floor(itemLevel * 0.3);
-  }
-  return { type, value };
-}
-
-// --- Enchanted Name Generation ---
-
-const RARITY_PREFIXES: Record<Rarity, string[]> = {
-  common: [],
-  uncommon: ['Fine', 'Keen', 'Sturdy'],
-  rare: ['Superior', 'Masterwork', 'Exquisite'],
-  epic: ['Mythic', 'Arcane', 'Transcendent'],
-  legendary: ['Godforged', 'Eternal', 'Primordial'],
-};
-
-export function generateEnchantedName(baseName: string, newRarity: Rarity): string {
-  const prefixes = RARITY_PREFIXES[newRarity];
-  if (prefixes.length === 0) return baseName;
-  const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
-  return `${prefix} ${baseName}`;
-}
-
-// --- Affix Map (exported for enchanting) ---
-
-export const AFFIX_MAP: Record<BonusStatType, string> = {
-  str: 'of Might',
-  dex: 'of Agility',
-  int: 'of Wisdom',
-  vit: 'of Vitality',
-  luk: 'of Fortune',
-  critChance: 'of Precision',
-  dodgeChance: 'of Evasion',
-  hp: 'of Endurance',
-  defense: 'of Fortitude',
-};
 
 // --- Generate a Single Item ---
 
@@ -175,22 +94,20 @@ export function generateItem(itemLevel: number, minRarity?: Rarity, luk: number 
     baseDef.basePrimaryStat * (1 + 0.2 * itemLevel) * config.statMultiplier
   );
 
-  const bonusStats = rollBonusStats(rarity, itemLevel, luk);
-
-  // Generate name with affix for uncommon+
-  let name = baseDef.name;
-  if (rarity !== 'common' && bonusStats.length > 0) {
-    name = `${baseDef.name} ${AFFIX_MAP[bonusStats[0].type]}`;
-  }
+  const { stat: randomPrimaryStat, value: randomPrimaryStatValue } = rollRandomPrimaryStat(itemLevel, config.statMultiplier);
+  const { prefixes, suffixes } = rollAffixes(itemLevel, rarity, luk);
 
   return {
     id: generateItemId(),
-    name,
+    name: baseDef.name,
     slot,
     rarity,
     itemLevel,
     primaryStatValue,
-    bonusStats,
+    randomPrimaryStat,
+    randomPrimaryStatValue,
+    prefixes,
+    suffixes,
     sellValue: itemSellValue(rarity, itemLevel),
     salvageResult: SALVAGE_MAP[rarity],
     locked: false,

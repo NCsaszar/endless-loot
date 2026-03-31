@@ -25,8 +25,12 @@ const DERIVED_TIPS: Record<string, string> = {
   HP: 'Hit Points\nYour maximum health. Scales with VIT.',
   SPD: 'Attack Speed\nAttacks per second. Scales with DEX.',
   CRIT: 'Critical Chance\nChance to deal bonus damage. Scales with DEX.',
+  CDMG: 'Critical Damage\nDamage multiplier on crits. Base 150%.\nScales with gear affixes.',
   DODGE: 'Dodge Chance\nChance to avoid an attack. Scales with DEX.',
   REGEN: 'HP Regeneration\nHP restored per second. Scales with VIT.',
+  GOLD: 'Gold Find\nMultiplier on gold from kills.',
+  XP: 'XP Gain\nMultiplier on XP from kills.',
+  LOOT: 'Loot Rarity\nBonus to rarity drop weights.',
 };
 
 export default function CharacterPanel() {
@@ -113,8 +117,12 @@ export default function CharacterPanel() {
             { key: 'HP', val: Math.floor(derived.maxHp).toString() },
             { key: 'SPD', val: `${derived.attackSpeed.toFixed(2)}/s` },
             { key: 'CRIT', val: `${(derived.critChance * 100).toFixed(1)}%` },
+            { key: 'CDMG', val: `${(derived.critDamage * 100).toFixed(0)}%` },
             { key: 'DODGE', val: `${(derived.dodgeChance * 100).toFixed(1)}%` },
             { key: 'REGEN', val: `${derived.hpRegen.toFixed(1)}/s` },
+            ...(derived.goldFind > 1 ? [{ key: 'GOLD', val: `${(derived.goldFind * 100).toFixed(0)}%` }] : []),
+            ...(derived.xpGainBonus > 1 ? [{ key: 'XP', val: `${(derived.xpGainBonus * 100).toFixed(0)}%` }] : []),
+            ...(derived.lootRarityBonus > 0 ? [{ key: 'LOOT', val: `+${(derived.lootRarityBonus * 100).toFixed(1)}%` }] : []),
           ].map(({ key, val }) => (
             <Tooltip key={key} text={DERIVED_TIPS[key]}>
               <div><span>{key}</span><span>{val}</span></div>

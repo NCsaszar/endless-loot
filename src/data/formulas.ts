@@ -1,5 +1,4 @@
-import type { PrimaryStats, DerivedStats, Equipment, Character, TrainingLevels, Rarity } from '../types';
-import { RARITY_ORDER } from '../types';
+import type { PrimaryStats, PrimaryStat, DerivedStats, Equipment, Character, TrainingLevels, AffixId } from '../types';
 
 // --- Stat Scaling Constants ---
 
@@ -34,8 +33,8 @@ export function lukGoldMultiplier(luk: number): number {
   return 1 + 0.5 * Math.log(1 + luk / 50);
 }
 
-/** Bonus stat roll range multiplier */
-export function lukBonusStatMultiplier(luk: number): number {
+/** Affix value roll multiplier (replaces old lukBonusStatMultiplier) */
+export function lukAffixMultiplier(luk: number): number {
   return 1 + 0.8 * (1 - 1 / (1 + luk / 60));
 }
 
@@ -61,31 +60,44 @@ export function trainingCost(currentTrainingLevel: number): number {
   return Math.floor(100 * Math.pow(currentTrainingLevel + 1, 2));
 }
 
-// --- Get Total Primary Stats (base + training + gear bonuses) ---
+// --- Sum affix percentages from all equipped items ---
+
+export function sumAffixPercent(equipment: Equipment, affixId: AffixId): number {
+  let total = 0;
+  for (const item of Object.values(equipment)) {
+    if (!item) continue;
+    for (const affix of [...item.prefixes, ...item.suffixes]) {
+      if (affix && affix.id === affixId) total += affix.value;
+    }
+  }
+  return total;
+}
+
+// --- Get Total Primary Stats (base + training + gear) ---
+// % affixes multiply character sheet (base + training) only, flat gear bonuses are added after.
 
 export function getTotalPrimaryStats(
   character: Character,
   trainingLevels: TrainingLevels,
   equipment: Equipment,
 ): PrimaryStats {
-  const total: PrimaryStats = {
-    str: character.baseStats.str + trainingLevels.str,
-    dex: character.baseStats.dex + trainingLevels.dex,
-    int: character.baseStats.int + trainingLevels.int,
-    vit: character.baseStats.vit + trainingLevels.vit,
-    luk: character.baseStats.luk + trainingLevels.luk,
-  };
+  const stats: PrimaryStat[] = ['str', 'dex', 'int', 'vit', 'luk'];
+  const total: PrimaryStats = { str: 0, dex: 0, int: 0, vit: 0, luk: 0 };
 
-  // Add gear bonus stats
-  for (const item of Object.values(equipment)) {
-    if (!item) continue;
-    for (const bonus of item.bonusStats) {
-      if (bonus.type === 'str') total.str += bonus.value;
-      if (bonus.type === 'dex') total.dex += bonus.value;
-      if (bonus.type === 'int') total.int += bonus.value;
-      if (bonus.type === 'vit') total.vit += bonus.value;
-      if (bonus.type === 'luk') total.luk += bonus.value;
+  for (const stat of stats) {
+    const characterSheet = character.baseStats[stat] + trainingLevels[stat];
+    const percentBonus = sumAffixPercent(equipment, stat as AffixId);
+
+    // Sum flat gear bonuses from randomPrimaryStat
+    let flatGearBonus = 0;
+    for (const item of Object.values(equipment)) {
+      if (!item) continue;
+      if (item.randomPrimaryStat === stat) {
+        flatGearBonus += item.randomPrimaryStatValue;
+      }
     }
+
+    total[stat] = Math.floor(characterSheet * (1 + percentBonus) + flatGearBonus);
   }
 
   return total;
@@ -97,54 +109,44 @@ export function calculateDerivedStats(
   primaryStats: PrimaryStats,
   equipment: Equipment,
 ): DerivedStats {
-  // Sum up gear primary stat contributions
+  // Sum up gear primary stat contributions (slot-specific ATK/DEF)
   let gearAtk = 0;
   let gearDef = 0;
-  let gearHp = 0;
-  let gearCrit = 0;
-  let gearDodge = 0;
-  let gearSpeed = 0;
 
   for (const item of Object.values(equipment)) {
     if (!item) continue;
-
-    // Primary stat from gear slot
-    if (item.slot === 'weapon') {
-      gearAtk += item.primaryStatValue;
-    } else if (item.slot === 'ring' || item.slot === 'amulet') {
-      // Accessories can be ATK or DEF — for simplicity, treat as ATK
+    if (item.slot === 'weapon' || item.slot === 'ring' || item.slot === 'amulet') {
       gearAtk += item.primaryStatValue;
     } else {
-      // Armor slots: offhand, helmet, chest, legs, boots
       gearDef += item.primaryStatValue;
     }
-
-    // Bonus stats from gear
-    for (const bonus of item.bonusStats) {
-      if (bonus.type === 'hp') gearHp += bonus.value;
-      if (bonus.type === 'defense') gearDef += bonus.value;
-      if (bonus.type === 'critChance') gearCrit += bonus.value;
-      if (bonus.type === 'dodgeChance') gearDodge += bonus.value;
-    }
   }
 
-  // Check for boots speed bonus
-  const boots = equipment.boots;
-  if (boots) {
-    for (const bonus of boots.bonusStats) {
-      if (bonus.type === 'dex') gearSpeed += bonus.value * DEX_TO_SPEED;
-    }
-  }
+  // Calculate each derived stat: base + primary scaling + flat gear, then * (1 + affix%)
+  const atkPercent = sumAffixPercent(equipment, 'attackPower');
+  const spdPercent = sumAffixPercent(equipment, 'attackSpeed');
+  const critPercent = sumAffixPercent(equipment, 'critChance');
+  const critDmgPercent = sumAffixPercent(equipment, 'critDamage');
+  const lifePercent = sumAffixPercent(equipment, 'maxLife');
+  const defPercent = sumAffixPercent(equipment, 'defense');
+  const dodgePercent = sumAffixPercent(equipment, 'dodgeChance');
+  const regenPercent = sumAffixPercent(equipment, 'hpRegen');
+  const goldFindPercent = sumAffixPercent(equipment, 'goldFind');
+  const xpGainPercent = sumAffixPercent(equipment, 'xpGain');
+  const lootRarityPercent = sumAffixPercent(equipment, 'lootRarity');
 
   return {
-    attackPower: BASE_ATK + primaryStats.str * STR_TO_ATK + gearAtk,
-    attackSpeed: Math.min(3, BASE_SPEED + primaryStats.dex * DEX_TO_SPEED + gearSpeed), // cap at 3 attacks/sec
-    critChance: Math.min(0.75, BASE_CRIT + primaryStats.dex * DEX_TO_CRIT + gearCrit),
-    critDamage: BASE_CRIT_DMG,
-    maxHp: BASE_HP + primaryStats.vit * VIT_TO_HP + gearHp,
-    defense: BASE_DEF + primaryStats.vit * VIT_TO_DEF + gearDef,
-    dodgeChance: Math.min(0.5, BASE_DODGE + primaryStats.dex * DEX_TO_DODGE + gearDodge),
-    hpRegen: BASE_REGEN + primaryStats.vit * VIT_TO_REGEN,
+    attackPower: (BASE_ATK + primaryStats.str * STR_TO_ATK + gearAtk) * (1 + atkPercent),
+    attackSpeed: Math.min(3, (BASE_SPEED + primaryStats.dex * DEX_TO_SPEED) * (1 + spdPercent)),
+    critChance: Math.min(0.75, (BASE_CRIT + primaryStats.dex * DEX_TO_CRIT) * (1 + critPercent)),
+    critDamage: BASE_CRIT_DMG * (1 + critDmgPercent),
+    maxHp: (BASE_HP + primaryStats.vit * VIT_TO_HP) * (1 + lifePercent),
+    defense: (BASE_DEF + primaryStats.vit * VIT_TO_DEF + gearDef) * (1 + defPercent),
+    dodgeChance: Math.min(0.5, (BASE_DODGE + primaryStats.dex * DEX_TO_DODGE) * (1 + dodgePercent)),
+    hpRegen: (BASE_REGEN + primaryStats.vit * VIT_TO_REGEN) * (1 + regenPercent),
+    goldFind: 1 + goldFindPercent,
+    xpGainBonus: 1 + xpGainPercent,
+    lootRarityBonus: lootRarityPercent,
   };
 }
 
@@ -178,21 +180,4 @@ const SELL_BASE: Record<string, number> = {
 
 export function itemSellValue(rarity: string, itemLevel: number): number {
   return Math.floor((SELL_BASE[rarity] ?? 5) * (1 + 0.1 * itemLevel));
-}
-
-// --- Enchanting Cost ---
-
-export interface EnchantCost {
-  scrap: number;
-  fragments: number;
-}
-
-export function enchantCost(currentRarity: Rarity): EnchantCost | null {
-  const idx = RARITY_ORDER.indexOf(currentRarity);
-  if (idx >= RARITY_ORDER.length - 1) return null; // legendary can't upgrade
-  const base = Math.pow(5, idx + 1);
-  return {
-    scrap: Math.floor(base * 2),
-    fragments: Math.floor(base),
-  };
 }

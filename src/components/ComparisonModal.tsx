@@ -37,6 +37,7 @@ export default function ComparisonModal({
     { label: 'HP', current: formatNum(currentDerived.maxHp), next: formatNum(newDerived.maxHp), diff: newDerived.maxHp - currentDerived.maxHp, format: formatNum },
     { label: 'SPD', current: formatSpeed(currentDerived.attackSpeed), next: formatSpeed(newDerived.attackSpeed), diff: newDerived.attackSpeed - currentDerived.attackSpeed, format: (n) => n.toFixed(3) },
     { label: 'CRIT', current: formatPercent(currentDerived.critChance), next: formatPercent(newDerived.critChance), diff: newDerived.critChance - currentDerived.critChance, format: (n) => `${(n * 100).toFixed(1)}%` },
+    { label: 'CDMG', current: `${(currentDerived.critDamage * 100).toFixed(0)}%`, next: `${(newDerived.critDamage * 100).toFixed(0)}%`, diff: newDerived.critDamage - currentDerived.critDamage, format: (n) => `${(n * 100).toFixed(0)}%` },
     { label: 'DODGE', current: formatPercent(currentDerived.dodgeChance), next: formatPercent(newDerived.dodgeChance), diff: newDerived.dodgeChance - currentDerived.dodgeChance, format: (n) => `${(n * 100).toFixed(1)}%` },
     { label: 'REGEN', current: `${currentDerived.hpRegen.toFixed(1)}/s`, next: `${newDerived.hpRegen.toFixed(1)}/s`, diff: newDerived.hpRegen - currentDerived.hpRegen, format: (n) => `${n.toFixed(1)}/s` },
   ];

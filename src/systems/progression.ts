@@ -2,8 +2,9 @@ import type { GameState, MobInstance } from '../types';
 import { xpForLevel } from '../data/formulas';
 import { addLog } from './combat';
 
-export function grantXpAndGold(state: GameState, mob: MobInstance): void {
-  state.character.xp += mob.xpReward;
+export function grantXpAndGold(state: GameState, mob: MobInstance, xpMultiplier: number = 1): void {
+  const xp = Math.floor(mob.xpReward * xpMultiplier);
+  state.character.xp += xp;
   state.gold += mob.goldReward;
   state.totalGoldEarned += mob.goldReward;
 

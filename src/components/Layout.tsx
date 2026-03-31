@@ -5,7 +5,6 @@ import CharacterPanel from './CharacterPanel';
 import InventoryPanel from './InventoryPanel';
 import TrainingPanel from './TrainingPanel';
 import ZonePanel from './ZonePanel';
-import EnchantingPanel from './EnchantingPanel';
 import WelcomeBack from './WelcomeBack';
 
 const TABS: { id: ActivePanel; label: string }[] = [
@@ -13,7 +12,6 @@ const TABS: { id: ActivePanel; label: string }[] = [
   { id: 'inventory', label: 'Inventory' },
   { id: 'training', label: 'Training' },
   { id: 'zones', label: 'Zones' },
-  { id: 'enchanting', label: 'Enchant' },
 ];
 
 export default function Layout() {
@@ -25,7 +23,6 @@ export default function Layout() {
       case 'inventory': return <InventoryPanel />;
       case 'training': return <TrainingPanel />;
       case 'zones': return <ZonePanel />;
-      case 'enchanting': return <EnchantingPanel />;
     }
   };
 

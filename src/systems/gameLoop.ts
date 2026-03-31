@@ -39,17 +39,20 @@ export function tick(state: GameState, derived: DerivedStats, dt: number, primar
     const { killed } = playerAttack(state, derived);
 
     if (killed) {
-      // Grant rewards (apply LUK gold multiplier)
-      const goldMult = lukGoldMultiplier(luk);
+      // Apply gold multipliers: LUK base + gear goldFind
+      const goldMult = lukGoldMultiplier(luk) * derived.goldFind;
       mob.goldReward = Math.floor(mob.goldReward * goldMult);
-      grantXpAndGold(state, mob);
+
+      // Grant XP with gear xpGainBonus
+      grantXpAndGold(state, mob, derived.xpGainBonus);
       handleBossKill(state, mob);
 
       // Loot roll
       const isBoss = mob.def.isBoss;
       if (shouldDropLoot(isBoss, luk)) {
         const itemLevel = mob.level;
-        const zoneRarityBonus = getZone(state.currentZoneId)?.rarityBonus ?? 0;
+        const zone = getZone(state.currentZoneId);
+        const zoneRarityBonus = (zone?.rarityBonus ?? 0) + derived.lootRarityBonus;
         const item = isBoss ? generateBossLoot(itemLevel, luk, zoneRarityBonus) : generateItem(itemLevel, undefined, luk, zoneRarityBonus);
         if (state.autoSalvageRarities.includes(item.rarity)) {
           state.materials[item.salvageResult.material] += item.salvageResult.amount;

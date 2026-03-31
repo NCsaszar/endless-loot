@@ -1,8 +1,9 @@
-import type { GameState } from '../types';
+import type { GameState, Item, PrimaryStat, Affix } from '../types';
 import { xpForLevel } from '../data/formulas';
+import { getMaxTier } from '../data/affixes';
 
 const SAVE_KEY = 'endless_loot_save';
-const SAVE_VERSION = 1;
+const SAVE_VERSION = 2;
 
 export function createDefaultState(): GameState {
   return {
@@ -45,6 +46,98 @@ export function createDefaultState(): GameState {
   };
 }
 
+// --- V1 → V2 Migration: Convert old bonusStat items to affix system ---
+
+const PRIMARY_STAT_KEYS: PrimaryStat[] = ['str', 'dex', 'int', 'vit', 'luk'];
+
+function migrateItemV1toV2(oldItem: any): Item {
+  // Strip old affix names from item name
+  const prefixPattern = /^(Fine|Keen|Sturdy|Superior|Masterwork|Exquisite|Mythic|Arcane|Transcendent|Godforged|Eternal|Primordial) /;
+  const affixPattern = / of (Might|Agility|Wisdom|Vitality|Fortune|Precision|Evasion|Endurance|Fortitude)$/;
+  const cleanName = (oldItem.name || '').replace(prefixPattern, '').replace(affixPattern, '');
+
+  const oldBonusStats: any[] = oldItem.bonusStats || [];
+
+  // Pick random primary stat — prefer one from existing bonus stats if available
+  let randomPrimaryStat: PrimaryStat = PRIMARY_STAT_KEYS[Math.floor(Math.random() * PRIMARY_STAT_KEYS.length)];
+  let randomPrimaryStatValue = Math.max(1, Math.floor(1 + (oldItem.itemLevel || 1) * 0.3));
+
+  const primaryBonus = oldBonusStats.find((b: any) => PRIMARY_STAT_KEYS.includes(b.type));
+  if (primaryBonus) {
+    randomPrimaryStat = primaryBonus.type;
+    randomPrimaryStatValue = primaryBonus.value || randomPrimaryStatValue;
+  }
+
+  // Convert remaining bonus stats to affixes
+  const prefixes: (Affix | null)[] = [null, null, null];
+  const suffixes: (Affix | null)[] = [null, null, null];
+  let prefixIdx = 0;
+  let suffixIdx = 0;
+
+  const maxTier = getMaxTier(oldItem.itemLevel || 1);
+  const tier = Math.min(maxTier, Math.max(1, Math.ceil((oldItem.itemLevel || 1) / 3)));
+
+  for (const bonus of oldBonusStats) {
+    // Skip the one we used as randomPrimaryStat
+    if (primaryBonus && bonus === primaryBonus) continue;
+
+    if (bonus.type === 'critChance' && prefixIdx < 3) {
+      prefixes[prefixIdx++] = { id: 'critChance', slotType: 'prefix', tier, value: bonus.value || 0.03 };
+    } else if (bonus.type === 'dodgeChance' && suffixIdx < 3) {
+      suffixes[suffixIdx++] = { id: 'dodgeChance', slotType: 'suffix', tier, value: bonus.value || 0.03 };
+    } else if (bonus.type === 'hp' && suffixIdx < 3) {
+      // Convert flat HP to approximate %: flatHP / baseline
+      const baselineHp = 50 + 5 * 8; // BASE_HP + ~5 VIT * VIT_TO_HP
+      const pct = Math.min(0.30, Math.max(0.03, bonus.value / baselineHp));
+      suffixes[suffixIdx++] = { id: 'maxLife', slotType: 'suffix', tier, value: parseFloat(pct.toFixed(4)) };
+    } else if (bonus.type === 'defense' && suffixIdx < 3) {
+      const baselineDef = 2 + 5 * 1.2; // BASE_DEF + ~5 VIT * VIT_TO_DEF
+      const pct = Math.min(0.30, Math.max(0.03, bonus.value / baselineDef));
+      suffixes[suffixIdx++] = { id: 'defense', slotType: 'suffix', tier, value: parseFloat(pct.toFixed(4)) };
+    } else if (PRIMARY_STAT_KEYS.includes(bonus.type) && suffixIdx < 3) {
+      // Convert flat primary stat bonus to %
+      const baselineStat = 5 + (oldItem.itemLevel || 1); // rough estimate
+      const pct = Math.min(0.25, Math.max(0.02, bonus.value / baselineStat));
+      suffixes[suffixIdx++] = { id: bonus.type, slotType: 'suffix', tier, value: parseFloat(pct.toFixed(4)) };
+    }
+  }
+
+  return {
+    id: oldItem.id,
+    name: cleanName,
+    slot: oldItem.slot,
+    rarity: oldItem.rarity,
+    itemLevel: oldItem.itemLevel,
+    primaryStatValue: oldItem.primaryStatValue,
+    randomPrimaryStat,
+    randomPrimaryStatValue,
+    prefixes,
+    suffixes,
+    sellValue: oldItem.sellValue,
+    salvageResult: oldItem.salvageResult,
+    locked: oldItem.locked ?? false,
+  };
+}
+
+function migrateV1toV2(parsed: any): any {
+  // Migrate inventory items
+  if (Array.isArray(parsed.inventory)) {
+    parsed.inventory = parsed.inventory.map(migrateItemV1toV2);
+  }
+
+  // Migrate equipped items
+  if (parsed.equipment) {
+    for (const slot of Object.keys(parsed.equipment)) {
+      if (parsed.equipment[slot]) {
+        parsed.equipment[slot] = migrateItemV1toV2(parsed.equipment[slot]);
+      }
+    }
+  }
+
+  parsed.saveVersion = 2;
+  return parsed;
+}
+
 export function saveGame(state: GameState): void {
   state.lastSaveTimestamp = Date.now();
   state.saveVersion = SAVE_VERSION;
@@ -66,8 +159,15 @@ export function loadGame(): GameState | null {
   const raw = localStorage.getItem(SAVE_KEY);
   if (!raw) return null;
   try {
-    const parsed = JSON.parse(raw) as GameState;
+    let parsed = JSON.parse(raw);
+
+    // Migrate v1 saves to v2
+    if (parsed.saveVersion === 1) {
+      parsed = migrateV1toV2(parsed);
+    }
+
     if (parsed.saveVersion !== SAVE_VERSION) return null;
+
     // Restore transient combat state
     parsed.combat.currentMob = null;
     parsed.combat.playerAttackProgress = 0;
@@ -78,21 +178,21 @@ export function loadGame(): GameState | null {
     parsed.combatLog = [];
     // Migration: add fields that may be missing from older saves
     if (!parsed.autoSellRarities) parsed.autoSellRarities = [];
-    if (!(parsed as any).autoSalvageRarities) (parsed as any).autoSalvageRarities = [];
+    if (!parsed.autoSalvageRarities) parsed.autoSalvageRarities = [];
     // Migration: add LUK stat
-    if ((parsed.character.baseStats as any).luk === undefined) (parsed.character.baseStats as any).luk = 5;
-    if ((parsed.character.trainingStats as any).luk === undefined) (parsed.character.trainingStats as any).luk = 0;
-    if ((parsed.trainingLevels as any).luk === undefined) (parsed.trainingLevels as any).luk = 0;
+    if (parsed.character.baseStats.luk === undefined) parsed.character.baseStats.luk = 5;
+    if (parsed.character.trainingStats.luk === undefined) parsed.character.trainingStats.luk = 0;
+    if (parsed.trainingLevels.luk === undefined) parsed.trainingLevels.luk = 0;
     // Migration: add combatActive (existing saves should default to active)
-    if ((parsed as any).combatActive === undefined) (parsed as any).combatActive = true;
+    if (parsed.combatActive === undefined) parsed.combatActive = true;
     // Migration: add locked field to items
     for (const item of parsed.inventory) {
-      if ((item as any).locked === undefined) (item as any).locked = false;
+      if (item.locked === undefined) item.locked = false;
     }
     for (const item of Object.values(parsed.equipment)) {
       if (item && (item as any).locked === undefined) (item as any).locked = false;
     }
-    return parsed;
+    return parsed as GameState;
   } catch {
     return null;
   }

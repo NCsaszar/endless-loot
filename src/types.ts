@@ -25,6 +25,9 @@ export interface DerivedStats {
   defense: number;
   dodgeChance: number; // 0-1
   hpRegen: number; // HP per second
+  goldFind: number; // multiplier, base 1.0
+  xpGainBonus: number; // multiplier, base 1.0
+  lootRarityBonus: number; // additive bonus to rarity weights
 }
 
 // --- Rarity ---
@@ -70,7 +73,7 @@ export const SLOT_LABELS: Record<EquipSlot, string> = {
   amulet: 'Amulet',
 };
 
-// --- Bonus Stat Types ---
+// --- Bonus Stat Types (DEPRECATED — kept for save migration only) ---
 
 export type BonusStatType =
   | 'str' | 'dex' | 'int' | 'vit' | 'luk'
@@ -79,6 +82,20 @@ export type BonusStatType =
 export interface BonusStat {
   type: BonusStatType;
   value: number;
+}
+
+// --- Affix System ---
+
+export type PrefixAffixId = 'attackPower' | 'attackSpeed' | 'critChance' | 'critDamage';
+export type SuffixAffixId = 'str' | 'dex' | 'int' | 'vit' | 'luk' | 'maxLife' | 'defense' | 'dodgeChance' | 'goldFind' | 'xpGain' | 'hpRegen' | 'lootRarity';
+export type AffixId = PrefixAffixId | SuffixAffixId;
+export type AffixSlotType = 'prefix' | 'suffix';
+
+export interface Affix {
+  id: AffixId;
+  slotType: AffixSlotType;
+  tier: number;   // T1-T5 (1=weakest, 5=strongest)
+  value: number;  // percentage as decimal, e.g. 0.10 = 10%
 }
 
 // --- Items ---
@@ -90,7 +107,11 @@ export interface Item {
   rarity: Rarity;
   itemLevel: number;
   primaryStatValue: number; // main stat for the slot (e.g., ATK for weapon, DEF for armor)
-  bonusStats: BonusStat[];
+  randomPrimaryStat: PrimaryStat; // 1 random flat primary stat
+  randomPrimaryStatValue: number; // flat value of the random primary stat
+  prefixes: (Affix | null)[]; // length 3, null = empty slot
+  suffixes: (Affix | null)[]; // length 3, null = empty slot
+  bonusStats?: BonusStat[]; // DEPRECATED — kept for save migration only
   sellValue: number;
   salvageResult: { material: MaterialType; amount: number };
   locked: boolean;
@@ -233,4 +254,4 @@ export interface GameState {
 
 // --- UI State (not persisted) ---
 
-export type ActivePanel = 'character' | 'inventory' | 'training' | 'zones' | 'enchanting';
+export type ActivePanel = 'character' | 'inventory' | 'training' | 'zones';
