@@ -48,8 +48,16 @@ export default function CombatView() {
   return (
     <div className="combat-view">
       <div className="zone-header">
-        <span className="zone-name">{zone?.name ?? 'Unknown'}</span>
-        <span className="kill-count">Kills: {combat.killCount}</span>
+        <span className="zone-name">
+          {state.endless.active
+            ? `The Abyss — Floor ${state.endless.currentFloor}`
+            : (zone?.name ?? 'Unknown')}
+        </span>
+        <span className="kill-count">
+          {state.endless.active
+            ? `Kills: ${state.endless.runKills}`
+            : `Kills: ${combat.killCount}`}
+        </span>
       </div>
 
       <div className="combat-arena">

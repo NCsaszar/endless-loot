@@ -47,13 +47,26 @@ export function tick(state: GameState, derived: DerivedStats, dt: number, primar
       grantXpAndGold(state, mob, derived.xpGainBonus);
       handleBossKill(state, mob);
 
+      // Endless mode: track run stats and advance floors
+      if (state.endless.active) {
+        state.endless.runKills++;
+        state.endless.runGoldEarned += mob.goldReward;
+        // Advance floor every 3 kills
+        if (state.endless.runKills % 3 === 0) {
+          state.endless.currentFloor++;
+          addLog(state, `Descended to Floor ${state.endless.currentFloor}`, 'info');
+        }
+      }
+
       // Loot roll
       const isBoss = mob.def.isBoss;
       if (shouldDropLoot(isBoss, luk)) {
         const itemLevel = mob.level;
-        const zone = getZone(state.currentZoneId);
-        const zoneRarityBonus = (zone?.rarityBonus ?? 0) + derived.lootRarityBonus;
-        const item = isBoss ? generateBossLoot(itemLevel, luk, zoneRarityBonus) : generateItem(itemLevel, undefined, luk, zoneRarityBonus);
+        // Endless mode: rarity bonus scales with floor
+        const rarityBonus = state.endless.active
+          ? (0.01 * state.endless.currentFloor + derived.lootRarityBonus)
+          : ((getZone(state.currentZoneId)?.rarityBonus ?? 0) + derived.lootRarityBonus);
+        const item = isBoss ? generateBossLoot(itemLevel, luk, rarityBonus) : generateItem(itemLevel, undefined, luk, rarityBonus);
         if (state.autoSalvageRarities.includes(item.rarity)) {
           state.materials[item.salvageResult.material] += item.salvageResult.amount;
           addLog(state, `Auto-salvaged ${item.name} → ${item.salvageResult.amount} ${item.salvageResult.material}`, 'loot');
@@ -64,6 +77,7 @@ export function tick(state: GameState, derived: DerivedStats, dt: number, primar
           addLog(state, `Auto-sold ${item.name} for ${sellGold}g`, 'loot');
         } else {
           state.inventory.push(item);
+          if (state.endless.active) state.endless.runItemsFound++;
           addLog(state, `Loot: ${item.name} (${item.rarity})`, 'loot');
         }
       }

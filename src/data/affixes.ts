@@ -11,13 +11,13 @@ export interface AffixDef {
   id: AffixId;
   slotType: AffixSlotType;
   displayName: string;
-  tiers: AffixTierRange[]; // index 0 = T1, index 4 = T5
+  tiers: AffixTierRange[]; // index 0 = T1, index 9 = T10
 }
 
 // --- Tier Level Thresholds ---
 // Item level required to access each tier
 
-export const TIER_LEVEL_THRESHOLDS = [1, 4, 7, 10, 14];
+export const TIER_LEVEL_THRESHOLDS = [1, 4, 7, 10, 14, 20, 30, 50, 80, 120];
 
 export function getMaxTier(itemLevel: number): number {
   let maxTier = 1;
@@ -50,6 +50,11 @@ export const PREFIX_POOL: AffixDef[] = [
       { min: 0.11, max: 0.16 },
       { min: 0.17, max: 0.22 },
       { min: 0.23, max: 0.30 },
+      { min: 0.31, max: 0.38 },
+      { min: 0.39, max: 0.47 },
+      { min: 0.48, max: 0.57 },
+      { min: 0.58, max: 0.68 },
+      { min: 0.69, max: 0.80 },
     ],
   },
   {
@@ -62,6 +67,11 @@ export const PREFIX_POOL: AffixDef[] = [
       { min: 0.09, max: 0.12 },
       { min: 0.13, max: 0.17 },
       { min: 0.18, max: 0.24 },
+      { min: 0.25, max: 0.31 },
+      { min: 0.32, max: 0.39 },
+      { min: 0.40, max: 0.48 },
+      { min: 0.49, max: 0.58 },
+      { min: 0.59, max: 0.70 },
     ],
   },
   {
@@ -74,6 +84,11 @@ export const PREFIX_POOL: AffixDef[] = [
       { min: 0.07, max: 0.10 },
       { min: 0.11, max: 0.14 },
       { min: 0.15, max: 0.20 },
+      { min: 0.21, max: 0.26 },
+      { min: 0.27, max: 0.33 },
+      { min: 0.34, max: 0.41 },
+      { min: 0.42, max: 0.50 },
+      { min: 0.51, max: 0.60 },
     ],
   },
   {
@@ -86,6 +101,11 @@ export const PREFIX_POOL: AffixDef[] = [
       { min: 0.13, max: 0.18 },
       { min: 0.19, max: 0.25 },
       { min: 0.26, max: 0.35 },
+      { min: 0.36, max: 0.45 },
+      { min: 0.46, max: 0.57 },
+      { min: 0.58, max: 0.70 },
+      { min: 0.71, max: 0.85 },
+      { min: 0.86, max: 1.00 },
     ],
   },
 ];
@@ -103,6 +123,11 @@ export const SUFFIX_POOL: AffixDef[] = [
       { min: 0.09, max: 0.13 },
       { min: 0.14, max: 0.18 },
       { min: 0.19, max: 0.25 },
+      { min: 0.26, max: 0.32 },
+      { min: 0.33, max: 0.40 },
+      { min: 0.41, max: 0.50 },
+      { min: 0.51, max: 0.62 },
+      { min: 0.63, max: 0.75 },
     ],
   },
   {
@@ -115,6 +140,11 @@ export const SUFFIX_POOL: AffixDef[] = [
       { min: 0.09, max: 0.13 },
       { min: 0.14, max: 0.18 },
       { min: 0.19, max: 0.25 },
+      { min: 0.26, max: 0.32 },
+      { min: 0.33, max: 0.40 },
+      { min: 0.41, max: 0.50 },
+      { min: 0.51, max: 0.62 },
+      { min: 0.63, max: 0.75 },
     ],
   },
   {
@@ -127,6 +157,11 @@ export const SUFFIX_POOL: AffixDef[] = [
       { min: 0.09, max: 0.13 },
       { min: 0.14, max: 0.18 },
       { min: 0.19, max: 0.25 },
+      { min: 0.26, max: 0.32 },
+      { min: 0.33, max: 0.40 },
+      { min: 0.41, max: 0.50 },
+      { min: 0.51, max: 0.62 },
+      { min: 0.63, max: 0.75 },
     ],
   },
   {
@@ -139,6 +174,11 @@ export const SUFFIX_POOL: AffixDef[] = [
       { min: 0.09, max: 0.13 },
       { min: 0.14, max: 0.18 },
       { min: 0.19, max: 0.25 },
+      { min: 0.26, max: 0.32 },
+      { min: 0.33, max: 0.40 },
+      { min: 0.41, max: 0.50 },
+      { min: 0.51, max: 0.62 },
+      { min: 0.63, max: 0.75 },
     ],
   },
   {
@@ -151,6 +191,11 @@ export const SUFFIX_POOL: AffixDef[] = [
       { min: 0.09, max: 0.13 },
       { min: 0.14, max: 0.18 },
       { min: 0.19, max: 0.25 },
+      { min: 0.26, max: 0.32 },
+      { min: 0.33, max: 0.40 },
+      { min: 0.41, max: 0.50 },
+      { min: 0.51, max: 0.62 },
+      { min: 0.63, max: 0.75 },
     ],
   },
   {
@@ -163,6 +208,11 @@ export const SUFFIX_POOL: AffixDef[] = [
       { min: 0.11, max: 0.16 },
       { min: 0.17, max: 0.22 },
       { min: 0.23, max: 0.30 },
+      { min: 0.31, max: 0.38 },
+      { min: 0.39, max: 0.47 },
+      { min: 0.48, max: 0.57 },
+      { min: 0.58, max: 0.68 },
+      { min: 0.69, max: 0.80 },
     ],
   },
   {
@@ -175,6 +225,11 @@ export const SUFFIX_POOL: AffixDef[] = [
       { min: 0.11, max: 0.16 },
       { min: 0.17, max: 0.22 },
       { min: 0.23, max: 0.30 },
+      { min: 0.31, max: 0.38 },
+      { min: 0.39, max: 0.47 },
+      { min: 0.48, max: 0.57 },
+      { min: 0.58, max: 0.68 },
+      { min: 0.69, max: 0.80 },
     ],
   },
   {
@@ -187,6 +242,11 @@ export const SUFFIX_POOL: AffixDef[] = [
       { min: 0.07, max: 0.10 },
       { min: 0.11, max: 0.14 },
       { min: 0.15, max: 0.20 },
+      { min: 0.21, max: 0.26 },
+      { min: 0.27, max: 0.33 },
+      { min: 0.34, max: 0.41 },
+      { min: 0.42, max: 0.50 },
+      { min: 0.51, max: 0.60 },
     ],
   },
   {
@@ -199,6 +259,11 @@ export const SUFFIX_POOL: AffixDef[] = [
       { min: 0.13, max: 0.18 },
       { min: 0.19, max: 0.25 },
       { min: 0.26, max: 0.35 },
+      { min: 0.36, max: 0.45 },
+      { min: 0.46, max: 0.57 },
+      { min: 0.58, max: 0.70 },
+      { min: 0.71, max: 0.85 },
+      { min: 0.86, max: 1.00 },
     ],
   },
   {
@@ -211,6 +276,11 @@ export const SUFFIX_POOL: AffixDef[] = [
       { min: 0.11, max: 0.15 },
       { min: 0.16, max: 0.22 },
       { min: 0.23, max: 0.30 },
+      { min: 0.31, max: 0.38 },
+      { min: 0.39, max: 0.47 },
+      { min: 0.48, max: 0.57 },
+      { min: 0.58, max: 0.68 },
+      { min: 0.69, max: 0.80 },
     ],
   },
   {
@@ -223,6 +293,11 @@ export const SUFFIX_POOL: AffixDef[] = [
       { min: 0.13, max: 0.18 },
       { min: 0.19, max: 0.25 },
       { min: 0.26, max: 0.35 },
+      { min: 0.36, max: 0.45 },
+      { min: 0.46, max: 0.57 },
+      { min: 0.58, max: 0.70 },
+      { min: 0.71, max: 0.85 },
+      { min: 0.86, max: 1.00 },
     ],
   },
   {
@@ -235,6 +310,11 @@ export const SUFFIX_POOL: AffixDef[] = [
       { min: 0.07, max: 0.10 },
       { min: 0.11, max: 0.14 },
       { min: 0.15, max: 0.20 },
+      { min: 0.21, max: 0.26 },
+      { min: 0.27, max: 0.33 },
+      { min: 0.34, max: 0.41 },
+      { min: 0.42, max: 0.50 },
+      { min: 0.51, max: 0.60 },
     ],
   },
 ];

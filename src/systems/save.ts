@@ -3,7 +3,7 @@ import { xpForLevel } from '../data/formulas';
 import { getMaxTier } from '../data/affixes';
 
 const SAVE_KEY = 'endless_loot_save';
-const SAVE_VERSION = 3;
+const SAVE_VERSION = 4;
 
 export function createDefaultState(): GameState {
   return {
@@ -44,6 +44,15 @@ export function createDefaultState(): GameState {
     autoSellRarities: [],
     autoSalvageRarities: [],
     combatActive: false,
+    endless: {
+      unlocked: false,
+      active: false,
+      currentFloor: 0,
+      highestFloor: 0,
+      runKills: 0,
+      runGoldEarned: 0,
+      runItemsFound: 0,
+    },
   };
 }
 
@@ -149,6 +158,24 @@ function migrateV2toV3(parsed: any): any {
   return parsed;
 }
 
+// --- V3 → V4 Migration: Add endless mode state ---
+
+function migrateV3toV4(parsed: any): any {
+  if (!parsed.endless) {
+    parsed.endless = {
+      unlocked: false,
+      active: false,
+      currentFloor: 0,
+      highestFloor: 0,
+      runKills: 0,
+      runGoldEarned: 0,
+      runItemsFound: 0,
+    };
+  }
+  parsed.saveVersion = 4;
+  return parsed;
+}
+
 export function saveGame(state: GameState): void {
   state.lastSaveTimestamp = Date.now();
   state.saveVersion = SAVE_VERSION;
@@ -182,6 +209,11 @@ export function loadGame(): GameState | null {
       parsed = migrateV2toV3(parsed);
     }
 
+    // Migrate v3 saves to v4
+    if (parsed.saveVersion === 3) {
+      parsed = migrateV3toV4(parsed);
+    }
+
     if (parsed.saveVersion !== SAVE_VERSION) return null;
 
     // Restore transient combat state
@@ -201,6 +233,13 @@ export function loadGame(): GameState | null {
     if (parsed.trainingLevels.luk === undefined) parsed.trainingLevels.luk = 0;
     // Migration: add combatActive (existing saves should default to active)
     if (parsed.combatActive === undefined) parsed.combatActive = true;
+    // Migration: add endless state
+    if (!parsed.endless) {
+      parsed.endless = {
+        unlocked: false, active: false, currentFloor: 0,
+        highestFloor: 0, runKills: 0, runGoldEarned: 0, runItemsFound: 0,
+      };
+    }
     // Migration: add locked field to items
     for (const item of parsed.inventory) {
       if (item.locked === undefined) item.locked = false;

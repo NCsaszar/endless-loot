@@ -51,7 +51,7 @@ export function lukBossMinRarityIndex(luk: number): number {
 // --- XP Curve ---
 
 export function xpForLevel(level: number): number {
-  return Math.floor(100 * Math.pow(level, 1.5));
+  return Math.floor(100 * Math.pow(level, 1.7));
 }
 
 // --- Training Cost ---

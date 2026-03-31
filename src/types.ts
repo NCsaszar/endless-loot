@@ -94,7 +94,7 @@ export type AffixSlotType = 'prefix' | 'suffix';
 export interface Affix {
   id: AffixId;
   slotType: AffixSlotType;
-  tier: number;   // T1-T5 (1=weakest, 5=strongest)
+  tier: number;   // T1-T10 (1=weakest, 10=strongest)
   value: number;  // percentage as decimal, e.g. 0.10 = 10%
 }
 
@@ -104,7 +104,7 @@ export interface Essence {
   id: string;              // unique ID
   affixId: AffixId;
   slotType: AffixSlotType;
-  tier: number;            // T1-T5
+  tier: number;            // T1-T10
   value: number;           // preserved decimal % from original affix
 }
 
@@ -167,6 +167,7 @@ export interface MobInstance {
 
 export interface ZoneDef {
   id: number;
+  act: number; // 1-5, which act/region this zone belongs to
   name: string;
   levelRange: [number, number];
   mobs: MobDef[];
@@ -239,6 +240,18 @@ export interface TrainingLevels {
   luk: number;
 }
 
+// --- Endless Mode State ---
+
+export interface EndlessState {
+  unlocked: boolean;       // true after beating zone 50 boss
+  active: boolean;         // currently in an endless run
+  currentFloor: number;    // 0 = not started, 1+ = in progress
+  highestFloor: number;    // personal best
+  runKills: number;        // kills in current run
+  runGoldEarned: number;   // gold earned in current run
+  runItemsFound: number;   // items found in current run
+}
+
 // --- Game State ---
 
 export interface GameState {
@@ -261,8 +274,9 @@ export interface GameState {
   autoSellRarities: Rarity[];
   autoSalvageRarities: Rarity[];
   combatActive: boolean;
+  endless: EndlessState;
 }
 
 // --- UI State (not persisted) ---
 
-export type ActivePanel = 'character' | 'inventory' | 'training' | 'zones' | 'blacksmith';
+export type ActivePanel = 'character' | 'inventory' | 'training' | 'zones' | 'blacksmith' | 'endless';

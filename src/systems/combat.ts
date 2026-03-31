@@ -1,6 +1,6 @@
 import type { GameState, MobInstance, MobDef, CombatLogEntry, DerivedStats, DamagePopup } from '../types';
 import { scaleMobStat, mobXpReward, mobGoldReward } from '../data/formulas';
-import { getZone } from '../data/zones';
+import { getZone, getAllMobs, ZONES } from '../data/zones';
 
 let logId = 0;
 let popupId = 0;
@@ -15,6 +15,12 @@ function addLog(state: GameState, message: string, type: CombatLogEntry['type'])
 }
 
 export function spawnMob(state: GameState): void {
+  // Endless mode uses its own spawning logic
+  if (state.endless.active) {
+    spawnEndlessMob(state);
+    return;
+  }
+
   const zone = getZone(state.currentZoneId);
   if (!zone) return;
 
@@ -49,6 +55,56 @@ export function spawnMob(state: GameState): void {
 
   if (mobDef.isBoss) {
     addLog(state, `Boss appeared: ${mobDef.name} (Lv.${level})!`, 'info');
+  }
+}
+
+// --- Endless Mode Mob Spawning ---
+
+const endlessMobPool = getAllMobs();
+
+function spawnEndlessMob(state: GameState): void {
+  const floor = state.endless.currentFloor;
+  // Base level starts at 150 (zone 50 max), scales +1 per floor
+  const level = 150 + floor;
+  // Floor scaling: +4% HP/ATK per floor
+  const floorScale = 1 + 0.04 * floor;
+
+  // Boss every 10 floors
+  const isBossFloor = floor > 0 && state.combat.killCount > 0 && state.combat.killCount % 3 === 0
+    && floor % 10 === 0;
+
+  let mobDef: MobDef;
+  if (isBossFloor) {
+    // Pick a random boss from all zones
+    const bosses = ZONES.map(z => z.boss);
+    mobDef = bosses[Math.floor(Math.random() * bosses.length)];
+  } else {
+    mobDef = endlessMobPool[Math.floor(Math.random() * endlessMobPool.length)];
+  }
+
+  const baseHp = Math.floor(scaleMobStat(mobDef.baseHp, level) * floorScale * (isBossFloor ? 3.5 : 1));
+  const baseAtk = Math.floor(scaleMobStat(mobDef.baseAtk, level) * floorScale * (isBossFloor ? 2.0 : 1));
+  const baseDef = Math.floor(scaleMobStat(mobDef.baseDef, level) * floorScale * (isBossFloor ? 2.5 : 1));
+
+  const mob: MobInstance = {
+    def: { ...mobDef, isBoss: isBossFloor },
+    level,
+    maxHp: baseHp,
+    currentHp: baseHp,
+    atk: baseAtk,
+    defense: baseDef,
+    xpReward: Math.floor(mobDef.baseXp * level * (1 + 0.02 * floor) * (isBossFloor ? 3 : 1)),
+    goldReward: Math.floor(mobDef.baseGold * level * (1 + 0.03 * floor) * (isBossFloor ? 4 : 1)),
+    attackSpeed: isBossFloor ? 0.6 : 0.8,
+  };
+
+  state.combat.currentMob = mob;
+  state.combat.playerAttackProgress = 0;
+  state.combat.mobAttackProgress = 0;
+  state.combat.isPlayerDead = false;
+
+  if (isBossFloor) {
+    addLog(state, `Abyss Boss: ${mobDef.name} (Floor ${floor}, Lv.${level})!`, 'info');
   }
 }
 
@@ -108,7 +164,26 @@ export function mobAttack(state: GameState, derived: DerivedStats): { playerDied
 }
 
 export function handlePlayerDeath(state: GameState, derived: DerivedStats): void {
-  // Retreat to previous zone or stay in zone 1
+  // Endless mode: end the run, keep loot
+  if (state.endless.active) {
+    if (state.endless.currentFloor > state.endless.highestFloor) {
+      state.endless.highestFloor = state.endless.currentFloor;
+    }
+    addLog(state, `You fell on Floor ${state.endless.currentFloor} of The Abyss!`, 'death');
+    state.endless.active = false;
+    state.combatActive = false;
+    state.character.currentHp = derived.maxHp;
+    state.combat.isPlayerDead = false;
+    state.combat.killCount = 0;
+    state.combat.currentMob = null;
+    state.combat.playerAttackProgress = 0;
+    state.combat.mobAttackProgress = 0;
+    state.combat.playerDamageLog = [];
+    state.combat.mobDamageLog = [];
+    return;
+  }
+
+  // Normal mode: retreat to previous zone or stay in zone 1
   if (state.currentZoneId > 1) {
     state.currentZoneId--;
     addLog(state, `Retreated to zone ${state.currentZoneId}`, 'info');

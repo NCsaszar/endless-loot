@@ -26,12 +26,20 @@ export function allocateStat(state: GameState, stat: 'str' | 'dex' | 'int' | 'vi
 }
 
 export function handleBossKill(state: GameState, mob: MobInstance): void {
+  // No zone progression during endless runs
+  if (state.endless.active) return;
+
   if (mob.def.isBoss && !state.bossesDefeated.includes(state.currentZoneId)) {
     state.bossesDefeated.push(state.currentZoneId);
     const nextZone = state.currentZoneId + 1;
-    if (!state.unlockedZoneIds.includes(nextZone)) {
+    if (nextZone <= 50 && !state.unlockedZoneIds.includes(nextZone)) {
       state.unlockedZoneIds.push(nextZone);
       addLog(state, `Zone ${nextZone} unlocked!`, 'info');
+    }
+    // Unlock endless mode after beating zone 50 boss
+    if (state.currentZoneId === 50 && !state.endless.unlocked) {
+      state.endless.unlocked = true;
+      addLog(state, 'The Abyss has opened! Endless mode is now available.', 'info');
     }
   }
 }
@@ -52,6 +60,40 @@ export function startCombat(state: GameState): void {
 }
 
 export function stopCombat(state: GameState): void {
+  state.combatActive = false;
+  state.combat.currentMob = null;
+  state.combat.playerAttackProgress = 0;
+  state.combat.mobAttackProgress = 0;
+  state.combat.playerDamageLog = [];
+  state.combat.mobDamageLog = [];
+}
+
+// --- Endless Mode ---
+
+export function startEndlessRun(state: GameState): void {
+  if (!state.endless.unlocked) return;
+  state.endless.active = true;
+  state.endless.currentFloor = 1;
+  state.endless.runKills = 0;
+  state.endless.runGoldEarned = 0;
+  state.endless.runItemsFound = 0;
+  state.combat.killCount = 0;
+  state.combat.currentMob = null;
+  state.combat.playerAttackProgress = 0;
+  state.combat.mobAttackProgress = 0;
+  state.combat.playerDamageLog = [];
+  state.combat.mobDamageLog = [];
+  state.combatActive = true;
+  addLog(state, 'Descending into The Abyss... Floor 1', 'info');
+}
+
+export function endEndlessRun(state: GameState): void {
+  if (!state.endless.active) return;
+  if (state.endless.currentFloor > state.endless.highestFloor) {
+    state.endless.highestFloor = state.endless.currentFloor;
+  }
+  addLog(state, `Escaped The Abyss at Floor ${state.endless.currentFloor}.`, 'info');
+  state.endless.active = false;
   state.combatActive = false;
   state.combat.currentMob = null;
   state.combat.playerAttackProgress = 0;

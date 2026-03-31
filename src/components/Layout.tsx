@@ -6,18 +6,22 @@ import InventoryPanel from './InventoryPanel';
 import TrainingPanel from './TrainingPanel';
 import ZonePanel from './ZonePanel';
 import BlacksmithPanel from './BlacksmithPanel';
+import EndlessPanel from './EndlessPanel';
 import WelcomeBack from './WelcomeBack';
 
-const TABS: { id: ActivePanel; label: string }[] = [
+const TABS: { id: ActivePanel; label: string; condition?: (state: any) => boolean }[] = [
   { id: 'character', label: 'Character' },
   { id: 'inventory', label: 'Inventory' },
   { id: 'training', label: 'Training' },
   { id: 'blacksmith', label: 'Blacksmith' },
   { id: 'zones', label: 'Zones' },
+  { id: 'endless', label: 'The Abyss', condition: (s) => s.endless.unlocked },
 ];
 
 export default function Layout() {
   const { activePanel, setActivePanel, state } = useGameState();
+
+  const visibleTabs = TABS.filter(t => !t.condition || t.condition(state));
 
   const renderPanel = () => {
     switch (activePanel) {
@@ -26,13 +30,14 @@ export default function Layout() {
       case 'training': return <TrainingPanel />;
       case 'blacksmith': return <BlacksmithPanel />;
       case 'zones': return <ZonePanel />;
+      case 'endless': return <EndlessPanel />;
     }
   };
 
   return (
     <div className="game-layout">
       <nav className="game-nav">
-        {TABS.map(tab => (
+        {visibleTabs.map(tab => (
           <button
             key={tab.id}
             className={`nav-tab ${activePanel === tab.id ? 'active' : ''}`}

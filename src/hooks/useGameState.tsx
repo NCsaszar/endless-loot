@@ -4,7 +4,7 @@ import { getTotalPrimaryStats, calculateDerivedStats } from '../data/formulas';
 import { tick } from '../systems/gameLoop';
 import { saveGame, loadGame, createDefaultState, calculateOfflineProgress } from '../systems/save';
 import { sellItem, salvageItem, trainStat, equipItem, unequipItem, bulkSell, bulkSalvage } from '../systems/economy';
-import { allocateStat, changeZone, startCombat, stopCombat } from '../systems/progression';
+import { allocateStat, changeZone, startCombat, stopCombat, startEndlessRun, endEndlessRun } from '../systems/progression';
 import { generateItem } from '../systems/loot';
 import { dismantleItem, slotEssence, discardEssences } from '../systems/blacksmith';
 import type { EssenceFilter } from '../systems/blacksmith';
@@ -25,6 +25,8 @@ interface GameContextValue {
   doStartCombat: () => void;
   doStopCombat: () => void;
   doResetGame: () => void;
+  doStartEndlessRun: () => void;
+  doEndEndlessRun: () => void;
   doToggleAutoSell: (rarity: Rarity) => void;
   doToggleAutoSalvage: (rarity: Rarity) => void;
   doToggleLock: (itemId: string) => void;
@@ -168,6 +170,14 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     saveGame(stateRef.current);
   }, [recalcDerived]);
 
+  const doStartEndlessRun = useCallback(() => {
+    startEndlessRun(stateRef.current);
+  }, []);
+
+  const doEndEndlessRun = useCallback(() => {
+    endEndlessRun(stateRef.current);
+  }, []);
+
   const doToggleAutoSell = useCallback((rarity: Rarity) => {
     const s = stateRef.current;
     const idx = s.autoSellRarities.indexOf(rarity);
@@ -244,6 +254,8 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     doStartCombat,
     doStopCombat,
     doResetGame,
+    doStartEndlessRun,
+    doEndEndlessRun,
     doToggleAutoSell,
     doToggleAutoSalvage,
     doToggleLock,
