@@ -206,12 +206,24 @@ export interface DamageEntry {
 
 // --- Combat State ---
 
+export interface DeathInfo {
+  killerName: string;
+  killerLevel: number;
+  killerAtk: number;
+  killerDef: number;
+  zoneId: number;
+  zoneName: string;
+  wasEndless: boolean;
+  endlessFloor?: number;
+}
+
 export interface CombatState {
   currentMob: MobInstance | null;
   playerAttackProgress: number; // 0 to 1
   mobAttackProgress: number; // 0 to 1
   killCount: number;
   isPlayerDead: boolean;
+  deathInfo: DeathInfo | null;
   damagePopups: DamagePopup[];
   playerDamageLog: DamageEntry[];
   mobDamageLog: DamageEntry[];

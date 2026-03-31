@@ -7,6 +7,7 @@ import type { DamagePopup } from '../types';
 import { LOG_FILTER_TABS } from '../types';
 import type { LogFilterTab } from '../types';
 import { calculateActualDps, calculateTheoreticalPlayerDps, calculateTheoreticalMobDps } from '../systems/dps';
+import DeathModal from './DeathModal';
 
 const LOG_FILTER_KEY = 'endless_loot_log_filter';
 
@@ -21,7 +22,7 @@ function getHitClass(popups: DamagePopup[], target: 'player' | 'mob'): string {
 }
 
 export default function CombatView() {
-  const { state, derived } = useGameState();
+  const { state, derived, doDeathRetreat, doDeathRetry } = useGameState();
   const { combat, character, currentZoneId, combatLog } = state;
   const mob = combat.currentMob;
   const zone = getZone(currentZoneId);
@@ -156,6 +157,16 @@ export default function CombatView() {
           )}
         </div>
       </div>
+
+      {/* Death Modal */}
+      {combat.deathInfo && !combat.deathInfo.wasEndless && (
+        <DeathModal
+          deathInfo={combat.deathInfo}
+          derived={derived}
+          onRetreat={doDeathRetreat}
+          onRetry={doDeathRetry}
+        />
+      )}
 
       {/* Combat Log */}
       <div className="combat-log-container">

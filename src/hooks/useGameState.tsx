@@ -5,8 +5,9 @@ import { tick } from '../systems/gameLoop';
 import { saveGame, loadGame, createDefaultState, calculateOfflineProgress } from '../systems/save';
 import { sellItem, salvageItem, equipItem, unequipItem, bulkSell, bulkSalvage } from '../systems/economy';
 import { allocateStat, allocateStatMultiple, resetAllStats, changeZone, startCombat, stopCombat, startEndlessRun, endEndlessRun } from '../systems/progression';
+import { handleDeathRetreat, handleDeathRetry } from '../systems/combat';
 import { generateItem } from '../systems/loot';
-import { dismantleItem, bulkDismantle, slotEssence, discardEssences } from '../systems/blacksmith';
+import { dismantleItem, bulkDismantle, slotEssence, discardEssences, upgradeEssence } from '../systems/blacksmith';
 import type { EssenceFilter } from '../systems/blacksmith';
 import type { OfflineProgress } from '../systems/save';
 
@@ -36,7 +37,10 @@ interface GameContextValue {
   doDismantleItem: (itemId: string) => Essence[];
   doBulkDismantle: (itemIds: string[]) => Essence[];
   doSlotEssence: (itemId: string, essenceId: string, slotIndex: number) => boolean;
+  doUpgradeEssence: (itemId: string, essenceId: string) => boolean;
   doDiscardEssences: (filter: EssenceFilter) => number;
+  doDeathRetreat: () => void;
+  doDeathRetry: () => void;
   offlineProgress: OfflineProgress | null;
   dismissOfflineProgress: () => void;
 }
@@ -260,9 +264,28 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     return success;
   }, [recalcDerived]);
 
+  const doUpgradeEssence = useCallback((itemId: string, essenceId: string): boolean => {
+    const success = upgradeEssence(stateRef.current, itemId, essenceId);
+    if (success) {
+      const isEquipped = Object.values(stateRef.current.equipment).some(e => e?.id === itemId);
+      if (isEquipped) recalcDerived();
+    }
+    return success;
+  }, [recalcDerived]);
+
   const doDiscardEssences = useCallback((filter: EssenceFilter): number => {
     return discardEssences(stateRef.current, filter);
   }, []);
+
+  const doDeathRetreat = useCallback(() => {
+    recalcDerived();
+    handleDeathRetreat(stateRef.current, derivedRef.current);
+  }, [recalcDerived]);
+
+  const doDeathRetry = useCallback(() => {
+    recalcDerived();
+    handleDeathRetry(stateRef.current, derivedRef.current);
+  }, [recalcDerived]);
 
   const dismissOfflineProgress = useCallback(() => {
     setOfflineProgress(null);
@@ -294,7 +317,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     doDismantleItem,
     doBulkDismantle,
     doSlotEssence,
+    doUpgradeEssence,
     doDiscardEssences,
+    doDeathRetreat,
+    doDeathRetry,
     offlineProgress,
     dismissOfflineProgress,
   };

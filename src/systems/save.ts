@@ -32,6 +32,7 @@ export function createDefaultState(): GameState {
       mobAttackProgress: 0,
       killCount: 0,
       isPlayerDead: false,
+      deathInfo: null,
       damagePopups: [],
       playerDamageLog: [],
       mobDamageLog: [],
@@ -204,6 +205,8 @@ export function saveGame(state: GameState): void {
       currentMob: null,
       playerAttackProgress: 0,
       mobAttackProgress: 0,
+      isPlayerDead: false,
+      deathInfo: null,
     },
     combatLog: [],
   };
@@ -247,6 +250,8 @@ export function loadGame(): GameState | null {
     parsed.combat.currentMob = null;
     parsed.combat.playerAttackProgress = 0;
     parsed.combat.mobAttackProgress = 0;
+    parsed.combat.isPlayerDead = false;
+    parsed.combat.deathInfo = null;
     parsed.combat.damagePopups = [];
     parsed.combat.playerDamageLog = [];
     parsed.combat.mobDamageLog = [];

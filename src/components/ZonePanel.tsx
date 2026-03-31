@@ -1,8 +1,7 @@
-import { useState, useMemo, useRef, useEffect } from 'react';
-import { useGameState } from '../hooks/useGameState';
+import { useState, useMemo, useRef, useEffect, memo } from 'react';
 import { ZONES, ACT_NAMES, ACT_THEMES } from '../data/zones';
 import { EQUIPMENT_RARITIES, RARITY_COLORS } from '../types';
-import type { Rarity, ZoneDef } from '../types';
+import type { Rarity, ZoneDef, Character, GameState } from '../types';
 import { getTotalPrimaryStats, lukRarityShift, lukDropChance } from '../data/formulas';
 import { RARITY_CONFIG } from '../systems/loot';
 
@@ -27,27 +26,52 @@ const ACTS = [1, 2, 3, 4, 5].map(actNum => ({
   zones: ZONES.filter(z => z.act === actNum),
 }));
 
-export default function ZonePanel() {
-  const { state, doChangeZone, doStartCombat, doStopCombat } = useGameState();
+export interface ZonePanelProps {
+  currentZoneId: number;
+  unlockedZoneIds: number[];
+  bossesDefeated: number[];
+  combatActive: boolean;
+  character: Character;
+  equipment: GameState['equipment'];
+  totalKills: number;
+  totalGoldEarned: number;
+  doChangeZone: (zoneId: number) => void;
+  doStartCombat: () => void;
+  doStopCombat: () => void;
+}
+
+const ZonePanel = memo(function ZonePanel({
+  currentZoneId,
+  unlockedZoneIds,
+  bossesDefeated,
+  combatActive,
+  character,
+  equipment,
+  totalKills,
+  totalGoldEarned,
+  doChangeZone,
+  doStartCombat,
+  doStopCombat,
+}: ZonePanelProps) {
   const [expandedZoneId, setExpandedZoneId] = useState<number | null>(null);
   const [collapsedActs, setCollapsedActs] = useState<Set<number>>(new Set());
   const currentZoneRef = useRef<HTMLDivElement>(null);
 
   const primaryStats = useMemo(
-    () => getTotalPrimaryStats(state.character, state.equipment),
-    [state.character, state.equipment]
+    () => getTotalPrimaryStats(character, equipment),
+    [character, equipment]
   );
   const luk = primaryStats.luk;
   const dropChance = useMemo(() => lukDropChance(luk), [luk]);
 
   const currentAct = useMemo(() => {
-    const zone = ZONES.find(z => z.id === state.currentZoneId);
+    const zone = ZONES.find(z => z.id === currentZoneId);
     return zone?.act ?? 1;
-  }, [state.currentZoneId]);
+  }, [currentZoneId]);
 
   const highestUnlockedZone = useMemo(
-    () => Math.max(...state.unlockedZoneIds),
-    [state.unlockedZoneIds]
+    () => Math.max(...unlockedZoneIds),
+    [unlockedZoneIds]
   );
 
   useEffect(() => {
@@ -70,10 +94,10 @@ export default function ZonePanel() {
   };
 
   const renderZoneCard = (zone: ZoneDef) => {
-    const unlocked = state.unlockedZoneIds.includes(zone.id);
-    const active = state.currentZoneId === zone.id;
-    const bossDefeated = state.bossesDefeated.includes(zone.id);
-    const isRunning = active && state.combatActive;
+    const unlocked = unlockedZoneIds.includes(zone.id);
+    const active = currentZoneId === zone.id;
+    const bossDefeated = bossesDefeated.includes(zone.id);
+    const isRunning = active && combatActive;
     const isExpanded = expandedZoneId === zone.id;
     const theme = ACT_THEMES[zone.act];
 
@@ -172,8 +196,8 @@ export default function ZonePanel() {
       <div className="zone-list">
         {ACTS.map(({ act, name, zones }) => {
           const isCollapsed = collapsedActs.has(act);
-          const bossesInAct = zones.filter(z => state.bossesDefeated.includes(z.id)).length;
-          const unlockedInAct = zones.filter(z => state.unlockedZoneIds.includes(z.id)).length;
+          const bossesInAct = zones.filter(z => bossesDefeated.includes(z.id)).length;
+          const unlockedInAct = zones.filter(z => unlockedZoneIds.includes(z.id)).length;
           const isCurrentAct = act === currentAct;
           const theme = ACT_THEMES[act];
 
@@ -201,9 +225,11 @@ export default function ZonePanel() {
       </div>
 
       <div className="zone-stats">
-        <div>Total Kills: {state.totalKills.toLocaleString()}</div>
-        <div>Total Gold Earned: {state.totalGoldEarned.toLocaleString()}</div>
+        <div>Total Kills: {totalKills.toLocaleString()}</div>
+        <div>Total Gold Earned: {totalGoldEarned.toLocaleString()}</div>
       </div>
     </div>
   );
-}
+});
+
+export default ZonePanel;

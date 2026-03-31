@@ -93,26 +93,20 @@ export default function CharacterPanel() {
         <h3>Primary Stats</h3>
         <div className="stat-grid">
           {(['str', 'dex', 'int', 'vit', 'luk'] as const).map(stat => (
-            <Tooltip key={stat} text={STAT_TIPS[stat]}>
-              <div className="stat-row">
+            <div key={stat} className="stat-row">
+              <Tooltip text={STAT_TIPS[stat]}>
                 <span className="stat-name">{stat.toUpperCase()}</span>
-                <span className="stat-value">
-                  {character.baseStats[stat]}
-                </span>
-                {character.unspentStatPoints > 0 && (
-                  <div className="stat-btn-group">
-                    <button className="stat-btn" onClick={() => doAllocateStat(stat)}>+1</button>
-                    {character.unspentStatPoints >= 5 && (
-                      <button className="stat-btn" onClick={() => doAllocateStatMultiple(stat, 5)}>+5</button>
-                    )}
-                    {character.unspentStatPoints >= 10 && (
-                      <button className="stat-btn" onClick={() => doAllocateStatMultiple(stat, 10)}>+10</button>
-                    )}
-                    <button className="stat-btn stat-btn-max" onClick={() => doAllocateStatMultiple(stat, character.unspentStatPoints)}>Max</button>
-                  </div>
-                )}
+              </Tooltip>
+              <span className="stat-value">
+                {character.baseStats[stat]}
+              </span>
+              <div className="stat-btn-group">
+                <button className="stat-btn" disabled={character.unspentStatPoints < 1} onClick={() => doAllocateStat(stat)}>+1</button>
+                <button className="stat-btn" disabled={character.unspentStatPoints < 5} onClick={() => doAllocateStatMultiple(stat, 5)}>+5</button>
+                <button className="stat-btn" disabled={character.unspentStatPoints < 10} onClick={() => doAllocateStatMultiple(stat, 10)}>+10</button>
+                <button className="stat-btn stat-btn-max" disabled={character.unspentStatPoints < 1} onClick={() => doAllocateStatMultiple(stat, character.unspentStatPoints)}>Max</button>
               </div>
-            </Tooltip>
+            </div>
           ))}
         </div>
         {(() => {
@@ -153,9 +147,12 @@ export default function CharacterPanel() {
             ...(derived.xpGainBonus > 1 ? [{ key: 'XP', val: `${(derived.xpGainBonus * 100).toFixed(0)}%` }] : []),
             ...(derived.lootRarityBonus > 0 ? [{ key: 'LOOT', val: `+${(derived.lootRarityBonus * 100).toFixed(1)}%` }] : []),
           ].map(({ key, val }) => (
-            <Tooltip key={key} text={DERIVED_TIPS[key]}>
-              <div><span>{key}</span><span>{val}</span></div>
-            </Tooltip>
+            <div key={key} className="derived-stat-row">
+              <Tooltip text={DERIVED_TIPS[key]}>
+                <span>{key}</span>
+              </Tooltip>
+              <span>{val}</span>
+            </div>
           ))}
         </div>
       </div>

@@ -157,46 +157,106 @@ export function mobAttack(state: GameState, derived: DerivedStats): { playerDied
   if (state.character.currentHp <= 0) {
     state.character.currentHp = 0;
     state.combat.isPlayerDead = true;
-    addLog(state, 'You have been defeated! Retreating...', 'death');
+    state.combatActive = false; // Stop combat immediately
+
+    // Capture death info for modal
+    const zone = getZone(state.currentZoneId);
+    state.combat.deathInfo = {
+      killerName: mob.def.name,
+      killerLevel: mob.level,
+      killerAtk: mob.atk,
+      killerDef: mob.defense,
+      zoneId: state.currentZoneId,
+      zoneName: zone?.name ?? 'Unknown',
+      wasEndless: state.endless.active,
+      endlessFloor: state.endless.active ? state.endless.currentFloor : undefined,
+    };
+
+    addLog(state, 'You have been defeated!', 'death');
     return { playerDied: true };
   }
   return { playerDied: false };
 }
 
-export function handlePlayerDeath(state: GameState, derived: DerivedStats): void {
-  // Endless mode: end the run, keep loot
-  if (state.endless.active) {
-    if (state.endless.currentFloor > state.endless.highestFloor) {
-      state.endless.highestFloor = state.endless.currentFloor;
-    }
-    addLog(state, `You fell on Floor ${state.endless.currentFloor} of The Abyss!`, 'death');
-    state.endless.active = false;
-    state.combatActive = false;
-    state.character.currentHp = derived.maxHp;
-    state.combat.isPlayerDead = false;
-    state.combat.killCount = 0;
-    state.combat.currentMob = null;
-    state.combat.playerAttackProgress = 0;
-    state.combat.mobAttackProgress = 0;
-    state.combat.playerDamageLog = [];
-    state.combat.mobDamageLog = [];
-    return;
-  }
+// --- Death handling (called from UI modal buttons) ---
 
-  // Normal mode: retreat to previous zone or stay in zone 1
-  if (state.currentZoneId > 1) {
-    state.currentZoneId--;
-    addLog(state, `Retreated to zone ${state.currentZoneId}`, 'info');
-  }
-
+function resetCombatState(state: GameState, derived: DerivedStats): void {
   state.character.currentHp = derived.maxHp;
   state.combat.isPlayerDead = false;
+  state.combat.deathInfo = null;
   state.combat.killCount = 0;
   state.combat.currentMob = null;
   state.combat.playerAttackProgress = 0;
   state.combat.mobAttackProgress = 0;
   state.combat.playerDamageLog = [];
   state.combat.mobDamageLog = [];
+}
+
+function relockZonesOnDeath(state: GameState): void {
+  if (state.endless.active) return;
+
+  const deathZoneId = state.currentZoneId;
+
+  // Re-lock current zone and all zones after it
+  state.unlockedZoneIds = state.unlockedZoneIds.filter(id => id < deathZoneId);
+  state.bossesDefeated = state.bossesDefeated.filter(id => id < deathZoneId);
+
+  // Zone 1 must always be unlocked
+  if (!state.unlockedZoneIds.includes(1)) {
+    state.unlockedZoneIds = [1];
+  }
+}
+
+export function handleDeathRetreat(state: GameState, derived: DerivedStats): void {
+  // Endless mode: end the run
+  if (state.endless.active) {
+    if (state.endless.currentFloor > state.endless.highestFloor) {
+      state.endless.highestFloor = state.endless.currentFloor;
+    }
+    addLog(state, `You fell on Floor ${state.endless.currentFloor} of The Abyss!`, 'death');
+    state.endless.active = false;
+    resetCombatState(state, derived);
+    return;
+  }
+
+  // Re-lock zones on retreat
+  relockZonesOnDeath(state);
+
+  // Move to highest remaining unlocked zone
+  const maxUnlocked = Math.max(...state.unlockedZoneIds);
+  if (state.currentZoneId > maxUnlocked) {
+    state.currentZoneId = maxUnlocked;
+  }
+
+  addLog(state, `Retreated to zone ${state.currentZoneId}`, 'info');
+  resetCombatState(state, derived);
+}
+
+export function handleDeathRetry(state: GameState, derived: DerivedStats): void {
+  // Endless mode: end the run (no retry in endless)
+  if (state.endless.active) {
+    handleDeathRetreat(state, derived);
+    return;
+  }
+
+  // Stay in same zone, restart combat, no re-locking
+  addLog(state, `Trying again in zone ${state.currentZoneId}...`, 'info');
+  resetCombatState(state, derived);
+  state.combatActive = true;
+}
+
+// Legacy handler for gameLoop compatibility (now only used for endless auto-death)
+export function handlePlayerDeath(state: GameState, derived: DerivedStats): void {
+  // For normal mode, death is now handled by the modal — this should not be called
+  // Only keep for safety: if somehow reached, treat as retreat
+  if (!state.endless.active && state.combat.deathInfo) {
+    return; // Wait for modal
+  }
+
+  // Endless mode auto-handle (fallback)
+  if (state.endless.active) {
+    handleDeathRetreat(state, derived);
+  }
 }
 
 export function regenHp(state: GameState, derived: DerivedStats, dt: number): void {

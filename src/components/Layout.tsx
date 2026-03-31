@@ -17,7 +17,7 @@ const TABS: { id: ActivePanel; label: string; condition?: (state: any) => boolea
 ];
 
 export default function Layout() {
-  const { activePanel, setActivePanel, state } = useGameState();
+  const { activePanel, setActivePanel, state, doChangeZone, doStartCombat, doStopCombat } = useGameState();
 
   const visibleTabs = TABS.filter(t => !t.condition || t.condition(state));
 
@@ -26,7 +26,21 @@ export default function Layout() {
       case 'character': return <CharacterPanel />;
       case 'inventory': return <InventoryPanel />;
       case 'blacksmith': return <BlacksmithPanel />;
-      case 'zones': return <ZonePanel />;
+      case 'zones': return (
+        <ZonePanel
+          currentZoneId={state.currentZoneId}
+          unlockedZoneIds={state.unlockedZoneIds}
+          bossesDefeated={state.bossesDefeated}
+          combatActive={state.combatActive}
+          character={state.character}
+          equipment={state.equipment}
+          totalKills={state.totalKills}
+          totalGoldEarned={state.totalGoldEarned}
+          doChangeZone={doChangeZone}
+          doStartCombat={doStartCombat}
+          doStopCombat={doStopCombat}
+        />
+      );
       case 'endless': return <EndlessPanel />;
     }
   };

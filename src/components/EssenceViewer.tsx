@@ -8,6 +8,8 @@ interface EssenceViewerProps {
   selectedId?: string | null;
   onSelect?: (essenceId: string) => void;
   filterSlotType?: AffixSlotType;
+  filterAffixId?: AffixId;
+  minTier?: number;
 }
 
 interface EssenceGroup {
@@ -18,13 +20,19 @@ interface EssenceGroup {
   tierCounts: Map<number, number>;
 }
 
-export default function EssenceViewer({ essences, selectable, selectedId, onSelect, filterSlotType }: EssenceViewerProps) {
+export default function EssenceViewer({ essences, selectable, selectedId, onSelect, filterSlotType, filterAffixId, minTier }: EssenceViewerProps) {
   const [expandedGroup, setExpandedGroup] = useState<AffixId | null>(null);
 
   const groups = useMemo(() => {
     let filtered = essences;
     if (filterSlotType) {
-      filtered = essences.filter(e => e.slotType === filterSlotType);
+      filtered = filtered.filter(e => e.slotType === filterSlotType);
+    }
+    if (filterAffixId) {
+      filtered = filtered.filter(e => e.affixId === filterAffixId);
+    }
+    if (minTier !== undefined) {
+      filtered = filtered.filter(e => e.tier > minTier);
     }
 
     const map = new Map<AffixId, EssenceGroup>();
@@ -49,10 +57,10 @@ export default function EssenceViewer({ essences, selectable, selectedId, onSele
       return a.displayName.localeCompare(b.displayName);
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [essences, essences.length, filterSlotType]);
+  }, [essences, essences.length, filterSlotType, filterAffixId, minTier]);
 
   if (groups.length === 0) {
-    return <div className="essence-viewer-empty">No essences</div>;
+    return <div className="essence-viewer-empty">{minTier !== undefined ? 'No higher-tier essences available' : 'No essences'}</div>;
   }
 
   const formatTierCounts = (tierCounts: Map<number, number>) => {

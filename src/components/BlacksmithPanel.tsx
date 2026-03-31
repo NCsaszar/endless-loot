@@ -1,20 +1,22 @@
 import { useState, useMemo } from 'react';
 import { useGameState } from '../hooks/useGameState';
-import type { Item, Affix, AffixSlotType, Essence } from '../types';
+import type { Item, Affix, AffixSlotType, AffixId, Essence } from '../types';
 import { RARITY_COLORS, EQUIPMENT_RARITIES } from '../types';
 import { formatAffix, getAffixShortName } from '../data/affixes';
-import { getEmptySlots, getSlottingCost } from '../systems/blacksmith';
+import { getEmptySlots, getSlottingCost, getUpgradeCost } from '../systems/blacksmith';
 import ItemCard from './ItemCard';
 import EssenceViewer from './EssenceViewer';
 
 type BlacksmithTab = 'dismantle' | 'craft';
+
+type CraftMode = 'slot' | 'upgrade';
 
 function formatEssence(e: Essence): string {
   return `[T${e.tier}] +${(e.value * 100).toFixed(1)}% ${getAffixShortName(e.affixId)}`;
 }
 
 export default function BlacksmithPanel() {
-  const { state, doDismantleItem, doBulkDismantle, doSlotEssence } = useGameState();
+  const { state, doDismantleItem, doBulkDismantle, doSlotEssence, doUpgradeEssence } = useGameState();
 
   const [activeTab, setActiveTab] = useState<BlacksmithTab>('dismantle');
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
@@ -30,6 +32,8 @@ export default function BlacksmithPanel() {
   const [selectedSlot, setSelectedSlot] = useState<{ type: AffixSlotType; index: number } | null>(null);
   const [selectedEssenceId, setSelectedEssenceId] = useState<string | null>(null);
   const [craftSource, setCraftSource] = useState<'inventory' | 'equipped'>('inventory');
+  const [craftMode, setCraftMode] = useState<CraftMode>('slot');
+  const [upgradeTarget, setUpgradeTarget] = useState<{ affixId: AffixId; tier: number; slotType: AffixSlotType } | null>(null);
 
   // --- Dismantle Tab ---
 
@@ -52,12 +56,18 @@ export default function BlacksmithPanel() {
 
   // --- Craft Tab ---
 
+  // Show items that have empty slots OR filled affixes (for upgrades)
   const craftItems = useMemo(() => {
+    const hasAnySlotOrAffix = (item: Item) => {
+      const hasEmpty = getEmptySlots(item).length > 0;
+      const hasAffix = item.prefixes.some(a => a !== null) || item.suffixes.some(a => a !== null);
+      return hasEmpty || hasAffix;
+    };
     if (craftSource === 'inventory') {
-      return state.inventory.filter(item => getEmptySlots(item).length > 0);
+      return state.inventory.filter(item => !item.consumable && hasAnySlotOrAffix(item));
     }
     return Object.values(state.equipment).filter((item): item is Item =>
-      item !== undefined && getEmptySlots(item).length > 0
+      item !== undefined && hasAnySlotOrAffix(item)
     );
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [craftSource, state.inventory, state.inventory.length, state.equipment]);
@@ -68,15 +78,19 @@ export default function BlacksmithPanel() {
     ? state.essences.find(e => e.id === selectedEssenceId) ?? null
     : null;
 
+  // Slot mode costs
   const slottingCost = selectedEssence ? getSlottingCost(selectedEssence.tier) : 0;
-  const canAfford = state.gold >= slottingCost;
+  const upgradeCost = selectedEssence ? getUpgradeCost(selectedEssence.tier) : 0;
+  const activeCost = craftMode === 'upgrade' ? upgradeCost : slottingCost;
+  const canAfford = state.gold >= activeCost;
 
-  // Check for duplicate affix on the target item
+  // Check for duplicate affix on the target item (only relevant in slot mode)
   const hasDuplicateAffix = useMemo(() => {
+    if (craftMode === 'upgrade') return false; // In upgrade mode, duplicates are expected
     if (!craftItem || !selectedEssence) return false;
     const allExisting = [...craftItem.prefixes, ...craftItem.suffixes].filter((a): a is Affix => a !== null);
     return allExisting.some(a => a.id === selectedEssence.affixId);
-  }, [craftItem, selectedEssence]);
+  }, [craftItem, selectedEssence, craftMode]);
 
   const handleSlotEssence = () => {
     if (!craftItemId || !selectedEssenceId || !selectedSlot) return;
@@ -84,13 +98,30 @@ export default function BlacksmithPanel() {
     if (success) {
       setSelectedEssenceId(null);
       setSelectedSlot(null);
-      // If the item no longer has empty slots, deselect it
+      // If the item no longer has empty slots, clear slot selection
       const updated = [...state.inventory, ...Object.values(state.equipment).filter(Boolean) as Item[]]
         .find(i => i.id === craftItemId);
       if (updated && getEmptySlots(updated).length === 0) {
-        setCraftItemId(null);
+        // Item may still have filled affixes for upgrade, don't deselect
       }
     }
+  };
+
+  const handleUpgradeEssence = () => {
+    if (!craftItemId || !selectedEssenceId) return;
+    const success = doUpgradeEssence(craftItemId, selectedEssenceId);
+    if (success) {
+      setSelectedEssenceId(null);
+      setUpgradeTarget(null);
+      setCraftMode('slot');
+    }
+  };
+
+  const resetCraftSelection = () => {
+    setSelectedSlot(null);
+    setSelectedEssenceId(null);
+    setCraftMode('slot');
+    setUpgradeTarget(null);
   };
 
   return (
@@ -100,7 +131,7 @@ export default function BlacksmithPanel() {
       <div className="blacksmith-tabs">
         <button
           className={`bs-tab ${activeTab === 'dismantle' ? 'active' : ''}`}
-          onClick={() => { setActiveTab('dismantle'); setCraftItemId(null); setSelectedSlot(null); setSelectedEssenceId(null); }}
+          onClick={() => { setActiveTab('dismantle'); setCraftItemId(null); resetCraftSelection(); }}
         >
           Dismantle
         </button>
@@ -314,27 +345,27 @@ export default function BlacksmithPanel() {
 
       {activeTab === 'craft' && (
         <div className="craft-section">
-          <p className="bs-hint">Select an item with empty affix slots, then choose an essence to slot in.</p>
+          <p className="bs-hint">Select an item, then click an empty slot to add an essence or click a filled affix to upgrade it.</p>
 
           <div className="craft-layout">
             <div className="craft-left">
               <div className="craft-source-toggle">
                 <button
                   className={craftSource === 'inventory' ? 'active' : ''}
-                  onClick={() => { setCraftSource('inventory'); setCraftItemId(null); setSelectedSlot(null); setSelectedEssenceId(null); }}
+                  onClick={() => { setCraftSource('inventory'); setCraftItemId(null); resetCraftSelection(); }}
                 >
                   Inventory
                 </button>
                 <button
                   className={craftSource === 'equipped' ? 'active' : ''}
-                  onClick={() => { setCraftSource('equipped'); setCraftItemId(null); setSelectedSlot(null); setSelectedEssenceId(null); }}
+                  onClick={() => { setCraftSource('equipped'); setCraftItemId(null); resetCraftSelection(); }}
                 >
                   Equipped
                 </button>
               </div>
 
               {craftItems.length === 0 ? (
-                <div className="bs-empty">No items with empty affix slots.</div>
+                <div className="bs-empty">No items available for crafting.</div>
               ) : (
                 <div className="bs-item-grid">
                   {craftItems.map(item => (
@@ -345,8 +376,7 @@ export default function BlacksmithPanel() {
                         selected={item.id === craftItemId}
                         onClick={() => {
                           setCraftItemId(item.id === craftItemId ? null : item.id);
-                          setSelectedSlot(null);
-                          setSelectedEssenceId(null);
+                          resetCraftSelection();
                         }}
                       />
                     </div>
@@ -357,18 +387,33 @@ export default function BlacksmithPanel() {
               {craftItem && (
                 <div className="craft-item-slots">
                   <h4 style={{ color: RARITY_COLORS[craftItem.rarity] }}>{craftItem.name}</h4>
+                  {craftMode === 'upgrade' && upgradeTarget && (
+                    <div className="craft-mode-badge">
+                      Upgrade Mode: {getAffixShortName(upgradeTarget.affixId)} T{upgradeTarget.tier}
+                      <button className="craft-mode-cancel" onClick={resetCraftSelection}>&times;</button>
+                    </div>
+                  )}
                   <div className="craft-slots-grid">
                     <div className="craft-slot-column">
                       <span className="craft-slot-label">Prefixes</span>
                       {craftItem.prefixes.map((affix, idx) => (
                         <div
                           key={`p${idx}`}
-                          className={`craft-slot ${affix === null ? 'available' : 'filled'} ${
+                          className={`craft-slot ${affix === null ? 'available' : 'filled upgradable'} ${
                             selectedSlot?.type === 'prefix' && selectedSlot.index === idx ? 'selected' : ''
-                          }`}
+                          } ${upgradeTarget && affix && affix.id === upgradeTarget.affixId ? 'upgrade-target' : ''}`}
                           onClick={() => {
                             if (affix === null) {
+                              // Empty slot — enter slot mode
+                              setCraftMode('slot');
+                              setUpgradeTarget(null);
                               setSelectedSlot({ type: 'prefix', index: idx });
+                              setSelectedEssenceId(null);
+                            } else {
+                              // Filled slot — enter upgrade mode
+                              setCraftMode('upgrade');
+                              setUpgradeTarget({ affixId: affix.id, tier: affix.tier, slotType: affix.slotType });
+                              setSelectedSlot(null);
                               setSelectedEssenceId(null);
                             }
                           }}
@@ -386,12 +431,19 @@ export default function BlacksmithPanel() {
                       {craftItem.suffixes.map((affix, idx) => (
                         <div
                           key={`s${idx}`}
-                          className={`craft-slot ${affix === null ? 'available' : 'filled'} ${
+                          className={`craft-slot ${affix === null ? 'available' : 'filled upgradable'} ${
                             selectedSlot?.type === 'suffix' && selectedSlot.index === idx ? 'selected' : ''
-                          }`}
+                          } ${upgradeTarget && affix && affix.id === upgradeTarget.affixId ? 'upgrade-target' : ''}`}
                           onClick={() => {
                             if (affix === null) {
+                              setCraftMode('slot');
+                              setUpgradeTarget(null);
                               setSelectedSlot({ type: 'suffix', index: idx });
+                              setSelectedEssenceId(null);
+                            } else {
+                              setCraftMode('upgrade');
+                              setUpgradeTarget({ affixId: affix.id, tier: affix.tier, slotType: affix.slotType });
+                              setSelectedSlot(null);
                               setSelectedEssenceId(null);
                             }
                           }}
@@ -410,7 +462,8 @@ export default function BlacksmithPanel() {
             </div>
 
             <div className="craft-right">
-              {selectedSlot ? (
+              {/* Slot mode: selecting an empty slot */}
+              {craftMode === 'slot' && selectedSlot ? (
                 <>
                   <h4>Select Essence ({selectedSlot.type})</h4>
                   <EssenceViewer
@@ -431,7 +484,7 @@ export default function BlacksmithPanel() {
                         {!canAfford && <span className="cost-warning"> (not enough gold)</span>}
                       </div>
                       {hasDuplicateAffix && (
-                        <div className="craft-warning">Item already has this affix type!</div>
+                        <div className="craft-warning">Item already has this affix type! Click the existing affix to upgrade it instead.</div>
                       )}
                       <button
                         className="btn-primary bs-slot-btn"
@@ -443,8 +496,47 @@ export default function BlacksmithPanel() {
                     </div>
                   )}
                 </>
+              ) : craftMode === 'upgrade' && upgradeTarget ? (
+                /* Upgrade mode: selecting a filled affix */
+                <>
+                  <h4>Upgrade: {getAffixShortName(upgradeTarget.affixId)} (T{upgradeTarget.tier})</h4>
+                  <p className="bs-hint" style={{ fontSize: '11px', margin: '0 0 8px' }}>
+                    Select a higher-tier essence to replace the current affix. The old affix will be consumed.
+                  </p>
+                  <EssenceViewer
+                    essences={state.essences}
+                    selectable
+                    selectedId={selectedEssenceId}
+                    onSelect={setSelectedEssenceId}
+                    filterSlotType={upgradeTarget.slotType}
+                    filterAffixId={upgradeTarget.affixId}
+                    minTier={upgradeTarget.tier}
+                  />
+
+                  {selectedEssence && (
+                    <div className="craft-confirmation">
+                      <div className="craft-essence-preview" style={{ color: selectedEssence.slotType === 'prefix' ? '#ffcc44' : '#44ccff' }}>
+                        {formatEssence(selectedEssence)}
+                      </div>
+                      <div className="craft-upgrade-arrow">
+                        T{upgradeTarget.tier} &rarr; T{selectedEssence.tier}
+                      </div>
+                      <div className={`craft-cost ${canAfford ? '' : 'insufficient'}`}>
+                        Cost: {upgradeCost.toLocaleString()}g
+                        {!canAfford && <span className="cost-warning"> (not enough gold)</span>}
+                      </div>
+                      <button
+                        className="btn-primary bs-slot-btn upgrade-btn"
+                        disabled={!canAfford}
+                        onClick={handleUpgradeEssence}
+                      >
+                        Upgrade Affix
+                      </button>
+                    </div>
+                  )}
+                </>
               ) : craftItem ? (
-                <div className="bs-empty">Click an empty slot on the left to select it.</div>
+                <div className="bs-empty">Click an empty slot to add an essence, or click a filled affix to upgrade it.</div>
               ) : (
                 <div className="bs-empty">
                   <div>Essences: {state.essences.length}</div>

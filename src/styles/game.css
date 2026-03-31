@@ -416,7 +416,9 @@ button {
   font-weight: 700;
   color: var(--gold);
   width: 40px;
+  cursor: help;
 }
+.stat-row .tooltip-wrapper { width: auto; }
 .stat-value {
   font-weight: 600;
   color: var(--text-bright);
@@ -440,12 +442,22 @@ button {
   padding: 0 5px;
   cursor: pointer;
 }
-.stat-btn:hover { background: #e0a800; }
+.stat-btn:hover:not(:disabled) { background: #e0a800; }
+.stat-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  background: #555;
+  color: #999;
+}
 .stat-btn-max {
   background: #44aaff;
   color: #fff;
 }
-.stat-btn-max:hover { background: #3399ee; }
+.stat-btn-max:hover:not(:disabled) { background: #3399ee; }
+.stat-btn-max:disabled {
+  background: #334;
+  color: #667;
+}
 
 .btn-reset-stats {
   width: 100%;
@@ -474,17 +486,17 @@ button {
   grid-template-columns: 1fr 1fr;
   gap: 4px;
 }
-.derived-grid .tooltip-wrapper > div {
+.derived-stat-row {
   display: flex;
   justify-content: space-between;
   padding: 4px 10px;
   background: var(--bg-card);
   border-radius: 4px;
   font-size: 13px;
-  width: 100%;
 }
-.derived-grid .tooltip-wrapper > div span:first-child { color: var(--text-dim); }
-.derived-grid .tooltip-wrapper > div span:last-child { color: var(--text-bright); font-weight: 600; }
+.derived-stat-row .tooltip-wrapper { width: auto; }
+.derived-stat-row span:first-child { color: var(--text-dim); }
+.derived-stat-row > span:last-child { color: var(--text-bright); font-weight: 600; }
 
 /* Paper Doll Equipment Layout */
 .paper-doll {
@@ -1743,12 +1755,14 @@ button {
 }
 .ecm-compare-cards {
   display: flex;
-  align-items: flex-start;
+  align-items: stretch;
   gap: 8px;
   margin-bottom: 12px;
 }
 .ecm-compare-cards .ecm-item-card {
   flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 .ecm-arrow {
   font-size: 20px;
@@ -1757,28 +1771,39 @@ button {
   flex-shrink: 0;
 }
 
-.ecm-deltas {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  margin-bottom: 12px;
+/* Hover preview tooltip for inventory items in comparison modal */
+.ecm-hover-tooltip {
+  background: #1a1b24;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  padding: 8px 12px;
+  z-index: 200;
+  pointer-events: none;
+  min-width: 160px;
+  max-width: 240px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.7);
+  font-size: 12px;
 }
-.ecm-delta-row {
+.ecm-hover-name { font-weight: 700; margin-bottom: 2px; }
+.ecm-hover-meta { font-size: 11px; color: var(--text-dim); margin-bottom: 4px; }
+.ecm-hover-stat { font-size: 11px; color: var(--text); }
+.ecm-hover-affix { font-size: 10px; margin-top: 2px; }
+
+.ecm-dps-summary {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 12px;
+  background: var(--bg-card);
+  border-radius: 6px;
+  margin-bottom: 12px;
 }
 .ecm-delta-label {
   font-weight: 600;
-  min-width: 45px;
+  min-width: 35px;
   color: var(--text-dim);
-}
-.ecm-dps-row {
-  margin-top: 4px;
-  padding-top: 4px;
-  border-top: 1px solid var(--border);
-  font-weight: 600;
 }
 .ecm-badge {
   padding: 2px 8px;
@@ -2249,6 +2274,18 @@ button {
   background: var(--bg);
   border: 1px solid var(--border);
 }
+.craft-slot.filled.upgradable {
+  cursor: pointer;
+}
+.craft-slot.filled.upgradable:hover {
+  border-color: var(--gold);
+  background: rgba(255, 200, 50, 0.05);
+}
+.craft-slot.upgrade-target {
+  border-color: var(--gold) !important;
+  border-style: solid !important;
+  background: rgba(255, 200, 50, 0.1) !important;
+}
 .craft-slot.available {
   background: rgba(68, 170, 255, 0.05);
   border: 1px dashed var(--border-light);
@@ -2279,6 +2316,39 @@ button {
 .craft-cost.insufficient { color: var(--red); }
 .cost-warning { font-weight: 600; }
 .craft-warning { color: var(--red); font-size: 12px; margin-bottom: 6px; }
+.craft-upgrade-arrow {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--gold);
+  margin-bottom: 6px;
+}
+.craft-mode-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--gold);
+  background: rgba(255, 200, 50, 0.1);
+  border: 1px solid var(--gold);
+  border-radius: 4px;
+  padding: 4px 8px;
+  margin-bottom: 8px;
+}
+.craft-mode-cancel {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 14px;
+  padding: 0 2px;
+  margin-left: auto;
+}
+.craft-mode-cancel:hover { color: var(--text-bright); }
+.upgrade-btn {
+  background: var(--gold) !important;
+  color: #000 !important;
+}
+.upgrade-btn:hover:not(:disabled) { background: #e0a800 !important; }
 
 /* ============================================================
    Essence Viewer
@@ -2440,26 +2510,54 @@ button {
   flex-direction: column;
   gap: 16px;
 }
-.materials-counts h3 {
-  color: var(--text-bright);
-  font-size: 15px;
-  margin-bottom: 8px;
+/* Material card grid */
+.material-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 8px;
+  margin-bottom: 16px;
 }
-.materials-grid {
+.material-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  border-left-width: 3px;
+}
+.material-card.dimmed {
+  opacity: 0.4;
+}
+.material-card-unique {
+  border-color: #FF3366;
+  box-shadow: 0 0 8px rgba(255, 51, 102, 0.2);
+}
+.material-card-unique.dimmed {
+  box-shadow: none;
+}
+.material-card-info {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  flex: 1;
+  min-width: 0;
 }
-.material-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 5px 10px;
-  background: var(--bg-card);
-  border-radius: 4px;
+.material-card-name {
+  font-weight: 700;
   font-size: 13px;
 }
-.material-name { color: var(--text); }
-.material-amount { color: var(--text-bright); font-weight: 600; }
+.material-card-desc {
+  font-size: 10px;
+  color: var(--text-dim);
+  line-height: 1.3;
+}
+.material-card-count {
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--text-bright);
+  flex-shrink: 0;
+}
 
 .essence-inventory {}
 .essence-inv-header {
@@ -2575,6 +2673,105 @@ button {
 }
 .endless-btn.retreat:hover {
   background: rgba(255, 165, 0, 0.15);
+}
+
+/* Death Modal */
+.death-modal-overlay {
+  background: rgba(0, 0, 0, 0.85);
+}
+.death-modal {
+  max-width: 420px;
+  border: 1px solid #cc2244;
+  box-shadow: 0 0 30px rgba(204, 34, 68, 0.3);
+}
+.death-modal-header {
+  text-align: center;
+  margin-bottom: 12px;
+}
+.death-modal-header h2 {
+  color: #ff4466;
+  font-size: 24px;
+  margin: 0;
+}
+.death-modal-info {
+  background: var(--bg-card);
+  border-radius: 6px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.death-detail {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+.death-label { color: var(--text-dim); }
+.death-value { color: var(--text-bright); font-weight: 600; }
+.death-killer { color: #ff6666; }
+.death-stats-row {
+  display: flex;
+  gap: 12px;
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+}
+.death-recommendations {
+  margin-bottom: 10px;
+}
+.death-recommendations h3 {
+  color: var(--gold);
+  font-size: 13px;
+  margin: 0 0 6px;
+}
+.death-rec-item {
+  font-size: 12px;
+  color: var(--text);
+  padding: 4px 8px;
+  background: rgba(255, 200, 50, 0.08);
+  border-left: 2px solid var(--gold);
+  border-radius: 2px;
+  margin-bottom: 4px;
+}
+.death-generic-tip {
+  font-size: 11px;
+  color: var(--text-dim);
+  font-style: italic;
+  text-align: center;
+  margin-bottom: 12px;
+}
+.death-modal-actions {
+  display: flex;
+  gap: 8px;
+}
+.death-btn {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+.death-btn-retreat {
+  background: #44aaff;
+  color: #fff;
+}
+.death-btn-retreat:hover { background: #3399ee; }
+.death-btn-retry {
+  background: var(--gold);
+  color: #000;
+}
+.death-btn-retry:hover { background: #e0a800; }
+.death-warning {
+  text-align: center;
+  font-size: 10px;
+  color: #ff6666;
+  margin-top: 8px;
+  opacity: 0.8;
 }
 
 /* Scrollbar */

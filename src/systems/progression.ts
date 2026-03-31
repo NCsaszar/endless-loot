@@ -57,10 +57,10 @@ export function handleBossKill(state: GameState, mob: MobInstance): void {
   if (state.endless.active) return;
 
   if (mob.def.isBoss && !state.bossesDefeated.includes(state.currentZoneId)) {
-    state.bossesDefeated.push(state.currentZoneId);
+    state.bossesDefeated = [...state.bossesDefeated, state.currentZoneId];
     const nextZone = state.currentZoneId + 1;
     if (nextZone <= 50 && !state.unlockedZoneIds.includes(nextZone)) {
-      state.unlockedZoneIds.push(nextZone);
+      state.unlockedZoneIds = [...state.unlockedZoneIds, nextZone];
       addLog(state, `Zone ${nextZone} unlocked!`, 'info');
     }
     // Unlock endless mode after beating zone 50 boss

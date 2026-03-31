@@ -160,6 +160,63 @@ export function slotEssence(
   return true;
 }
 
+// --- Upgrade Existing Affix with Higher Tier Essence ---
+
+export function getUpgradeCost(tier: number): number {
+  return SLOT_BASE_COST * tier * 2;
+}
+
+export function upgradeEssence(
+  state: GameState,
+  itemId: string,
+  essenceId: string,
+): boolean {
+  // Find item in inventory or equipment
+  let item: Item | undefined = state.inventory.find(i => i.id === itemId);
+  if (!item) {
+    for (const equipped of Object.values(state.equipment)) {
+      if (equipped && equipped.id === itemId) {
+        item = equipped;
+        break;
+      }
+    }
+  }
+  if (!item) return false;
+
+  // Find essence
+  const essenceIndex = state.essences.findIndex(e => e.id === essenceId);
+  if (essenceIndex === -1) return false;
+  const essence = state.essences[essenceIndex];
+
+  // Find existing affix with same affixId on the item
+  for (let i = 0; i < item.prefixes.length; i++) {
+    const affix = item.prefixes[i];
+    if (affix && affix.id === essence.affixId) {
+      if (essence.tier <= affix.tier) return false; // No downgrade
+      const cost = getUpgradeCost(essence.tier);
+      if (state.gold < cost) return false;
+      state.gold -= cost;
+      item.prefixes[i] = { id: essence.affixId, slotType: essence.slotType, tier: essence.tier, value: essence.value };
+      state.essences.splice(essenceIndex, 1);
+      return true;
+    }
+  }
+  for (let i = 0; i < item.suffixes.length; i++) {
+    const affix = item.suffixes[i];
+    if (affix && affix.id === essence.affixId) {
+      if (essence.tier <= affix.tier) return false; // No downgrade
+      const cost = getUpgradeCost(essence.tier);
+      if (state.gold < cost) return false;
+      state.gold -= cost;
+      item.suffixes[i] = { id: essence.affixId, slotType: essence.slotType, tier: essence.tier, value: essence.value };
+      state.essences.splice(essenceIndex, 1);
+      return true;
+    }
+  }
+
+  return false;
+}
+
 // --- Discard Essences by Filter ---
 
 export interface EssenceFilter {

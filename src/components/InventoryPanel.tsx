@@ -14,13 +14,13 @@ type SortBy = 'rarity' | 'level' | 'slot' | 'value';
 
 type InventorySubTab = 'equipment' | 'materials';
 
-const MATERIAL_LABELS: Record<string, string> = {
-  scrap: 'Scrap',
-  fragments: 'Fragments',
-  crystals: 'Crystals',
-  essences: 'Essences (generic)',
-  legendaryShards: 'Legendary Shards',
-};
+const MATERIAL_DEFS = [
+  { key: 'scrap', name: 'Scrap', desc: 'Common salvage from dismantled gear', color: '#888' },
+  { key: 'fragments', name: 'Fragments', desc: 'Refined material from uncommon+ gear', color: '#44cc44' },
+  { key: 'crystals', name: 'Crystals', desc: 'Rare crystallized essence', color: '#4488ff' },
+  { key: 'essences', name: 'Generic Essences', desc: 'Raw magical residue', color: '#aa44ff' },
+  { key: 'legendaryShards', name: 'Legendary Shards', desc: 'Fragments of legendary power', color: '#ff8800' },
+] as const;
 
 export default function InventoryPanel() {
   const { state, derived, doSellItem, doSalvageItem, doEquipItem, doToggleAutoSell, doToggleAutoSalvage, doToggleLock, doBulkSell, doBulkSalvage, doDiscardEssences } = useGameState();
@@ -127,16 +127,33 @@ export default function InventoryPanel() {
 
       {subTab === 'materials' && (
         <div className="materials-view">
-          <div className="materials-counts">
-            <h3>Crafting Materials</h3>
-            <div className="materials-grid">
-              {Object.entries(state.materials).map(([key, val]) => (
-                <div key={key} className="material-row">
-                  <span className="material-name">{MATERIAL_LABELS[key] || key}</span>
-                  <span className="material-amount">{val.toLocaleString()}</span>
+          <h3>Crafting Materials</h3>
+          <div className="material-card-grid">
+            {MATERIAL_DEFS.map(mat => {
+              const count = state.materials[mat.key as keyof typeof state.materials];
+              return (
+                <div key={mat.key} className={`material-card ${count === 0 ? 'dimmed' : ''}`} style={{ borderColor: mat.color }}>
+                  <div className="material-card-info">
+                    <span className="material-card-name" style={{ color: mat.color }}>{mat.name}</span>
+                    <span className="material-card-desc">{mat.desc}</span>
+                  </div>
+                  <span className="material-card-count">{count.toLocaleString()}</span>
                 </div>
-              ))}
-            </div>
+              );
+            })}
+            {/* Tome of Unmaking */}
+            {(() => {
+              const tomeCount = state.inventory.filter(i => i.consumable === 'stat_reset').length;
+              return (
+                <div className={`material-card material-card-unique ${tomeCount === 0 ? 'dimmed' : ''}`}>
+                  <div className="material-card-info">
+                    <span className="material-card-name" style={{ color: '#FF3366' }}>Tome of Unmaking</span>
+                    <span className="material-card-desc">Resets all allocated stat points</span>
+                  </div>
+                  <span className="material-card-count">{tomeCount}</span>
+                </div>
+              );
+            })()}
           </div>
 
           <div className="essence-inventory">

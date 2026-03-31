@@ -21,6 +21,11 @@ export function tick(state: GameState, derived: DerivedStats, dt: number, primar
   if (!state.combatActive) return;
 
   if (state.combat.isPlayerDead) {
+    // Normal mode: wait for death modal dismissal
+    if (state.combat.deathInfo && !state.endless.active) {
+      return;
+    }
+    // Endless mode or legacy: handle immediately
     handlePlayerDeath(state, derived);
     return;
   }
