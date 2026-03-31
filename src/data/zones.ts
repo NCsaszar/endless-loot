@@ -1,9 +1,17 @@
 import type { ZoneDef, MobDef } from '../types';
 
+// --- Act Multiplier (50% power jump per act boundary, compounding) ---
+
+function actMultiplier(act: number): number {
+  return Math.pow(1.5, act - 1);
+}
+
 // --- Mob Generation Helper ---
 
 function makeMob(id: string, name: string, isBoss: boolean, zoneId: number): MobDef {
+  const act = Math.ceil(zoneId / 10);
   const midLevel = (zoneId - 1) * 3 + 2;
+  const actMult = actMultiplier(act);
   const hpMult = isBoss ? 3.5 : 1;
   const atkMult = isBoss ? 2.0 : 1;
   const defMult = isBoss ? 2.5 : 1;
@@ -13,11 +21,11 @@ function makeMob(id: string, name: string, isBoss: boolean, zoneId: number): Mob
     id,
     name,
     isBoss,
-    baseHp: Math.floor((15 + midLevel * 2.5) * hpMult),
-    baseAtk: Math.floor((2 + midLevel * 0.8) * atkMult),
-    baseDef: Math.floor((1 + midLevel * 0.5) * defMult),
-    baseXp: Math.floor((8 + midLevel * 1.5) * xpMult),
-    baseGold: Math.floor((4 + midLevel * 0.8) * goldMult),
+    baseHp: Math.floor((15 + midLevel * 2.5) * hpMult * actMult),
+    baseAtk: Math.floor((4 + midLevel * 1.2) * atkMult * actMult),
+    baseDef: Math.floor((1 + midLevel * 0.5) * defMult * actMult),
+    baseXp: Math.floor((8 + midLevel * 1.5) * xpMult * actMult),
+    baseGold: Math.floor((4 + midLevel * 0.8) * goldMult * actMult),
   };
 }
 
@@ -26,69 +34,84 @@ function zoneLevel(zoneId: number): [number, number] {
 }
 
 function zoneRarityBonus(zoneId: number): number {
-  return parseFloat((0.45 * (1 - 1 / (1 + zoneId / 20))).toFixed(3));
+  const act = Math.ceil(zoneId / 10);
+  const zoneInAct = (zoneId - 1) % 10; // 0-9
+
+  // Discrete base rarity per act (indexed 1-5)
+  const actBase = [0, 0.0, 0.15, 0.35, 0.60, 0.90];
+
+  // Gradual within-act ramp
+  const withinActRamp = 0.012 * zoneInAct;
+
+  // Transition smoothing: first 3 zones of new act ramp in gradually
+  let transitionFactor = 1.0;
+  if (act > 1 && zoneInAct < 3) {
+    transitionFactor = 0.5 + 0.5 * (zoneInAct / 2);
+  }
+
+  return parseFloat((actBase[act] * transitionFactor + withinActRamp).toFixed(3));
 }
 
 // --- Zone 1-3: Original Mob Definitions (preserved) ---
 
 const slime: MobDef = {
   id: 'slime', name: 'Slime', isBoss: false,
-  baseHp: 20, baseAtk: 3, baseDef: 1, baseXp: 10, baseGold: 5,
+  baseHp: 20, baseAtk: 5, baseDef: 1, baseXp: 10, baseGold: 5,
   portrait: '/portraits/slime.svg',
 };
 const wolf: MobDef = {
   id: 'wolf', name: 'Wolf', isBoss: false,
-  baseHp: 25, baseAtk: 5, baseDef: 2, baseXp: 12, baseGold: 6,
+  baseHp: 25, baseAtk: 7, baseDef: 2, baseXp: 12, baseGold: 6,
   portrait: '/portraits/wolf.svg',
 };
 const goblin: MobDef = {
   id: 'goblin', name: 'Goblin', isBoss: false,
-  baseHp: 30, baseAtk: 4, baseDef: 3, baseXp: 14, baseGold: 8,
+  baseHp: 30, baseAtk: 6, baseDef: 3, baseXp: 14, baseGold: 8,
   portrait: '/portraits/goblin.svg',
 };
 const goblinChief: MobDef = {
   id: 'goblin_chief', name: 'Goblin Chief', isBoss: true,
-  baseHp: 100, baseAtk: 8, baseDef: 5, baseXp: 50, baseGold: 30,
+  baseHp: 100, baseAtk: 12, baseDef: 5, baseXp: 50, baseGold: 30,
   portrait: '/portraits/goblin_chief.svg',
 };
 const bat: MobDef = {
   id: 'bat', name: 'Cave Bat', isBoss: false,
-  baseHp: 35, baseAtk: 7, baseDef: 3, baseXp: 18, baseGold: 10,
+  baseHp: 35, baseAtk: 9, baseDef: 3, baseXp: 18, baseGold: 10,
   portrait: '/portraits/bat.svg',
 };
 const skeleton: MobDef = {
   id: 'skeleton', name: 'Skeleton', isBoss: false,
-  baseHp: 45, baseAtk: 8, baseDef: 6, baseXp: 22, baseGold: 12,
+  baseHp: 45, baseAtk: 11, baseDef: 6, baseXp: 22, baseGold: 12,
   portrait: '/portraits/skeleton.svg',
 };
 const spider: MobDef = {
   id: 'spider', name: 'Giant Spider', isBoss: false,
-  baseHp: 40, baseAtk: 10, baseDef: 4, baseXp: 20, baseGold: 11,
+  baseHp: 40, baseAtk: 13, baseDef: 4, baseXp: 20, baseGold: 11,
   portrait: '/portraits/spider.svg',
 };
 const caveTroll: MobDef = {
   id: 'cave_troll', name: 'Cave Troll', isBoss: true,
-  baseHp: 200, baseAtk: 15, baseDef: 10, baseXp: 100, baseGold: 60,
+  baseHp: 200, baseAtk: 20, baseDef: 10, baseXp: 100, baseGold: 60,
   portrait: '/portraits/cave_troll.svg',
 };
 const bandit: MobDef = {
   id: 'bandit', name: 'Bandit', isBoss: false,
-  baseHp: 60, baseAtk: 12, baseDef: 8, baseXp: 30, baseGold: 16,
+  baseHp: 60, baseAtk: 16, baseDef: 8, baseXp: 30, baseGold: 16,
   portrait: '/portraits/bandit.svg',
 };
 const darkKnight: MobDef = {
   id: 'dark_knight', name: 'Dark Knight', isBoss: false,
-  baseHp: 80, baseAtk: 14, baseDef: 12, baseXp: 38, baseGold: 20,
+  baseHp: 80, baseAtk: 18, baseDef: 12, baseXp: 38, baseGold: 20,
   portrait: '/portraits/dark_knight.svg',
 };
 const wraith: MobDef = {
   id: 'wraith', name: 'Wraith', isBoss: false,
-  baseHp: 55, baseAtk: 18, baseDef: 5, baseXp: 35, baseGold: 18,
+  baseHp: 55, baseAtk: 22, baseDef: 5, baseXp: 35, baseGold: 18,
   portrait: '/portraits/wraith.svg',
 };
 const fallenCommander: MobDef = {
   id: 'fallen_commander', name: 'Fallen Commander', isBoss: true,
-  baseHp: 400, baseAtk: 22, baseDef: 18, baseXp: 200, baseGold: 120,
+  baseHp: 400, baseAtk: 30, baseDef: 18, baseXp: 200, baseGold: 120,
   portrait: '/portraits/fallen_commander.svg',
 };
 

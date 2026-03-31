@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useGameState } from '../hooks/useGameState';
 import type { EquipSlot, Rarity, Item, BulkActionMode } from '../types';
-import { RARITY_ORDER, RARITY_COLORS, ALL_EQUIP_SLOTS, SLOT_LABELS } from '../types';
+import { RARITY_ORDER, RARITY_COLORS, ALL_EQUIP_SLOTS, SLOT_LABELS, EQUIPMENT_RARITIES } from '../types';
 import { getTotalPrimaryStats, calculateDerivedStats } from '../data/formulas';
 import { computeItemDpsDelta } from '../systems/dps';
 import ItemCard from './ItemCard';
@@ -32,9 +32,9 @@ export default function InventoryPanel() {
   const [bulkAction, setBulkAction] = useState<{ items: Item[]; mode: BulkActionMode } | null>(null);
   const [showDiscardModal, setShowDiscardModal] = useState(false);
 
-  // Filter for display (uses >= for rarity)
+  // Filter for display (uses >= for rarity), exclude consumables from equipment tab
   const items = useMemo(() => {
-    let result = [...state.inventory];
+    let result = state.inventory.filter(i => !i.consumable);
     if (filterSlot !== 'all') result = result.filter(i => i.slot === filterSlot);
     if (filterRarity !== 'all') {
       const minIdx = RARITY_ORDER.indexOf(filterRarity);
@@ -67,7 +67,7 @@ export default function InventoryPanel() {
   let newDerived = derived;
   if (selected) {
     const hypotheticalEquipment = { ...state.equipment, [selected.slot]: selected };
-    const hypotheticalPrimary = getTotalPrimaryStats(state.character, state.trainingLevels, hypotheticalEquipment);
+    const hypotheticalPrimary = getTotalPrimaryStats(state.character, hypotheticalEquipment);
     newDerived = calculateDerivedStats(hypotheticalPrimary, hypotheticalEquipment);
   }
 
@@ -83,7 +83,7 @@ export default function InventoryPanel() {
 
   // Get items matching current filters for bulk actions (exact rarity match, not >= like display)
   const handleBulkAction = (mode: BulkActionMode) => {
-    let result = state.inventory.filter(i => !i.locked);
+    let result = state.inventory.filter(i => !i.locked && !i.consumable);
     if (filterSlot !== 'all') result = result.filter(i => i.slot === filterSlot);
     if (filterRarity !== 'all') result = result.filter(i => i.rarity === filterRarity);
     if (result.length > 0) setBulkAction({ items: result, mode });
@@ -91,7 +91,7 @@ export default function InventoryPanel() {
 
   const handleSellNonUpgrades = () => {
     const toSell = state.inventory.filter(item => {
-      if (item.locked) return false;
+      if (item.locked || item.consumable) return false;
       const delta = upgradeMap.get(item.id) ?? 0;
       return delta <= 0.02;
     });
@@ -180,7 +180,7 @@ export default function InventoryPanel() {
           </select>
           <select value={filterRarity} onChange={e => setFilterRarity(e.target.value as Rarity | 'all')}>
             <option value="all">All Rarities</option>
-            {RARITY_ORDER.map(r => (
+            {EQUIPMENT_RARITIES.map(r => (
               <option key={r} value={r}>{r}</option>
             ))}
           </select>
@@ -201,7 +201,7 @@ export default function InventoryPanel() {
 
       <div className="auto-sell-group">
         <span className="auto-sell-label">Auto-sell:</span>
-        {RARITY_ORDER.map(r => (
+        {EQUIPMENT_RARITIES.map(r => (
           <button
             key={r}
             className={`auto-sell-toggle ${state.autoSellRarities.includes(r) ? 'active' : ''}`}
@@ -218,7 +218,7 @@ export default function InventoryPanel() {
 
       <div className="auto-sell-group">
         <span className="auto-sell-label">Auto-salvage:</span>
-        {RARITY_ORDER.map(r => (
+        {EQUIPMENT_RARITIES.map(r => (
           <button
             key={r}
             className={`auto-sell-toggle ${state.autoSalvageRarities.includes(r) ? 'active' : ''}`}

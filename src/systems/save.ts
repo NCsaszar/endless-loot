@@ -3,7 +3,7 @@ import { xpForLevel } from '../data/formulas';
 import { getMaxTier } from '../data/affixes';
 
 const SAVE_KEY = 'endless_loot_save';
-const SAVE_VERSION = 4;
+const SAVE_VERSION = 6;
 
 export function createDefaultState(): GameState {
   return {
@@ -176,6 +176,23 @@ function migrateV3toV4(parsed: any): any {
   return parsed;
 }
 
+// --- V4 → V5 Migration: Remove training system (zero out training stats) ---
+
+function migrateV4toV5(parsed: any): any {
+  if (parsed.trainingLevels) {
+    for (const key of Object.keys(parsed.trainingLevels)) {
+      parsed.trainingLevels[key] = 0;
+    }
+  }
+  if (parsed.character?.trainingStats) {
+    for (const key of Object.keys(parsed.character.trainingStats)) {
+      parsed.character.trainingStats[key] = 0;
+    }
+  }
+  parsed.saveVersion = 5;
+  return parsed;
+}
+
 export function saveGame(state: GameState): void {
   state.lastSaveTimestamp = Date.now();
   state.saveVersion = SAVE_VERSION;
@@ -212,6 +229,16 @@ export function loadGame(): GameState | null {
     // Migrate v3 saves to v4
     if (parsed.saveVersion === 3) {
       parsed = migrateV3toV4(parsed);
+    }
+
+    // Migrate v4 saves to v5: zero out training
+    if (parsed.saveVersion === 4) {
+      parsed = migrateV4toV5(parsed);
+    }
+
+    // Migrate v5 saves to v6: consumable items + unique rarity (no structural changes needed)
+    if (parsed.saveVersion === 5) {
+      parsed.saveVersion = 6;
     }
 
     if (parsed.saveVersion !== SAVE_VERSION) return null;

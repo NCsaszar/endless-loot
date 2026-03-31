@@ -17,6 +17,7 @@ export const RARITY_CONFIG: Record<Rarity, RarityConfig> = {
   rare:      { dropWeight: 14, statMultiplier: 1.7 },
   epic:      { dropWeight: 5,  statMultiplier: 2.2 },
   legendary: { dropWeight: 1,  statMultiplier: 3.0 },
+  unique:    { dropWeight: 0,  statMultiplier: 0 },
 };
 
 const RARITIES: Rarity[] = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
@@ -31,6 +32,7 @@ export const SALVAGE_MAP: Record<Rarity, { material: MaterialType; amount: numbe
   rare:      { material: 'crystals', amount: 1 },
   epic:      { material: 'essences', amount: 1 },
   legendary: { material: 'legendaryShards', amount: 1 },
+  unique:    { material: 'legendaryShards', amount: 0 },
 };
 
 // --- Helpers ---
@@ -123,8 +125,40 @@ export function shouldDropLoot(isBoss: boolean, luk: number = 0): boolean {
 
 // --- Generate Boss Loot (guaranteed rare+ or better with LUK) ---
 
-export function generateBossLoot(itemLevel: number, luk: number = 0, zoneRarityBonus: number = 0): Item {
-  const minRarityIdx = lukBossMinRarityIndex(luk);
-  const minRarity = RARITY_ORDER[minRarityIdx];
+export function generateBossLoot(itemLevel: number, luk: number = 0, zoneRarityBonus: number = 0, overrideMinRarity?: Rarity): Item {
+  const lukMinIdx = lukBossMinRarityIndex(luk);
+  const lukMinRarity = RARITY_ORDER[lukMinIdx];
+  // Use the higher of LUK-based minimum and override minimum
+  let minRarity = lukMinRarity;
+  if (overrideMinRarity) {
+    const overrideIdx = RARITIES.indexOf(overrideMinRarity);
+    if (overrideIdx > lukMinIdx) minRarity = overrideMinRarity;
+  }
   return generateItem(itemLevel, minRarity, luk, zoneRarityBonus);
+}
+
+// --- Roll Consumable Drop (ultra-rare, separate from normal loot) ---
+
+export function rollConsumableDrop(luk: number): Item | null {
+  // Base drop rate: 0.05% (1 in 2000), LUK boosts up to ~0.15%
+  const baseChance = 0.0005;
+  const lukBoost = 1 + 2 * (1 - 1 / (1 + luk / 60));
+  if (Math.random() >= baseChance * lukBoost) return null;
+
+  return {
+    id: generateItemId(),
+    name: 'Tome of Unmaking',
+    slot: 'amulet', // placeholder slot, never equippable
+    rarity: 'unique',
+    itemLevel: 1,
+    primaryStatValue: 0,
+    randomPrimaryStat: 'str',
+    randomPrimaryStatValue: 0,
+    prefixes: [null, null, null],
+    suffixes: [null, null, null],
+    sellValue: 0,
+    salvageResult: { material: 'legendaryShards', amount: 0 },
+    locked: true, // auto-lock to prevent accidental sale
+    consumable: 'stat_reset',
+  };
 }

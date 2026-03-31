@@ -15,7 +15,8 @@ export default function StatBar({
   label,
   showText = true,
 }: StatBarProps) {
-  const pct = max > 0 ? Math.min(100, (current / max) * 100) : 0;
+  const safeCurrent = Math.min(current, max);
+  const pct = max > 0 ? Math.max(0, Math.min(100, (safeCurrent / max) * 100)) : 0;
 
   return (
     <div className="stat-bar" style={{ height }}>
@@ -23,7 +24,7 @@ export default function StatBar({
       {showText && (
         <span className="stat-bar-text">
           {label ? `${label}: ` : ''}
-          {Math.floor(current)} / {Math.floor(max)}
+          {Math.floor(safeCurrent)} / {Math.floor(max)}
         </span>
       )}
     </div>

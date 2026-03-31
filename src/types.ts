@@ -32,9 +32,12 @@ export interface DerivedStats {
 
 // --- Rarity ---
 
-export type Rarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
+export type Rarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary' | 'unique';
 
-export const RARITY_ORDER: Rarity[] = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
+export const RARITY_ORDER: Rarity[] = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'unique'];
+
+/** Standard equipment rarities (excludes special types like 'unique') */
+export const EQUIPMENT_RARITIES: Rarity[] = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
 
 export type BulkActionMode = 'sell' | 'salvage';
 
@@ -44,7 +47,12 @@ export const RARITY_COLORS: Record<Rarity, string> = {
   rare: '#4444FF',
   epic: '#AA00FF',
   legendary: '#FF8800',
+  unique: '#FF3366',
 };
+
+// --- Consumable Types ---
+
+export type ConsumableType = 'stat_reset';
 
 // --- Equipment Slots ---
 
@@ -125,6 +133,7 @@ export interface Item {
   sellValue: number;
   salvageResult: { material: MaterialType; amount: number };
   locked: boolean;
+  consumable?: ConsumableType;
 }
 
 // --- Materials (for future crafting) ---
@@ -217,6 +226,17 @@ export interface CombatLogEntry {
   type: 'damage' | 'playerDamage' | 'kill' | 'loot' | 'death' | 'levelUp' | 'info';
 }
 
+// --- Log Filter Tabs ---
+
+export type LogFilterTab = 'All' | 'Combat' | 'Loot' | 'System';
+
+export const LOG_FILTER_TABS: Record<LogFilterTab, CombatLogEntry['type'][] | null> = {
+  All: null,
+  Combat: ['damage', 'playerDamage', 'kill'],
+  Loot: ['loot'],
+  System: ['levelUp', 'info', 'death'],
+};
+
 // --- Character ---
 
 export interface Character {
@@ -279,4 +299,4 @@ export interface GameState {
 
 // --- UI State (not persisted) ---
 
-export type ActivePanel = 'character' | 'inventory' | 'training' | 'zones' | 'blacksmith' | 'endless';
+export type ActivePanel = 'character' | 'inventory' | 'zones' | 'blacksmith' | 'endless';

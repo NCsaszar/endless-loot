@@ -1,4 +1,4 @@
-import type { PrimaryStats, PrimaryStat, DerivedStats, Equipment, Character, TrainingLevels, AffixId } from '../types';
+import type { PrimaryStats, PrimaryStat, DerivedStats, Equipment, Character, AffixId } from '../types';
 
 // --- Stat Scaling Constants ---
 
@@ -54,12 +54,6 @@ export function xpForLevel(level: number): number {
   return Math.floor(100 * Math.pow(level, 1.7));
 }
 
-// --- Training Cost ---
-
-export function trainingCost(currentTrainingLevel: number): number {
-  return Math.floor(100 * Math.pow(currentTrainingLevel + 1, 2));
-}
-
 // --- Sum affix percentages from all equipped items ---
 
 export function sumAffixPercent(equipment: Equipment, affixId: AffixId): number {
@@ -73,19 +67,18 @@ export function sumAffixPercent(equipment: Equipment, affixId: AffixId): number 
   return total;
 }
 
-// --- Get Total Primary Stats (base + training + gear) ---
-// % affixes multiply character sheet (base + training) only, flat gear bonuses are added after.
+// --- Get Total Primary Stats (base + gear) ---
+// % affixes multiply character sheet (base) only, flat gear bonuses are added after.
 
 export function getTotalPrimaryStats(
   character: Character,
-  trainingLevels: TrainingLevels,
   equipment: Equipment,
 ): PrimaryStats {
   const stats: PrimaryStat[] = ['str', 'dex', 'int', 'vit', 'luk'];
   const total: PrimaryStats = { str: 0, dex: 0, int: 0, vit: 0, luk: 0 };
 
   for (const stat of stats) {
-    const characterSheet = character.baseStats[stat] + trainingLevels[stat];
+    const characterSheet = character.baseStats[stat];
     const percentBonus = sumAffixPercent(equipment, stat as AffixId);
 
     // Sum flat gear bonuses from randomPrimaryStat
@@ -176,6 +169,7 @@ const SELL_BASE: Record<string, number> = {
   rare: 50,
   epic: 200,
   legendary: 1000,
+  unique: 0,
 };
 
 export function itemSellValue(rarity: string, itemLevel: number): number {

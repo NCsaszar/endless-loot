@@ -19,6 +19,22 @@ function countFilled(slots: (Affix | null)[]): number {
   return slots.filter(a => a !== null).length;
 }
 
+function renderConsumableTooltip(item: Item) {
+  if (item.consumable === 'stat_reset') {
+    return (
+      <>
+        <div className="tooltip-stat" style={{ color: '#FF3366' }}>Consumable</div>
+        <div className="tooltip-stat">Resets all allocated stat points back to base (5 each).</div>
+        <div className="tooltip-stat">Refunds all spent points as unspent.</div>
+        <div className="tooltip-meta" style={{ marginTop: 4, fontSize: '0.8em', opacity: 0.7 }}>
+          Use from Character Panel
+        </div>
+      </>
+    );
+  }
+  return null;
+}
+
 function renderAffixTooltip(item: Item) {
   const filledPrefixes = item.prefixes.filter((a): a is Affix => a !== null);
   const filledSuffixes = item.suffixes.filter((a): a is Affix => a !== null);
@@ -101,9 +117,11 @@ export default function ItemCard({ item, onClick, selected, compact, grid, upgra
             }}
           >
             <div className="tooltip-name" style={{ color }}>{item.name}</div>
-            <div className="tooltip-meta">{item.slot} &middot; Lv.{item.itemLevel} &middot; <span style={{ color }}>({item.rarity})</span></div>
-            {renderAffixTooltip(item)}
-            <div className="tooltip-value">{item.sellValue}g</div>
+            <div className="tooltip-meta">
+              {item.consumable ? 'Consumable' : item.slot} &middot; {item.consumable ? '' : `Lv.${item.itemLevel} · `}<span style={{ color }}>({item.rarity})</span>
+            </div>
+            {item.consumable ? renderConsumableTooltip(item) : renderAffixTooltip(item)}
+            {!item.consumable && <div className="tooltip-value">{item.sellValue}g</div>}
           </div>,
           document.body
         )}

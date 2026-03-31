@@ -3,7 +3,6 @@ import type { ActivePanel } from '../types';
 import CombatView from './CombatView';
 import CharacterPanel from './CharacterPanel';
 import InventoryPanel from './InventoryPanel';
-import TrainingPanel from './TrainingPanel';
 import ZonePanel from './ZonePanel';
 import BlacksmithPanel from './BlacksmithPanel';
 import EndlessPanel from './EndlessPanel';
@@ -12,7 +11,6 @@ import WelcomeBack from './WelcomeBack';
 const TABS: { id: ActivePanel; label: string; condition?: (state: any) => boolean }[] = [
   { id: 'character', label: 'Character' },
   { id: 'inventory', label: 'Inventory' },
-  { id: 'training', label: 'Training' },
   { id: 'blacksmith', label: 'Blacksmith' },
   { id: 'zones', label: 'Zones' },
   { id: 'endless', label: 'The Abyss', condition: (s) => s.endless.unlocked },
@@ -27,7 +25,6 @@ export default function Layout() {
     switch (activePanel) {
       case 'character': return <CharacterPanel />;
       case 'inventory': return <InventoryPanel />;
-      case 'training': return <TrainingPanel />;
       case 'blacksmith': return <BlacksmithPanel />;
       case 'zones': return <ZonePanel />;
       case 'endless': return <EndlessPanel />;

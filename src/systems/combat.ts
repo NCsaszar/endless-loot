@@ -45,7 +45,7 @@ export function spawnMob(state: GameState): void {
     defense: scaleMobStat(mobDef.baseDef, level),
     xpReward: mobXpReward(mobDef.baseXp, level, zone.id, mobDef.isBoss),
     goldReward: mobGoldReward(mobDef.baseGold, level, zone.id, mobDef.isBoss),
-    attackSpeed: mobDef.isBoss ? 0.6 : 0.8,
+    attackSpeed: mobDef.isBoss ? 0.6 + 0.05 * (zone.act - 1) : 0.8 + 0.05 * (zone.act - 1),
   };
 
   state.combat.currentMob = mob;
@@ -95,7 +95,7 @@ function spawnEndlessMob(state: GameState): void {
     defense: baseDef,
     xpReward: Math.floor(mobDef.baseXp * level * (1 + 0.02 * floor) * (isBossFloor ? 3 : 1)),
     goldReward: Math.floor(mobDef.baseGold * level * (1 + 0.03 * floor) * (isBossFloor ? 4 : 1)),
-    attackSpeed: isBossFloor ? 0.6 : 0.8,
+    attackSpeed: isBossFloor ? 0.7 + Math.min(0.2, 0.004 * floor) : 0.9 + Math.min(0.3, 0.005 * floor),
   };
 
   state.combat.currentMob = mob;

@@ -1,4 +1,4 @@
-import type { GameState, MobInstance } from '../types';
+import type { GameState, MobInstance, PrimaryStat } from '../types';
 import { xpForLevel } from '../data/formulas';
 import { addLog } from './combat';
 
@@ -22,6 +22,33 @@ export function allocateStat(state: GameState, stat: 'str' | 'dex' | 'int' | 'vi
   if (state.character.unspentStatPoints <= 0) return false;
   state.character.baseStats[stat]++;
   state.character.unspentStatPoints--;
+  return true;
+}
+
+export function allocateStatMultiple(state: GameState, stat: PrimaryStat, amount: number): number {
+  const actual = Math.min(amount, state.character.unspentStatPoints);
+  if (actual <= 0) return 0;
+  state.character.baseStats[stat] += actual;
+  state.character.unspentStatPoints -= actual;
+  return actual;
+}
+
+const BASE_STAT_VALUE = 5;
+
+export function resetAllStats(state: GameState): boolean {
+  const idx = state.inventory.findIndex(i => i.consumable === 'stat_reset');
+  if (idx === -1) return false;
+
+  const stats: PrimaryStat[] = ['str', 'dex', 'int', 'vit', 'luk'];
+  let totalAllocated = 0;
+  for (const s of stats) {
+    totalAllocated += state.character.baseStats[s] - BASE_STAT_VALUE;
+    state.character.baseStats[s] = BASE_STAT_VALUE;
+  }
+  state.character.unspentStatPoints += totalAllocated;
+
+  // Consume the item
+  state.inventory.splice(idx, 1);
   return true;
 }
 

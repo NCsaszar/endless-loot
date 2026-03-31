@@ -35,7 +35,7 @@ export function computeItemDpsDelta(
   currentDerived: DerivedStats,
 ): number {
   const hypotheticalEquipment = { ...state.equipment, [item.slot]: item };
-  const hypotheticalPrimary = getTotalPrimaryStats(state.character, state.trainingLevels, hypotheticalEquipment);
+  const hypotheticalPrimary = getTotalPrimaryStats(state.character, hypotheticalEquipment);
   const hypotheticalDerived = calculateDerivedStats(hypotheticalPrimary, hypotheticalEquipment);
   const currentDps = sheetDps(currentDerived);
   const newDps = sheetDps(hypotheticalDerived);

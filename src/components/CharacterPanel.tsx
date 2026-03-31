@@ -34,7 +34,7 @@ const DERIVED_TIPS: Record<string, string> = {
 };
 
 export default function CharacterPanel() {
-  const { state, derived, doAllocateStat, doEquipItem, doUnequipItem } = useGameState();
+  const { state, derived, doAllocateStat, doAllocateStatMultiple, doResetAllStats, doEquipItem, doUnequipItem } = useGameState();
   const { character } = state;
   const [activePopoverSlot, setActivePopoverSlot] = useState<EquipSlot | null>(null);
 
@@ -97,15 +97,44 @@ export default function CharacterPanel() {
               <div className="stat-row">
                 <span className="stat-name">{stat.toUpperCase()}</span>
                 <span className="stat-value">
-                  {character.baseStats[stat] + state.trainingLevels[stat]}
+                  {character.baseStats[stat]}
                 </span>
                 {character.unspentStatPoints > 0 && (
-                  <button className="stat-btn" onClick={() => doAllocateStat(stat)}>+</button>
+                  <div className="stat-btn-group">
+                    <button className="stat-btn" onClick={() => doAllocateStat(stat)}>+1</button>
+                    {character.unspentStatPoints >= 5 && (
+                      <button className="stat-btn" onClick={() => doAllocateStatMultiple(stat, 5)}>+5</button>
+                    )}
+                    {character.unspentStatPoints >= 10 && (
+                      <button className="stat-btn" onClick={() => doAllocateStatMultiple(stat, 10)}>+10</button>
+                    )}
+                    <button className="stat-btn stat-btn-max" onClick={() => doAllocateStatMultiple(stat, character.unspentStatPoints)}>Max</button>
+                  </div>
                 )}
               </div>
             </Tooltip>
           ))}
         </div>
+        {(() => {
+          const tomeCount = state.inventory.filter(i => i.consumable === 'stat_reset').length;
+          const hasTome = tomeCount > 0;
+          const totalAllocated = (['str', 'dex', 'int', 'vit', 'luk'] as const).reduce(
+            (sum, s) => sum + (character.baseStats[s] - 5), 0
+          );
+          return totalAllocated > 0 ? (
+            <button
+              className={`btn-reset-stats ${hasTome ? '' : 'disabled'}`}
+              disabled={!hasTome}
+              onClick={() => {
+                if (hasTome && confirm('Reset ALL stat points? This will consume a Tome of Unmaking.')) {
+                  doResetAllStats();
+                }
+              }}
+            >
+              Reset All Stats {hasTome ? `(${tomeCount}x Tome of Unmaking)` : '(requires Tome of Unmaking)'}
+            </button>
+          ) : null;
+        })()}
       </div>
 
       <div className="derived-section">

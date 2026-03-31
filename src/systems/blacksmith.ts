@@ -31,7 +31,7 @@ export function dismantleItem(state: GameState, itemId: string): Essence[] {
   if (itemIndex === -1) return [];
 
   const item = state.inventory[itemIndex];
-  if (item.locked) return [];
+  if (item.locked || item.consumable) return [];
 
   const extracted: Essence[] = [];
 

@@ -35,6 +35,7 @@ export const RARITY_AFFIX_MULTIPLIER: Record<Rarity, number> = {
   rare: 1.0,
   epic: 1.2,
   legendary: 1.5,
+  unique: 0,
 };
 
 // --- Prefix Pool (Offensive — 4 affixes) ---

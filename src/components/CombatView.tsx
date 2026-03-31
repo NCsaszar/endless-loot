@@ -4,7 +4,11 @@ import StatBar from './StatBar';
 import AttackBar from './AttackBar';
 import { getZone } from '../data/zones';
 import type { DamagePopup } from '../types';
+import { LOG_FILTER_TABS } from '../types';
+import type { LogFilterTab } from '../types';
 import { calculateActualDps, calculateTheoreticalPlayerDps, calculateTheoreticalMobDps } from '../systems/dps';
+
+const LOG_FILTER_KEY = 'endless_loot_log_filter';
 
 function getHitClass(popups: DamagePopup[], target: 'player' | 'mob'): string {
   const now = Date.now();
@@ -30,6 +34,16 @@ export default function CombatView() {
   const prevMobProg = useRef(combat.mobAttackProgress);
   const [playerFireKey, setPlayerFireKey] = useState(0);
   const [mobFireKey, setMobFireKey] = useState(0);
+
+  const [logFilter, setLogFilter] = useState<LogFilterTab>(() => {
+    const saved = localStorage.getItem(LOG_FILTER_KEY);
+    return (saved && saved in LOG_FILTER_TABS) ? saved as LogFilterTab : 'All';
+  });
+
+  const handleFilterChange = (tab: LogFilterTab) => {
+    setLogFilter(tab);
+    localStorage.setItem(LOG_FILTER_KEY, tab);
+  };
 
   useEffect(() => {
     if (prevPlayerProg.current > 0.7 && combat.playerAttackProgress < 0.2) {
@@ -144,12 +158,31 @@ export default function CombatView() {
       </div>
 
       {/* Combat Log */}
-      <div className="combat-log">
-        {combatLog.slice(0, 15).map(entry => (
-          <div key={entry.id} className={`log-entry log-${entry.type}`}>
-            {entry.message}
-          </div>
-        ))}
+      <div className="combat-log-container">
+        <div className="log-filter-tabs">
+          {(Object.keys(LOG_FILTER_TABS) as LogFilterTab[]).map(tab => (
+            <button
+              key={tab}
+              className={`log-filter-tab ${logFilter === tab ? 'active' : ''}`}
+              onClick={() => handleFilterChange(tab)}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+        <div className="combat-log">
+          {combatLog
+            .filter(entry => {
+              const allowed = LOG_FILTER_TABS[logFilter];
+              return allowed === null || allowed.includes(entry.type);
+            })
+            .slice(0, 15)
+            .map(entry => (
+              <div key={entry.id} className={`log-entry log-${entry.type}`}>
+                {entry.message}
+              </div>
+            ))}
+        </div>
       </div>
     </div>
   );

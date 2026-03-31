@@ -3,8 +3,8 @@ import type { GameState, DerivedStats, Item, ActivePanel, Rarity, PrimaryStat, E
 import { getTotalPrimaryStats, calculateDerivedStats } from '../data/formulas';
 import { tick } from '../systems/gameLoop';
 import { saveGame, loadGame, createDefaultState, calculateOfflineProgress } from '../systems/save';
-import { sellItem, salvageItem, trainStat, equipItem, unequipItem, bulkSell, bulkSalvage } from '../systems/economy';
-import { allocateStat, changeZone, startCombat, stopCombat, startEndlessRun, endEndlessRun } from '../systems/progression';
+import { sellItem, salvageItem, equipItem, unequipItem, bulkSell, bulkSalvage } from '../systems/economy';
+import { allocateStat, allocateStatMultiple, resetAllStats, changeZone, startCombat, stopCombat, startEndlessRun, endEndlessRun } from '../systems/progression';
 import { generateItem } from '../systems/loot';
 import { dismantleItem, slotEssence, discardEssences } from '../systems/blacksmith';
 import type { EssenceFilter } from '../systems/blacksmith';
@@ -16,11 +16,12 @@ interface GameContextValue {
   activePanel: ActivePanel;
   setActivePanel: (p: ActivePanel) => void;
   doAllocateStat: (stat: PrimaryStat) => void;
+  doAllocateStatMultiple: (stat: PrimaryStat, amount: number) => void;
+  doResetAllStats: () => boolean;
   doEquipItem: (item: Item) => void;
   doUnequipItem: (slot: Item['slot']) => void;
   doSellItem: (itemId: string) => void;
   doSalvageItem: (itemId: string) => void;
-  doTrainStat: (stat: PrimaryStat) => void;
   doChangeZone: (zoneId: number) => void;
   doStartCombat: () => void;
   doStopCombat: () => void;
@@ -78,7 +79,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     }
 
     stateRef.current = state;
-    const primary = getTotalPrimaryStats(state.character, state.trainingLevels, state.equipment);
+    const primary = getTotalPrimaryStats(state.character, state.equipment);
     primaryStatsRef.current = primary;
     derivedRef.current = calculateDerivedStats(primary, state.equipment);
     state.character.currentHp = Math.min(state.character.currentHp, derivedRef.current.maxHp);
@@ -87,7 +88,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
   const recalcDerived = useCallback(() => {
     const s = stateRef.current;
-    const primary = getTotalPrimaryStats(s.character, s.trainingLevels, s.equipment);
+    const primary = getTotalPrimaryStats(s.character, s.equipment);
     primaryStatsRef.current = primary;
     derivedRef.current = calculateDerivedStats(primary, s.equipment);
   }, []);
@@ -128,14 +129,42 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     }
   }, [recalcDerived]);
 
+  const doAllocateStatMultiple = useCallback((stat: PrimaryStat, amount: number) => {
+    const allocated = allocateStatMultiple(stateRef.current, stat, amount);
+    if (allocated > 0) {
+      recalcDerived();
+      const s = stateRef.current;
+      if (stat === 'vit') {
+        s.character.currentHp = Math.min(s.character.currentHp + 8 * allocated, derivedRef.current.maxHp);
+      }
+    }
+  }, [recalcDerived]);
+
+  const doResetAllStats = useCallback((): boolean => {
+    const success = resetAllStats(stateRef.current);
+    if (success) {
+      recalcDerived();
+      // Clamp HP to new (lower) max
+      const s = stateRef.current;
+      s.character.currentHp = Math.min(s.character.currentHp, derivedRef.current.maxHp);
+    }
+    return success;
+  }, [recalcDerived]);
+
   const doEquipItem = useCallback((item: Item) => {
     equipItem(stateRef.current, item);
     recalcDerived();
+    // Clamp HP to new max (gear may have changed maxHp)
+    const s = stateRef.current;
+    s.character.currentHp = Math.min(s.character.currentHp, derivedRef.current.maxHp);
   }, [recalcDerived]);
 
   const doUnequipItem = useCallback((slot: Item['slot']) => {
     unequipItem(stateRef.current, slot);
     recalcDerived();
+    // Clamp HP to new max (removing VIT gear reduces maxHp)
+    const s = stateRef.current;
+    s.character.currentHp = Math.min(s.character.currentHp, derivedRef.current.maxHp);
   }, [recalcDerived]);
 
   const doSellItem = useCallback((itemId: string) => {
@@ -145,11 +174,6 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
   const doSalvageItem = useCallback((itemId: string) => {
     salvageItem(stateRef.current, itemId);
   }, []);
-
-  const doTrainStat = useCallback((stat: PrimaryStat) => {
-    trainStat(stateRef.current, stat);
-    recalcDerived();
-  }, [recalcDerived]);
 
   const doChangeZone = useCallback((zoneId: number) => {
     changeZone(stateRef.current, zoneId);
@@ -245,11 +269,12 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     activePanel,
     setActivePanel,
     doAllocateStat,
+    doAllocateStatMultiple,
+    doResetAllStats,
     doEquipItem,
     doUnequipItem,
     doSellItem,
     doSalvageItem,
-    doTrainStat,
     doChangeZone,
     doStartCombat,
     doStopCombat,

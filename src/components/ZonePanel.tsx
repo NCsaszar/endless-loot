@@ -40,8 +40,8 @@ export default function ZonePanel() {
   const currentZoneRef = useRef<HTMLDivElement>(null);
 
   const primaryStats = useMemo(
-    () => getTotalPrimaryStats(state.character, state.trainingLevels, state.equipment),
-    [state.character, state.trainingLevels, state.equipment]
+    () => getTotalPrimaryStats(state.character, state.equipment),
+    [state.character, state.equipment]
   );
   const luk = primaryStats.luk;
   const dropChance = useMemo(() => lukDropChance(luk), [luk]);

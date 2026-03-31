@@ -1,13 +1,17 @@
 import type { GameState, DerivedStats, PrimaryStats } from '../types';
 import { spawnMob, playerAttack, mobAttack, handlePlayerDeath, regenHp } from './combat';
 import { grantXpAndGold, handleBossKill } from './progression';
-import { shouldDropLoot, generateItem, generateBossLoot } from './loot';
+import { shouldDropLoot, generateItem, generateBossLoot, rollConsumableDrop } from './loot';
 import { addLog } from './combat';
 import { lukGoldMultiplier } from '../data/formulas';
 import { getZone } from '../data/zones';
 
 export function tick(state: GameState, derived: DerivedStats, dt: number, primaryStats?: PrimaryStats): void {
   const luk = primaryStats?.luk ?? 0;
+
+  // Clamp HP to current max (prevents bar showing full after maxHp decreases)
+  state.character.currentHp = Math.min(state.character.currentHp, derived.maxHp);
+
   // Clean up expired damage popups (800ms lifetime) and DPS logs (10s window)
   const now = Date.now();
   state.combat.damagePopups = state.combat.damagePopups.filter(p => now - p.timestamp < 800);
@@ -66,11 +70,20 @@ export function tick(state: GameState, derived: DerivedStats, dt: number, primar
         const rarityBonus = state.endless.active
           ? (0.01 * state.endless.currentFloor + derived.lootRarityBonus)
           : ((getZone(state.currentZoneId)?.rarityBonus ?? 0) + derived.lootRarityBonus);
-        const item = isBoss ? generateBossLoot(itemLevel, luk, rarityBonus) : generateItem(itemLevel, undefined, luk, rarityBonus);
-        if (state.autoSalvageRarities.includes(item.rarity)) {
+        // Act-end bosses (zones 10, 20, 30, 40, 50) get guaranteed minimum rarity
+        let bossMinRarity: import('../types').Rarity | undefined;
+        if (isBoss && !state.endless.active) {
+          const zone = getZone(state.currentZoneId);
+          if (zone && zone.id % 10 === 0) {
+            bossMinRarity = zone.act >= 2 ? 'epic' : 'rare';
+            if (zone.act >= 5) bossMinRarity = 'legendary';
+          }
+        }
+        const item = isBoss ? generateBossLoot(itemLevel, luk, rarityBonus, bossMinRarity) : generateItem(itemLevel, undefined, luk, rarityBonus);
+        if (!item.consumable && state.autoSalvageRarities.includes(item.rarity)) {
           state.materials[item.salvageResult.material] += item.salvageResult.amount;
           addLog(state, `Auto-salvaged ${item.name} → ${item.salvageResult.amount} ${item.salvageResult.material}`, 'loot');
-        } else if (state.autoSellRarities.includes(item.rarity)) {
+        } else if (!item.consumable && state.autoSellRarities.includes(item.rarity)) {
           const sellGold = Math.floor(item.sellValue * goldMult);
           state.gold += sellGold;
           state.totalGoldEarned += sellGold;
@@ -80,6 +93,13 @@ export function tick(state: GameState, derived: DerivedStats, dt: number, primar
           if (state.endless.active) state.endless.runItemsFound++;
           addLog(state, `Loot: ${item.name} (${item.rarity})`, 'loot');
         }
+      }
+
+      // Roll for ultra-rare consumable drop
+      const consumable = rollConsumableDrop(luk);
+      if (consumable) {
+        state.inventory.push(consumable);
+        addLog(state, `Ultra-rare drop: ${consumable.name}!`, 'loot');
       }
 
       // Spawn next mob

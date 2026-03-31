@@ -1,11 +1,10 @@
 import type { GameState, Item } from '../types';
-import { trainingCost } from '../data/formulas';
 
 export function sellItem(state: GameState, itemId: string): boolean {
   const idx = state.inventory.findIndex(i => i.id === itemId);
   if (idx === -1) return false;
   const item = state.inventory[idx];
-  if (item.locked) return false;
+  if (item.locked || item.consumable) return false;
   state.gold += item.sellValue;
   state.totalGoldEarned += item.sellValue;
   state.inventory.splice(idx, 1);
@@ -16,23 +15,14 @@ export function salvageItem(state: GameState, itemId: string): boolean {
   const idx = state.inventory.findIndex(i => i.id === itemId);
   if (idx === -1) return false;
   const item = state.inventory[idx];
-  if (item.locked) return false;
+  if (item.locked || item.consumable) return false;
   state.materials[item.salvageResult.material] += item.salvageResult.amount;
   state.inventory.splice(idx, 1);
   return true;
 }
 
-export function trainStat(state: GameState, stat: 'str' | 'dex' | 'int' | 'vit' | 'luk'): boolean {
-  const currentLevel = state.trainingLevels[stat];
-  const cost = trainingCost(currentLevel);
-  if (state.gold < cost) return false;
-  state.gold -= cost;
-  state.trainingLevels[stat]++;
-  state.character.trainingStats[stat]++;
-  return true;
-}
-
 export function equipItem(state: GameState, item: Item): Item | null {
+  if (item.consumable) return null; // consumable items can't be equipped
   const prev = state.equipment[item.slot] ?? null;
   state.equipment[item.slot] = item;
 
@@ -57,7 +47,7 @@ export function unequipItem(state: GameState, slot: Item['slot']): boolean {
 export function bulkSell(state: GameState, itemIds: string[]): void {
   const idSet = new Set(itemIds);
   state.inventory = state.inventory.filter(item => {
-    if (!idSet.has(item.id) || item.locked) return true;
+    if (!idSet.has(item.id) || item.locked || item.consumable) return true;
     state.gold += item.sellValue;
     state.totalGoldEarned += item.sellValue;
     return false;
@@ -67,7 +57,7 @@ export function bulkSell(state: GameState, itemIds: string[]): void {
 export function bulkSalvage(state: GameState, itemIds: string[]): void {
   const idSet = new Set(itemIds);
   state.inventory = state.inventory.filter(item => {
-    if (!idSet.has(item.id) || item.locked) return true;
+    if (!idSet.has(item.id) || item.locked || item.consumable) return true;
     state.materials[item.salvageResult.material] += item.salvageResult.amount;
     return false;
   });
