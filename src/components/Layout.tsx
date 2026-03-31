@@ -5,12 +5,14 @@ import CharacterPanel from './CharacterPanel';
 import InventoryPanel from './InventoryPanel';
 import TrainingPanel from './TrainingPanel';
 import ZonePanel from './ZonePanel';
+import BlacksmithPanel from './BlacksmithPanel';
 import WelcomeBack from './WelcomeBack';
 
 const TABS: { id: ActivePanel; label: string }[] = [
   { id: 'character', label: 'Character' },
   { id: 'inventory', label: 'Inventory' },
   { id: 'training', label: 'Training' },
+  { id: 'blacksmith', label: 'Blacksmith' },
   { id: 'zones', label: 'Zones' },
 ];
 
@@ -22,6 +24,7 @@ export default function Layout() {
       case 'character': return <CharacterPanel />;
       case 'inventory': return <InventoryPanel />;
       case 'training': return <TrainingPanel />;
+      case 'blacksmith': return <BlacksmithPanel />;
       case 'zones': return <ZonePanel />;
     }
   };
@@ -41,6 +44,9 @@ export default function Layout() {
             )}
             {tab.id === 'character' && state.character.unspentStatPoints > 0 && (
               <span className="tab-badge">{state.character.unspentStatPoints}</span>
+            )}
+            {tab.id === 'blacksmith' && state.essences.length > 0 && (
+              <span className="tab-badge">{state.essences.length}</span>
             )}
           </button>
         ))}

@@ -3,7 +3,7 @@ import { xpForLevel } from '../data/formulas';
 import { getMaxTier } from '../data/affixes';
 
 const SAVE_KEY = 'endless_loot_save';
-const SAVE_VERSION = 2;
+const SAVE_VERSION = 3;
 
 export function createDefaultState(): GameState {
   return {
@@ -22,6 +22,7 @@ export function createDefaultState(): GameState {
     inventory: [],
     gold: 0,
     materials: { scrap: 0, fragments: 0, crystals: 0, essences: 0, legendaryShards: 0 },
+    essences: [],
     currentZoneId: 1,
     unlockedZoneIds: [1],
     bossesDefeated: [],
@@ -138,6 +139,16 @@ function migrateV1toV2(parsed: any): any {
   return parsed;
 }
 
+// --- V2 → V3 Migration: Add essences storage ---
+
+function migrateV2toV3(parsed: any): any {
+  if (!Array.isArray(parsed.essences)) {
+    parsed.essences = [];
+  }
+  parsed.saveVersion = 3;
+  return parsed;
+}
+
 export function saveGame(state: GameState): void {
   state.lastSaveTimestamp = Date.now();
   state.saveVersion = SAVE_VERSION;
@@ -164,6 +175,11 @@ export function loadGame(): GameState | null {
     // Migrate v1 saves to v2
     if (parsed.saveVersion === 1) {
       parsed = migrateV1toV2(parsed);
+    }
+
+    // Migrate v2 saves to v3
+    if (parsed.saveVersion === 2) {
+      parsed = migrateV2toV3(parsed);
     }
 
     if (parsed.saveVersion !== SAVE_VERSION) return null;

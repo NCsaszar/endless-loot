@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import type { Item, Affix } from '../types';
 import { RARITY_COLORS } from '../types';
 import { SLOT_ICONS } from './icons';
-import { getAffixDisplayName } from '../data/affixes';
+import { formatAffix } from '../data/affixes';
 
 interface ItemCardProps {
   item: Item;
@@ -13,10 +13,6 @@ interface ItemCardProps {
   grid?: boolean;
   upgradePct?: number;
   onToggleLock?: () => void;
-}
-
-function formatAffix(affix: Affix): string {
-  return `[T${affix.tier}] +${(affix.value * 100).toFixed(1)}% ${getAffixDisplayName(affix.id).replace('% Increased ', '')}`;
 }
 
 function countFilled(slots: (Affix | null)[]): number {

@@ -7,16 +7,30 @@ import { computeItemDpsDelta } from '../systems/dps';
 import ItemCard from './ItemCard';
 import ComparisonModal from './ComparisonModal';
 import BulkActionConfirmModal from './BulkActionConfirmModal';
+import EssenceViewer from './EssenceViewer';
+import EssenceDiscardModal from './EssenceDiscardModal';
 
 type SortBy = 'rarity' | 'level' | 'slot' | 'value';
 
+type InventorySubTab = 'equipment' | 'materials';
+
+const MATERIAL_LABELS: Record<string, string> = {
+  scrap: 'Scrap',
+  fragments: 'Fragments',
+  crystals: 'Crystals',
+  essences: 'Essences (generic)',
+  legendaryShards: 'Legendary Shards',
+};
+
 export default function InventoryPanel() {
-  const { state, derived, doSellItem, doSalvageItem, doEquipItem, doToggleAutoSell, doToggleAutoSalvage, doToggleLock, doBulkSell, doBulkSalvage } = useGameState();
+  const { state, derived, doSellItem, doSalvageItem, doEquipItem, doToggleAutoSell, doToggleAutoSalvage, doToggleLock, doBulkSell, doBulkSalvage, doDiscardEssences } = useGameState();
+  const [subTab, setSubTab] = useState<InventorySubTab>('equipment');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortBy>('rarity');
   const [filterSlot, setFilterSlot] = useState<EquipSlot | 'all'>('all');
   const [filterRarity, setFilterRarity] = useState<Rarity | 'all'>('all');
   const [bulkAction, setBulkAction] = useState<{ items: Item[]; mode: BulkActionMode } | null>(null);
+  const [showDiscardModal, setShowDiscardModal] = useState(false);
 
   // Filter for display (uses >= for rarity)
   const items = useMemo(() => {
@@ -102,6 +116,52 @@ export default function InventoryPanel() {
         <div className="inv-gold">Gold: {state.gold.toLocaleString()}</div>
       </div>
 
+      <div className="inv-subtabs">
+        <button className={`inv-subtab ${subTab === 'equipment' ? 'active' : ''}`} onClick={() => setSubTab('equipment')}>
+          Equipment
+        </button>
+        <button className={`inv-subtab ${subTab === 'materials' ? 'active' : ''}`} onClick={() => setSubTab('materials')}>
+          Materials {state.essences.length > 0 && `(${state.essences.length})`}
+        </button>
+      </div>
+
+      {subTab === 'materials' && (
+        <div className="materials-view">
+          <div className="materials-counts">
+            <h3>Crafting Materials</h3>
+            <div className="materials-grid">
+              {Object.entries(state.materials).map(([key, val]) => (
+                <div key={key} className="material-row">
+                  <span className="material-name">{MATERIAL_LABELS[key] || key}</span>
+                  <span className="material-amount">{val.toLocaleString()}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="essence-inventory">
+            <div className="essence-inv-header">
+              <h3>Essences ({state.essences.length})</h3>
+              {state.essences.length > 0 && (
+                <button className="btn-secondary" onClick={() => setShowDiscardModal(true)}>
+                  Discard Essences
+                </button>
+              )}
+            </div>
+            <EssenceViewer essences={state.essences} />
+          </div>
+
+          {showDiscardModal && (
+            <EssenceDiscardModal
+              essences={state.essences}
+              onDiscard={doDiscardEssences}
+              onClose={() => setShowDiscardModal(false)}
+            />
+          )}
+        </div>
+      )}
+
+      {subTab === 'equipment' && <>
       <div className="inv-controls">
         <div className="inv-sort">
           <label>Sort:</label>
@@ -214,6 +274,7 @@ export default function InventoryPanel() {
           onCancel={() => setBulkAction(null)}
         />
       )}
+      </>}
     </div>
   );
 }

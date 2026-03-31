@@ -1,11 +1,13 @@
 import { createContext, useContext, useState, useCallback, useRef, useEffect } from 'react';
-import type { GameState, DerivedStats, Item, ActivePanel, Rarity, PrimaryStat } from '../types';
+import type { GameState, DerivedStats, Item, ActivePanel, Rarity, PrimaryStat, Essence } from '../types';
 import { getTotalPrimaryStats, calculateDerivedStats } from '../data/formulas';
 import { tick } from '../systems/gameLoop';
 import { saveGame, loadGame, createDefaultState, calculateOfflineProgress } from '../systems/save';
 import { sellItem, salvageItem, trainStat, equipItem, unequipItem, bulkSell, bulkSalvage } from '../systems/economy';
 import { allocateStat, changeZone, startCombat, stopCombat } from '../systems/progression';
 import { generateItem } from '../systems/loot';
+import { dismantleItem, slotEssence, discardEssences } from '../systems/blacksmith';
+import type { EssenceFilter } from '../systems/blacksmith';
 import type { OfflineProgress } from '../systems/save';
 
 interface GameContextValue {
@@ -28,6 +30,9 @@ interface GameContextValue {
   doToggleLock: (itemId: string) => void;
   doBulkSell: (itemIds: string[]) => void;
   doBulkSalvage: (itemIds: string[]) => void;
+  doDismantleItem: (itemId: string) => Essence[];
+  doSlotEssence: (itemId: string, essenceId: string, slotIndex: number) => boolean;
+  doDiscardEssences: (filter: EssenceFilter) => number;
   offlineProgress: OfflineProgress | null;
   dismissOfflineProgress: () => void;
 }
@@ -202,6 +207,24 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     bulkSalvage(stateRef.current, itemIds);
   }, []);
 
+  const doDismantleItem = useCallback((itemId: string): Essence[] => {
+    return dismantleItem(stateRef.current, itemId);
+  }, []);
+
+  const doSlotEssence = useCallback((itemId: string, essenceId: string, slotIndex: number): boolean => {
+    const success = slotEssence(stateRef.current, itemId, essenceId, slotIndex);
+    if (success) {
+      // Recalc if the item is equipped
+      const isEquipped = Object.values(stateRef.current.equipment).some(e => e?.id === itemId);
+      if (isEquipped) recalcDerived();
+    }
+    return success;
+  }, [recalcDerived]);
+
+  const doDiscardEssences = useCallback((filter: EssenceFilter): number => {
+    return discardEssences(stateRef.current, filter);
+  }, []);
+
   const dismissOfflineProgress = useCallback(() => {
     setOfflineProgress(null);
   }, []);
@@ -226,6 +249,9 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     doToggleLock,
     doBulkSell,
     doBulkSalvage,
+    doDismantleItem,
+    doSlotEssence,
+    doDiscardEssences,
     offlineProgress,
     dismissOfflineProgress,
   };

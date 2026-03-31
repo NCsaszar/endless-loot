@@ -371,3 +371,11 @@ const ALL_AFFIXES = [...PREFIX_POOL, ...SUFFIX_POOL];
 export function getAffixDisplayName(id: AffixId): string {
   return ALL_AFFIXES.find(a => a.id === id)?.displayName ?? id;
 }
+
+export function getAffixShortName(id: AffixId): string {
+  return getAffixDisplayName(id).replace('% Increased ', '');
+}
+
+export function formatAffix(affix: { id: AffixId; tier: number; value: number }): string {
+  return `[T${affix.tier}] +${(affix.value * 100).toFixed(1)}% ${getAffixShortName(affix.id)}`;
+}

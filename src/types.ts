@@ -98,6 +98,16 @@ export interface Affix {
   value: number;  // percentage as decimal, e.g. 0.10 = 10%
 }
 
+// --- Essences (extracted affixes for crafting) ---
+
+export interface Essence {
+  id: string;              // unique ID
+  affixId: AffixId;
+  slotType: AffixSlotType;
+  tier: number;            // T1-T5
+  value: number;           // preserved decimal % from original affix
+}
+
 // --- Items ---
 
 export interface Item {
@@ -238,6 +248,7 @@ export interface GameState {
   inventory: Item[];
   gold: number;
   materials: Materials;
+  essences: Essence[];
   currentZoneId: number;
   unlockedZoneIds: number[];
   bossesDefeated: number[]; // zone IDs where boss has been killed
@@ -254,4 +265,4 @@ export interface GameState {
 
 // --- UI State (not persisted) ---
 
-export type ActivePanel = 'character' | 'inventory' | 'training' | 'zones';
+export type ActivePanel = 'character' | 'inventory' | 'training' | 'zones' | 'blacksmith';
