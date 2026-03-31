@@ -1,11 +1,12 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useGameState } from '../hooks/useGameState';
 import type { EquipSlot } from '../types';
 import { SLOT_LABELS } from '../types';
 import StatBar from './StatBar';
 import ItemCard from './ItemCard';
 import Tooltip from './Tooltip';
-import EquipSlotPopover from './EquipSlotPopover';
+import ItemDetailTooltip from './ItemDetailTooltip';
+import EquipmentComparisonModal from './EquipmentComparisonModal';
 import { SLOT_ICONS } from './icons';
 
 const LEFT_SLOTS: EquipSlot[] = ['helmet', 'chest', 'legs', 'boots'];
@@ -36,15 +37,27 @@ const DERIVED_TIPS: Record<string, string> = {
 export default function CharacterPanel() {
   const { state, derived, doAllocateStat, doAllocateStatMultiple, doResetAllStats, doEquipItem, doUnequipItem } = useGameState();
   const { character } = state;
-  const [activePopoverSlot, setActivePopoverSlot] = useState<EquipSlot | null>(null);
+  const [comparisonSlot, setComparisonSlot] = useState<EquipSlot | null>(null);
+  const [hoverTooltip, setHoverTooltip] = useState<{ slot: EquipSlot; pos: { x: number; y: number } } | null>(null);
 
-  const renderSlot = (slot: EquipSlot, align: 'left' | 'right') => {
+  const handleSlotHover = useCallback((slot: EquipSlot, el: HTMLElement | null) => {
+    if (!el || !state.equipment[slot]) { setHoverTooltip(null); return; }
+    const rect = el.getBoundingClientRect();
+    const tooltipWidth = 210;
+    const halfW = tooltipWidth / 2;
+    const x = Math.max(halfW + 4, Math.min(window.innerWidth - halfW - 4, rect.left + rect.width / 2));
+    setHoverTooltip({ slot, pos: { x, y: rect.top } });
+  }, [state.equipment]);
+
+  const renderSlot = (slot: EquipSlot) => {
     const item = state.equipment[slot];
     return (
       <div
         key={slot}
-        className={`paper-doll-slot ${activePopoverSlot === slot ? 'active' : ''}`}
-        onClick={() => setActivePopoverSlot(activePopoverSlot === slot ? null : slot)}
+        className={`paper-doll-slot ${comparisonSlot === slot ? 'active' : ''}`}
+        onClick={() => setComparisonSlot(slot)}
+        onMouseEnter={(e) => handleSlotHover(slot, e.currentTarget)}
+        onMouseLeave={() => setHoverTooltip(null)}
       >
         <div className="equip-label">{SLOT_LABELS[slot]}</div>
         {item ? (
@@ -53,19 +66,6 @@ export default function CharacterPanel() {
           <div className="equip-empty-doll">
             {(() => { const Icon = SLOT_ICONS[slot]; return <Icon size={28} color="currentColor" className="equip-empty-icon" />; })()}
           </div>
-        )}
-        {activePopoverSlot === slot && (
-          <EquipSlotPopover
-            slot={slot}
-            items={state.inventory.filter(i => i.slot === slot)}
-            currentDerived={derived}
-            state={state}
-            hasEquipped={!!item}
-            align={align}
-            onSelect={(newItem) => { doEquipItem(newItem); setActivePopoverSlot(null); }}
-            onUnequip={() => { doUnequipItem(slot); setActivePopoverSlot(null); }}
-            onClose={() => setActivePopoverSlot(null)}
-          />
         )}
       </div>
     );
@@ -164,16 +164,38 @@ export default function CharacterPanel() {
         <h3>Equipment</h3>
         <div className="paper-doll">
           <div className="paper-doll-col paper-doll-left">
-            {LEFT_SLOTS.map(slot => renderSlot(slot, 'left'))}
+            {LEFT_SLOTS.map(slot => renderSlot(slot))}
           </div>
           <div className="paper-doll-center">
             <img src="/portraits/hero.svg" alt="Hero" className="paper-doll-portrait" />
           </div>
           <div className="paper-doll-col paper-doll-right">
-            {RIGHT_SLOTS.map(slot => renderSlot(slot, 'right'))}
+            {RIGHT_SLOTS.map(slot => renderSlot(slot))}
           </div>
         </div>
       </div>
+
+      {/* Hover tooltip for equipped items */}
+      {hoverTooltip && state.equipment[hoverTooltip.slot] && !comparisonSlot && (
+        <ItemDetailTooltip
+          item={state.equipment[hoverTooltip.slot]!}
+          position={hoverTooltip.pos}
+        />
+      )}
+
+      {/* Equipment comparison modal */}
+      {comparisonSlot && (
+        <EquipmentComparisonModal
+          slot={comparisonSlot}
+          equippedItem={state.equipment[comparisonSlot] ?? null}
+          inventoryItems={state.inventory.filter(i => i.slot === comparisonSlot)}
+          state={state}
+          derived={derived}
+          onEquip={(item) => { doEquipItem(item); setComparisonSlot(null); }}
+          onUnequip={() => { doUnequipItem(comparisonSlot); setComparisonSlot(null); }}
+          onClose={() => setComparisonSlot(null)}
+        />
+      )}
     </div>
   );
 }

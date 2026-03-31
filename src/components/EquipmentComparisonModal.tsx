@@ -1,0 +1,195 @@
+import { useState, useMemo } from 'react';
+import type { Item, EquipSlot, DerivedStats, GameState, Affix } from '../types';
+import { RARITY_COLORS } from '../types';
+import { getTotalPrimaryStats, calculateDerivedStats } from '../data/formulas';
+import { sheetDps, computeItemDpsDelta } from '../systems/dps';
+import { formatAffix } from '../data/affixes';
+
+interface EquipmentComparisonModalProps {
+  slot: EquipSlot;
+  equippedItem: Item | null;
+  inventoryItems: Item[];
+  state: GameState;
+  derived: DerivedStats;
+  onEquip: (item: Item) => void;
+  onUnequip: () => void;
+  onClose: () => void;
+}
+
+function formatNum(n: number): string { return Math.floor(n).toString(); }
+function formatPercent(n: number): string { return `${(n * 100).toFixed(1)}%`; }
+function formatSpeed(n: number): string { return `${n.toFixed(2)}/s`; }
+
+function ItemFullCard({ item, label }: { item: Item | null; label: string }) {
+  if (!item) {
+    return (
+      <div className="ecm-item-card ecm-empty">
+        <div className="ecm-card-label">{label}</div>
+        <div className="ecm-empty-text">Empty Slot</div>
+      </div>
+    );
+  }
+
+  const color = RARITY_COLORS[item.rarity];
+  const filledPrefixes = item.prefixes.filter((a): a is Affix => a !== null);
+  const filledSuffixes = item.suffixes.filter((a): a is Affix => a !== null);
+  const isAttackSlot = item.slot === 'weapon' || item.slot === 'ring' || item.slot === 'amulet';
+
+  return (
+    <div className="ecm-item-card" style={{ borderColor: color }}>
+      <div className="ecm-card-label">{label}</div>
+      <div className="ecm-item-name" style={{ color }}>{item.name}</div>
+      <div className="ecm-item-meta">
+        <span style={{ color }}>({item.rarity})</span> &middot; Lv.{item.itemLevel}
+      </div>
+      <div className="ecm-item-stat">+{item.primaryStatValue} {isAttackSlot ? 'ATK' : 'DEF'}</div>
+      <div className="ecm-item-stat">+{item.randomPrimaryStatValue} {item.randomPrimaryStat.toUpperCase()}</div>
+      {(filledPrefixes.length > 0 || filledSuffixes.length > 0) && (
+        <div className="ecm-affixes">
+          {filledPrefixes.map((a, i) => (
+            <div key={`p${i}`} style={{ color: '#ffcc44', fontSize: '0.85em' }}>{formatAffix(a)}</div>
+          ))}
+          {filledSuffixes.map((a, i) => (
+            <div key={`s${i}`} style={{ color: '#44ccff', fontSize: '0.85em' }}>{formatAffix(a)}</div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function EquipmentComparisonModal({
+  slot, equippedItem, inventoryItems, state, derived, onEquip, onUnequip, onClose,
+}: EquipmentComparisonModalProps) {
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  // Sort by DPS delta descending
+  const sortedItems = useMemo(() => {
+    return inventoryItems
+      .filter(i => !i.consumable)
+      .map(item => ({ item, delta: computeItemDpsDelta(item, state, derived) }))
+      .sort((a, b) => b.delta - a.delta);
+  }, [inventoryItems, state, derived]);
+
+  const selectedItem = sortedItems.find(s => s.item.id === selectedId)?.item ?? null;
+
+  // Compute hypothetical derived stats when an inventory item is selected
+  const newDerived = useMemo(() => {
+    if (!selectedItem) return null;
+    const hypotheticalEquipment = { ...state.equipment, [slot]: selectedItem };
+    const hypotheticalPrimary = getTotalPrimaryStats(state.character, hypotheticalEquipment);
+    return calculateDerivedStats(hypotheticalPrimary, hypotheticalEquipment);
+  }, [selectedItem, state, slot]);
+
+  const currentSheetDps = sheetDps(derived);
+  const newSheetDps = newDerived ? sheetDps(newDerived) : currentSheetDps;
+  const dpsDiff = newSheetDps - currentSheetDps;
+  const dpsPct = currentSheetDps > 0 ? dpsDiff / currentSheetDps : 0;
+
+  const deltas = newDerived ? [
+    { label: 'ATK', current: formatNum(derived.attackPower), next: formatNum(newDerived.attackPower), diff: newDerived.attackPower - derived.attackPower },
+    { label: 'DEF', current: formatNum(derived.defense), next: formatNum(newDerived.defense), diff: newDerived.defense - derived.defense },
+    { label: 'HP', current: formatNum(derived.maxHp), next: formatNum(newDerived.maxHp), diff: newDerived.maxHp - derived.maxHp },
+    { label: 'SPD', current: formatSpeed(derived.attackSpeed), next: formatSpeed(newDerived.attackSpeed), diff: newDerived.attackSpeed - derived.attackSpeed },
+    { label: 'CRIT', current: formatPercent(derived.critChance), next: formatPercent(newDerived.critChance), diff: newDerived.critChance - derived.critChance },
+    { label: 'DODGE', current: formatPercent(derived.dodgeChance), next: formatPercent(newDerived.dodgeChance), diff: newDerived.dodgeChance - derived.dodgeChance },
+    { label: 'REGEN', current: `${derived.hpRegen.toFixed(1)}/s`, next: `${newDerived.hpRegen.toFixed(1)}/s`, diff: newDerived.hpRegen - derived.hpRegen },
+  ] : null;
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content ecm-modal" onClick={e => e.stopPropagation()}>
+        <div className="ecm-header">
+          <h2>{slot.charAt(0).toUpperCase() + slot.slice(1)} Comparison</h2>
+          <button className="ecm-close" onClick={onClose}>&times;</button>
+        </div>
+
+        <div className="ecm-body">
+          {/* Left side: equipped item */}
+          <div className="ecm-left">
+            <ItemFullCard item={equippedItem} label="Equipped" />
+            {equippedItem && (
+              <button className="btn-secondary ecm-unequip" onClick={() => { onUnequip(); onClose(); }}>
+                Unequip
+              </button>
+            )}
+          </div>
+
+          {/* Right side: inventory list */}
+          <div className="ecm-right">
+            <div className="ecm-inv-label">Inventory ({sortedItems.length})</div>
+            {sortedItems.length === 0 ? (
+              <div className="ecm-empty-text">No {slot} items in inventory</div>
+            ) : (
+              <div className="ecm-inv-list">
+                {sortedItems.map(({ item, delta }) => {
+                  const sign = delta > 0 ? '+' : '';
+                  const cls = delta > 0.02 ? 'positive' : delta < -0.02 ? 'negative' : 'neutral';
+                  const isSelected = item.id === selectedId;
+                  return (
+                    <div
+                      key={item.id}
+                      className={`ecm-inv-item ${isSelected ? 'selected' : ''}`}
+                      onClick={() => setSelectedId(isSelected ? null : item.id)}
+                    >
+                      <span className="ecm-inv-name" style={{ color: RARITY_COLORS[item.rarity] }}>
+                        {item.name}
+                      </span>
+                      <span className="ecm-inv-level">Lv.{item.itemLevel}</span>
+                      <span className={`ecm-inv-delta ${cls}`}>
+                        {sign}{(delta * 100).toFixed(1)}%
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Stat diff section */}
+        {selectedItem && deltas && (
+          <div className="ecm-comparison">
+            <div className="ecm-compare-cards">
+              <ItemFullCard item={equippedItem} label="Current" />
+              <div className="ecm-arrow">&rarr;</div>
+              <ItemFullCard item={selectedItem} label="New" />
+            </div>
+
+            <div className="ecm-deltas">
+              {deltas.map(d => {
+                const cls = Math.abs(d.diff) < 0.001 ? 'neutral' : d.diff > 0 ? 'positive' : 'negative';
+                const sign = d.diff > 0 ? '+' : '';
+                return (
+                  <div key={d.label} className="ecm-delta-row">
+                    <span className="ecm-delta-label">{d.label}</span>
+                    <span>{d.current}</span>
+                    <span className="delta-arrow">&rarr;</span>
+                    <span>{d.next}</span>
+                    <span className={cls}>({sign}{d.diff.toFixed(1)})</span>
+                  </div>
+                );
+              })}
+              <div className="ecm-delta-row ecm-dps-row">
+                <span className="ecm-delta-label">DPS</span>
+                <span>{currentSheetDps.toFixed(1)}</span>
+                <span className="delta-arrow">&rarr;</span>
+                <span>{newSheetDps.toFixed(1)}</span>
+                <span className={dpsDiff > 0 ? 'positive' : dpsDiff < 0 ? 'negative' : 'neutral'}>
+                  ({dpsDiff > 0 ? '+' : ''}{dpsDiff.toFixed(1)})
+                </span>
+                <span className={`ecm-badge ${dpsPct > 0.02 ? 'upgrade' : dpsPct < -0.02 ? 'downgrade' : 'sidegrade'}`}>
+                  {dpsPct > 0.02 ? 'Upgrade' : dpsPct < -0.02 ? 'Downgrade' : 'Sidegrade'}
+                </span>
+              </div>
+            </div>
+
+            <button className="btn-equip ecm-equip-btn" onClick={() => { onEquip(selectedItem); onClose(); }}>
+              Equip {selectedItem.name}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

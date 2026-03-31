@@ -1537,6 +1537,228 @@ button {
 }
 .btn-close:hover { background: var(--bg-hover); }
 
+/* --- Equipment Comparison Modal --- */
+
+.ecm-modal {
+  max-width: 680px;
+  width: 95%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.ecm-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.ecm-header h2 {
+  font-size: 16px;
+  margin: 0;
+}
+.ecm-close {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0 4px;
+}
+.ecm-close:hover { color: var(--text-bright); }
+
+.ecm-body {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.ecm-left {
+  flex: 0 0 200px;
+}
+.ecm-right {
+  flex: 1;
+  min-width: 0;
+}
+.ecm-inv-label {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.ecm-item-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px;
+  font-size: 12px;
+}
+.ecm-item-card.ecm-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 80px;
+  opacity: 0.5;
+}
+.ecm-card-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+.ecm-item-name {
+  font-weight: 700;
+  font-size: 13px;
+}
+.ecm-item-meta {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+.ecm-item-stat {
+  font-size: 11px;
+  color: var(--text);
+}
+.ecm-affixes {
+  margin-top: 4px;
+  border-top: 1px solid var(--border);
+  padding-top: 4px;
+}
+.ecm-empty-text {
+  color: var(--text-dim);
+  font-style: italic;
+  font-size: 12px;
+}
+.ecm-unequip {
+  width: 100%;
+  margin-top: 8px;
+  padding: 4px 8px;
+  font-size: 11px;
+}
+
+.ecm-inv-list {
+  max-height: 200px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ecm-inv-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  background: var(--bg-card);
+  border: 1px solid transparent;
+  transition: background 0.1s;
+}
+.ecm-inv-item:hover {
+  background: var(--bg-hover);
+}
+.ecm-inv-item.selected {
+  border-color: var(--gold);
+  background: rgba(255, 193, 7, 0.08);
+}
+.ecm-inv-name {
+  flex: 1;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ecm-inv-level {
+  color: var(--text-dim);
+  font-size: 10px;
+  flex-shrink: 0;
+}
+.ecm-inv-delta {
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+  min-width: 50px;
+  text-align: right;
+}
+
+.ecm-comparison {
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+.ecm-compare-cards {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.ecm-compare-cards .ecm-item-card {
+  flex: 1;
+}
+.ecm-arrow {
+  font-size: 20px;
+  color: var(--text-dim);
+  align-self: center;
+  flex-shrink: 0;
+}
+
+.ecm-deltas {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 12px;
+}
+.ecm-delta-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+.ecm-delta-label {
+  font-weight: 600;
+  min-width: 45px;
+  color: var(--text-dim);
+}
+.ecm-dps-row {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid var(--border);
+  font-weight: 600;
+}
+.ecm-badge {
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-left: auto;
+}
+.ecm-badge.upgrade {
+  background: rgba(68, 170, 68, 0.2);
+  color: var(--green);
+  border: 1px solid var(--green);
+}
+.ecm-badge.downgrade {
+  background: rgba(238, 68, 68, 0.2);
+  color: var(--red);
+  border: 1px solid var(--red);
+}
+.ecm-badge.sidegrade {
+  background: rgba(122, 123, 134, 0.2);
+  color: var(--text-dim);
+  border: 1px solid var(--border-light);
+}
+.ecm-equip-btn {
+  width: 100%;
+  padding: 8px 16px;
+}
+
+/* Hover tooltip for equipped items */
+.equip-hover-tooltip {
+  transform: translateX(-50%) translateY(-100%);
+  margin-top: -8px;
+}
+
 /* Enchanting Panel */
 .enchanting-panel {
   display: flex;
