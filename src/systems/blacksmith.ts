@@ -62,6 +62,45 @@ export function dismantleItem(state: GameState, itemId: string): Essence[] {
   return extracted;
 }
 
+// --- Bulk Dismantle Items → Extract Essences ---
+
+export function bulkDismantle(state: GameState, itemIds: string[]): Essence[] {
+  const idSet = new Set(itemIds);
+  const allExtracted: Essence[] = [];
+  const toRemove: number[] = [];
+
+  for (let i = 0; i < state.inventory.length; i++) {
+    const item = state.inventory[i];
+    if (!idSet.has(item.id) || item.locked || item.consumable) continue;
+
+    const allAffixes = [
+      ...item.prefixes.filter((a): a is import('../types').Affix => a !== null),
+      ...item.suffixes.filter((a): a is import('../types').Affix => a !== null),
+    ];
+
+    for (const affix of allAffixes) {
+      if (Math.random() < DISMANTLE_CHANCE) {
+        allExtracted.push({
+          id: crypto.randomUUID(),
+          affixId: affix.id,
+          slotType: affix.slotType,
+          tier: affix.tier,
+          value: affix.value,
+        });
+      }
+    }
+    toRemove.push(i);
+  }
+
+  // Remove items in reverse index order
+  for (let i = toRemove.length - 1; i >= 0; i--) {
+    state.inventory.splice(toRemove[i], 1);
+  }
+
+  state.essences.push(...allExtracted);
+  return allExtracted;
+}
+
 // --- Slot Essence into Item ---
 
 export function slotEssence(

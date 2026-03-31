@@ -6,7 +6,7 @@ import { saveGame, loadGame, createDefaultState, calculateOfflineProgress } from
 import { sellItem, salvageItem, equipItem, unequipItem, bulkSell, bulkSalvage } from '../systems/economy';
 import { allocateStat, allocateStatMultiple, resetAllStats, changeZone, startCombat, stopCombat, startEndlessRun, endEndlessRun } from '../systems/progression';
 import { generateItem } from '../systems/loot';
-import { dismantleItem, slotEssence, discardEssences } from '../systems/blacksmith';
+import { dismantleItem, bulkDismantle, slotEssence, discardEssences } from '../systems/blacksmith';
 import type { EssenceFilter } from '../systems/blacksmith';
 import type { OfflineProgress } from '../systems/save';
 
@@ -34,6 +34,7 @@ interface GameContextValue {
   doBulkSell: (itemIds: string[]) => void;
   doBulkSalvage: (itemIds: string[]) => void;
   doDismantleItem: (itemId: string) => Essence[];
+  doBulkDismantle: (itemIds: string[]) => Essence[];
   doSlotEssence: (itemId: string, essenceId: string, slotIndex: number) => boolean;
   doDiscardEssences: (filter: EssenceFilter) => number;
   offlineProgress: OfflineProgress | null;
@@ -245,6 +246,10 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     return dismantleItem(stateRef.current, itemId);
   }, []);
 
+  const doBulkDismantle = useCallback((itemIds: string[]): Essence[] => {
+    return bulkDismantle(stateRef.current, itemIds);
+  }, []);
+
   const doSlotEssence = useCallback((itemId: string, essenceId: string, slotIndex: number): boolean => {
     const success = slotEssence(stateRef.current, itemId, essenceId, slotIndex);
     if (success) {
@@ -287,6 +292,7 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
     doBulkSell,
     doBulkSalvage,
     doDismantleItem,
+    doBulkDismantle,
     doSlotEssence,
     doDiscardEssences,
     offlineProgress,

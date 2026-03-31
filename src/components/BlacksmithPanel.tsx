@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useGameState } from '../hooks/useGameState';
 import type { Item, Affix, AffixSlotType, Essence } from '../types';
-import { RARITY_COLORS } from '../types';
+import { RARITY_COLORS, EQUIPMENT_RARITIES } from '../types';
 import { formatAffix, getAffixShortName } from '../data/affixes';
 import { getEmptySlots, getSlottingCost } from '../systems/blacksmith';
 import ItemCard from './ItemCard';
@@ -14,11 +14,16 @@ function formatEssence(e: Essence): string {
 }
 
 export default function BlacksmithPanel() {
-  const { state, doDismantleItem, doSlotEssence } = useGameState();
+  const { state, doDismantleItem, doBulkDismantle, doSlotEssence } = useGameState();
 
   const [activeTab, setActiveTab] = useState<BlacksmithTab>('dismantle');
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [dismantleResult, setDismantleResult] = useState<Essence[] | null>(null);
+
+  // Bulk dismantle state
+  const [bulkSelectedIds, setBulkSelectedIds] = useState<Set<string>>(new Set());
+  const [showBulkConfirm, setShowBulkConfirm] = useState(false);
+  const [bulkResult, setBulkResult] = useState<{ essences: Essence[]; itemCount: number } | null>(null);
 
   // Craft tab state
   const [craftItemId, setCraftItemId] = useState<string | null>(null);
@@ -30,8 +35,8 @@ export default function BlacksmithPanel() {
 
   const dismantleItems = useMemo(() => {
     return state.inventory.filter(item => {
-      const hasAffixes = item.prefixes.some(a => a !== null) || item.suffixes.some(a => a !== null);
-      return hasAffixes;
+      if (item.locked || item.consumable) return false;
+      return item.prefixes.some(a => a !== null) || item.suffixes.some(a => a !== null);
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.inventory, state.inventory.length]);
@@ -109,14 +114,60 @@ export default function BlacksmithPanel() {
 
       {activeTab === 'dismantle' && (
         <div className="dismantle-section">
-          <p className="bs-hint">Select an item to extract its affixes as essences. Each affix has a 60% chance to be extracted.</p>
+          <p className="bs-hint">Select an item to extract its affixes as essences (60% chance each). Use bulk select to dismantle multiple items at once.</p>
+
+          {/* Bulk rarity quick-select buttons */}
+          {dismantleItems.length > 0 && (
+            <div className="bulk-rarity-buttons">
+              {EQUIPMENT_RARITIES.map(r => {
+                const count = dismantleItems.filter(i => i.rarity === r).length;
+                if (count === 0) return null;
+                const allSelected = dismantleItems.filter(i => i.rarity === r).every(i => bulkSelectedIds.has(i.id));
+                return (
+                  <button
+                    key={r}
+                    className={`bulk-rarity-btn ${allSelected ? 'active' : ''}`}
+                    style={{
+                      borderColor: RARITY_COLORS[r],
+                      ...(allSelected ? { background: RARITY_COLORS[r] + '33' } : {}),
+                    }}
+                    onClick={() => {
+                      const itemsOfRarity = dismantleItems.filter(i => i.rarity === r);
+                      const next = new Set(bulkSelectedIds);
+                      if (allSelected) {
+                        itemsOfRarity.forEach(i => next.delete(i.id));
+                      } else {
+                        itemsOfRarity.forEach(i => next.add(i.id));
+                      }
+                      setBulkSelectedIds(next);
+                      setSelectedItemId(null);
+                    }}
+                  >
+                    {r} ({count})
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           {dismantleItems.length === 0 ? (
-            <div className="bs-empty">No items with affixes to dismantle.</div>
+            <div className="bs-empty">No unlocked items with affixes to dismantle.</div>
           ) : (
             <div className="bs-item-grid">
               {dismantleItems.map(item => (
-                <div key={item.id} className="inv-slot filled">
+                <div key={item.id} className="inv-slot filled" style={{ position: 'relative' }}>
+                  <div
+                    className={`bulk-checkbox ${bulkSelectedIds.has(item.id) ? 'checked' : ''}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const next = new Set(bulkSelectedIds);
+                      if (next.has(item.id)) next.delete(item.id);
+                      else next.add(item.id);
+                      setBulkSelectedIds(next);
+                    }}
+                  >
+                    {bulkSelectedIds.has(item.id) ? '\u2713' : ''}
+                  </div>
                   <ItemCard
                     item={item}
                     grid
@@ -128,6 +179,27 @@ export default function BlacksmithPanel() {
             </div>
           )}
 
+          {/* Bulk dismantle summary bar */}
+          {bulkSelectedIds.size > 0 && (
+            <div className="bulk-summary-bar">
+              <span>
+                {bulkSelectedIds.size} item{bulkSelectedIds.size > 1 ? 's' : ''} selected
+                {' \u00b7 '}
+                {dismantleItems
+                  .filter(i => bulkSelectedIds.has(i.id))
+                  .reduce((sum, i) => sum + [...i.prefixes, ...i.suffixes].filter(a => a !== null).length, 0)
+                } affixes
+              </span>
+              <button
+                className="btn-danger bs-dismantle-btn"
+                onClick={() => setShowBulkConfirm(true)}
+              >
+                Dismantle Selected ({bulkSelectedIds.size})
+              </button>
+            </div>
+          )}
+
+          {/* Single item detail panel */}
           {selectedDismantleItem && (
             <div className="bs-detail-panel">
               <h3 style={{ color: RARITY_COLORS[selectedDismantleItem.rarity] }}>
@@ -145,16 +217,46 @@ export default function BlacksmithPanel() {
                   <div key={`s${i}`} className="bs-affix" style={{ color: '#44ccff' }}>{formatAffix(a)}</div>
                 ))}
               </div>
-              {selectedDismantleItem.locked ? (
-                <div className="bs-locked-warning">Item is locked. Unlock it first.</div>
-              ) : (
-                <button className="btn-danger bs-dismantle-btn" onClick={handleDismantle}>
-                  Dismantle
-                </button>
-              )}
+              <button className="btn-danger bs-dismantle-btn" onClick={handleDismantle}>
+                Dismantle
+              </button>
             </div>
           )}
 
+          {/* Bulk confirm modal */}
+          {showBulkConfirm && (
+            <div className="modal-overlay" onClick={() => setShowBulkConfirm(false)}>
+              <div className="modal-content dismantle-result" onClick={e => e.stopPropagation()}>
+                <h3>Confirm Bulk Dismantle</h3>
+                <p>Dismantle {bulkSelectedIds.size} item{bulkSelectedIds.size > 1 ? 's' : ''}?</p>
+                <div className="dismantle-result-list" style={{ maxHeight: 200, overflow: 'auto' }}>
+                  {dismantleItems.filter(i => bulkSelectedIds.has(i.id)).map(item => (
+                    <div key={item.id} style={{ color: RARITY_COLORS[item.rarity], fontSize: '0.9em', padding: '2px 0' }}>
+                      {item.name} ({item.rarity})
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                  <button
+                    className="btn-danger"
+                    onClick={() => {
+                      const ids = Array.from(bulkSelectedIds);
+                      const essences = doBulkDismantle(ids);
+                      setBulkResult({ essences, itemCount: ids.length });
+                      setBulkSelectedIds(new Set());
+                      setShowBulkConfirm(false);
+                      setSelectedItemId(null);
+                    }}
+                  >
+                    Confirm Dismantle
+                  </button>
+                  <button className="btn-secondary" onClick={() => setShowBulkConfirm(false)}>Cancel</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Single dismantle result modal */}
           {dismantleResult !== null && (
             <div className="modal-overlay" onClick={() => setDismantleResult(null)}>
               <div className="modal-content dismantle-result" onClick={e => e.stopPropagation()}>
@@ -175,6 +277,35 @@ export default function BlacksmithPanel() {
                   </div>
                 )}
                 <button className="btn-secondary" onClick={() => setDismantleResult(null)}>Continue</button>
+              </div>
+            </div>
+          )}
+
+          {/* Bulk dismantle result modal */}
+          {bulkResult !== null && (
+            <div className="modal-overlay" onClick={() => setBulkResult(null)}>
+              <div className="modal-content dismantle-result" onClick={e => e.stopPropagation()}>
+                <h3>Bulk Dismantle Result</h3>
+                <p>Dismantled {bulkResult.itemCount} item{bulkResult.itemCount > 1 ? 's' : ''}.</p>
+                {bulkResult.essences.length === 0 ? (
+                  <p>No essences were extracted. Bad luck!</p>
+                ) : (
+                  <>
+                    <p>{bulkResult.essences.length} essence{bulkResult.essences.length > 1 ? 's' : ''} extracted:</p>
+                    <div className="dismantle-result-list" style={{ maxHeight: 250, overflow: 'auto' }}>
+                      {bulkResult.essences.map(e => (
+                        <div
+                          key={e.id}
+                          className="dismantle-result-item"
+                          style={{ color: e.slotType === 'prefix' ? '#ffcc44' : '#44ccff' }}
+                        >
+                          {formatEssence(e)}
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+                <button className="btn-secondary" onClick={() => setBulkResult(null)}>Continue</button>
               </div>
             </div>
           )}
