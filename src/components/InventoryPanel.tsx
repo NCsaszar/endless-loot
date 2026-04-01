@@ -1,16 +1,17 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { useGameState } from '../hooks/useGameState';
 import type { EquipSlot, Rarity, Item, BulkActionMode } from '../types';
-import { RARITY_ORDER, RARITY_COLORS, ALL_EQUIP_SLOTS, SLOT_LABELS, EQUIPMENT_RARITIES } from '../types';
+import { RARITY_ORDER } from '../types';
 import { getTotalPrimaryStats, calculateDerivedStats } from '../data/formulas';
 import { computeItemDpsDelta } from '../systems/dps';
-import ItemCard from './ItemCard';
-import ComparisonModal from './ComparisonModal';
+import { useDragEquip } from '../hooks/useDragEquip';
+import CollapsibleToolbar, { type SortBy } from './CollapsibleToolbar';
+import EquipmentPaperDoll from './EquipmentPaperDoll';
+import InventoryBagGrid from './InventoryBagGrid';
+import ItemDetailSidePanel from './ItemDetailSidePanel';
 import BulkActionConfirmModal from './BulkActionConfirmModal';
 import EssenceViewer from './EssenceViewer';
 import EssenceDiscardModal from './EssenceDiscardModal';
-
-type SortBy = 'rarity' | 'level' | 'slot' | 'value';
 
 type InventorySubTab = 'equipment' | 'materials';
 
@@ -23,7 +24,7 @@ const MATERIAL_DEFS = [
 ] as const;
 
 export default function InventoryPanel() {
-  const { state, derived, doSellItem, doSalvageItem, doEquipItem, doToggleAutoSell, doToggleAutoSalvage, doToggleLock, doBulkSell, doBulkSalvage, doDiscardEssences } = useGameState();
+  const { state, derived, doSellItem, doSalvageItem, doEquipItem, doUnequipItem, doToggleAutoSell, doToggleAutoSalvage, doToggleLock, doBulkSell, doBulkSalvage, doDiscardEssences } = useGameState();
   const [subTab, setSubTab] = useState<InventorySubTab>('equipment');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortBy>('rarity');
@@ -31,8 +32,45 @@ export default function InventoryPanel() {
   const [filterRarity, setFilterRarity] = useState<Rarity | 'all'>('all');
   const [bulkAction, setBulkAction] = useState<{ items: Item[]; mode: BulkActionMode } | null>(null);
   const [showDiscardModal, setShowDiscardModal] = useState(false);
+  const [lastEquippedSlot, setLastEquippedSlot] = useState<EquipSlot | null>(null);
 
-  // Filter for display (uses >= for rarity), exclude consumables from equipment tab
+  // Track new loot items
+  const [newLootIds, setNewLootIds] = useState<Set<string>>(new Set());
+  const prevInventoryIdsRef = useRef<Set<string> | null>(null);
+  if (!prevInventoryIdsRef.current) {
+    prevInventoryIdsRef.current = new Set(state.inventory.map(i => i.id));
+  }
+
+  useEffect(() => {
+    const prevIds = prevInventoryIdsRef.current!;
+    const currentIds = new Set(state.inventory.map(i => i.id));
+    const added = new Set<string>();
+    for (const id of currentIds) {
+      if (!prevIds.has(id)) added.add(id);
+    }
+    prevInventoryIdsRef.current = currentIds;
+    if (added.size > 0) {
+      setNewLootIds(prev => new Set([...prev, ...added]));
+      const timeout = setTimeout(() => {
+        setNewLootIds(prev => {
+          const next = new Set(prev);
+          for (const id of added) next.delete(id);
+          return next;
+        });
+      }, 2000);
+      return () => clearTimeout(timeout);
+    }
+  }, [state.inventory]);
+
+  // Clear equip flash after animation
+  useEffect(() => {
+    if (lastEquippedSlot) {
+      const timeout = setTimeout(() => setLastEquippedSlot(null), 500);
+      return () => clearTimeout(timeout);
+    }
+  }, [lastEquippedSlot]);
+
+  // Filter & sort items (exclude consumables from equipment tab)
   const items = useMemo(() => {
     let result = state.inventory.filter(i => !i.consumable);
     if (filterSlot !== 'all') result = result.filter(i => i.slot === filterSlot);
@@ -48,7 +86,7 @@ export default function InventoryPanel() {
     });
     return result;
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.inventory, state.inventory.length, filterSlot, filterRarity, sortBy]);
+  }, [state.inventory, filterSlot, filterRarity, sortBy]);
 
   // Compute upgrade status for each item
   const upgradeMap = useMemo(() => {
@@ -58,37 +96,62 @@ export default function InventoryPanel() {
     }
     return map;
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.inventory, state.inventory.length, state.equipment, state.character, state.trainingLevels, derived]);
+  }, [state.inventory, state.equipment, state.character, state.trainingLevels, derived]);
 
   const selected = items.find(i => i.id === selectedId) ?? null;
 
-  // Compute "what-if" derived stats when an item is selected
+  // Compute hypothetical derived stats when an item is selected
   const equipped = selected ? (state.equipment[selected.slot] ?? null) : null;
-  let newDerived = derived;
-  if (selected) {
+  const newDerived = useMemo(() => {
+    if (!selected) return derived;
     const hypotheticalEquipment = { ...state.equipment, [selected.slot]: selected };
     const hypotheticalPrimary = getTotalPrimaryStats(state.character, hypotheticalEquipment);
-    newDerived = calculateDerivedStats(hypotheticalPrimary, hypotheticalEquipment);
-  }
+    return calculateDerivedStats(hypotheticalPrimary, hypotheticalEquipment);
+  }, [selected, state.equipment, state.character, derived]);
 
-  const handleSell = () => {
-    if (selectedId) { doSellItem(selectedId); setSelectedId(null); }
-  };
-  const handleSalvage = () => {
-    if (selectedId) { doSalvageItem(selectedId); setSelectedId(null); }
-  };
+  // Drag-and-drop
+  const handleDragEquip = useCallback((item: Item) => {
+    doEquipItem(item);
+    setLastEquippedSlot(item.slot);
+    setSelectedId(null);
+  }, [doEquipItem]);
+
+  const { dragState, dragHandlers, dropHandlers } = useDragEquip(state.inventory, handleDragEquip);
+
+  // Item actions
   const handleEquip = () => {
-    if (selected) { doEquipItem(selected); setSelectedId(null); }
+    if (selected) {
+      doEquipItem(selected);
+      setLastEquippedSlot(selected.slot);
+      setSelectedId(null);
+    }
   };
+  const handleSell = () => { if (selectedId) { doSellItem(selectedId); setSelectedId(null); } };
+  const handleSalvage = () => { if (selectedId) { doSalvageItem(selectedId); setSelectedId(null); } };
+  const handleToggleLock = () => { if (selectedId) doToggleLock(selectedId); };
 
-  // Get items matching current filters for bulk actions (exact rarity match, not >= like display)
+  // Item click with modifier keys
+  const handleItemClick = useCallback((item: Item, e: React.MouseEvent) => {
+    if (e.shiftKey && !item.locked) { doSellItem(item.id); return; }
+    if ((e.ctrlKey || e.metaKey) && !item.locked) { doSalvageItem(item.id); return; }
+    setSelectedId(prev => item.id === prev ? null : item.id);
+  }, [doSellItem, doSalvageItem]);
+
+  // Equipment slot click (select equipped item or unequip)
+  const handleSlotClick = useCallback((slot: EquipSlot) => {
+    const equippedItem = state.equipment[slot];
+    if (equippedItem) {
+      doUnequipItem(slot);
+    }
+  }, [state.equipment, doUnequipItem]);
+
+  // Bulk actions
   const handleBulkAction = (mode: BulkActionMode) => {
     let result = state.inventory.filter(i => !i.locked && !i.consumable);
     if (filterSlot !== 'all') result = result.filter(i => i.slot === filterSlot);
     if (filterRarity !== 'all') result = result.filter(i => i.rarity === filterRarity);
     if (result.length > 0) setBulkAction({ items: result, mode });
   };
-
   const handleSellNonUpgrades = () => {
     const toSell = state.inventory.filter(item => {
       if (item.locked || item.consumable) return false;
@@ -97,7 +160,6 @@ export default function InventoryPanel() {
     });
     if (toSell.length > 0) setBulkAction({ items: toSell, mode: 'sell' });
   };
-
   const confirmBulkAction = () => {
     if (!bulkAction) return;
     const ids = bulkAction.items.map(i => i.id);
@@ -107,22 +169,19 @@ export default function InventoryPanel() {
     setSelectedId(null);
   };
 
-  const emptySlotCount = Math.max(0, 60 - items.length);
-
   return (
-    <div className="inventory-panel">
+    <div className="inventory-panel-v2">
       <div className="inv-header">
         <h2>Inventory ({state.inventory.length})</h2>
+        <div className="inv-subtabs">
+          <button className={`inv-subtab ${subTab === 'equipment' ? 'active' : ''}`} onClick={() => setSubTab('equipment')}>
+            Equipment
+          </button>
+          <button className={`inv-subtab ${subTab === 'materials' ? 'active' : ''}`} onClick={() => setSubTab('materials')}>
+            Materials {state.essences.length > 0 && `(${state.essences.length})`}
+          </button>
+        </div>
         <div className="inv-gold">Gold: {state.gold.toLocaleString()}</div>
-      </div>
-
-      <div className="inv-subtabs">
-        <button className={`inv-subtab ${subTab === 'equipment' ? 'active' : ''}`} onClick={() => setSubTab('equipment')}>
-          Equipment
-        </button>
-        <button className={`inv-subtab ${subTab === 'materials' ? 'active' : ''}`} onClick={() => setSubTab('materials')}>
-          Materials {state.essences.length > 0 && `(${state.essences.length})`}
-        </button>
       </div>
 
       {subTab === 'materials' && (
@@ -141,7 +200,6 @@ export default function InventoryPanel() {
                 </div>
               );
             })}
-            {/* Tome of Unmaking */}
             {(() => {
               const tomeCount = state.inventory.filter(i => i.consumable === 'stat_reset').length;
               return (
@@ -155,7 +213,6 @@ export default function InventoryPanel() {
               );
             })()}
           </div>
-
           <div className="essence-inventory">
             <div className="essence-inv-header">
               <h3>Essences ({state.essences.length})</h3>
@@ -167,7 +224,6 @@ export default function InventoryPanel() {
             </div>
             <EssenceViewer essences={state.essences} />
           </div>
-
           {showDiscardModal && (
             <EssenceDiscardModal
               essences={state.essences}
@@ -178,115 +234,69 @@ export default function InventoryPanel() {
         </div>
       )}
 
-      {subTab === 'equipment' && <>
-      <div className="inv-toolbar">
-        <div className="inv-toolbar-row">
-          <div className="inv-sort">
-            <label>Sort:</label>
-            {(['rarity', 'level', 'slot', 'value'] as SortBy[]).map(s => (
-              <button key={s} className={sortBy === s ? 'active' : ''} onClick={() => setSortBy(s)}>
-                {s}
-              </button>
-            ))}
-          </div>
-          <select value={filterSlot} onChange={e => setFilterSlot(e.target.value as EquipSlot | 'all')}>
-            <option value="all">All Slots</option>
-            {ALL_EQUIP_SLOTS.map(s => (
-              <option key={s} value={s}>{SLOT_LABELS[s]}</option>
-            ))}
-          </select>
-          <select value={filterRarity} onChange={e => setFilterRarity(e.target.value as Rarity | 'all')}>
-            <option value="all">All Rarities</option>
-            {EQUIPMENT_RARITIES.map(r => (
-              <option key={r} value={r}>{r}</option>
-            ))}
-          </select>
-          <div className="inv-bulk-actions">
-            <button className="btn-bulk-action btn-bulk-sell" onClick={() => handleBulkAction('sell')}>
-              Sell Filtered
-            </button>
-            <button className="btn-bulk-action btn-bulk-salvage" onClick={() => handleBulkAction('salvage')}>
-              Salvage Filtered
-            </button>
-            <button className="btn-bulk-action btn-bulk-sell" onClick={handleSellNonUpgrades}>
-              Sell Non-Upgrades
-            </button>
-          </div>
-        </div>
-        <div className="inv-toolbar-row">
-          <span className="auto-sell-label">Auto-sell:</span>
-          {EQUIPMENT_RARITIES.map(r => (
-            <button
-              key={`sell-${r}`}
-              className={`auto-sell-toggle ${state.autoSellRarities.includes(r) ? 'active' : ''}`}
-              style={{
-                borderColor: RARITY_COLORS[r],
-                ...(state.autoSellRarities.includes(r) ? { background: RARITY_COLORS[r] + '33' } : {}),
-              }}
-              onClick={() => doToggleAutoSell(r)}
-            >
-              {r}
-            </button>
-          ))}
-          <span className="auto-sell-label" style={{ marginLeft: 10 }}>Auto-salvage:</span>
-          {EQUIPMENT_RARITIES.map(r => (
-            <button
-              key={`salv-${r}`}
-              className={`auto-sell-toggle ${state.autoSalvageRarities.includes(r) ? 'active' : ''}`}
-              style={{
-                borderColor: RARITY_COLORS[r],
-                ...(state.autoSalvageRarities.includes(r) ? { background: RARITY_COLORS[r] + '33' } : {}),
-              }}
-              onClick={() => doToggleAutoSalvage(r)}
-            >
-              {r}
-            </button>
-          ))}
-        </div>
-      </div>
+      {subTab === 'equipment' && (
+        <>
+          <CollapsibleToolbar
+            sortBy={sortBy}
+            onSortChange={setSortBy}
+            filterSlot={filterSlot}
+            onFilterSlotChange={setFilterSlot}
+            filterRarity={filterRarity}
+            onFilterRarityChange={setFilterRarity}
+            onBulkAction={handleBulkAction}
+            onSellNonUpgrades={handleSellNonUpgrades}
+            autoSellRarities={state.autoSellRarities}
+            autoSalvageRarities={state.autoSalvageRarities}
+            onToggleAutoSell={doToggleAutoSell}
+            onToggleAutoSalvage={doToggleAutoSalvage}
+          />
 
-      <div className="inv-grid-wrapper">
-        <div className="inv-grid">
-          {items.map(item => (
-            <div key={item.id} className="inv-slot filled">
-              <ItemCard
-                item={item}
-                grid
-                selected={item.id === selectedId}
-                upgradePct={upgradeMap.get(item.id) ?? 0}
-                onToggleLock={() => doToggleLock(item.id)}
-                onClick={() => setSelectedId(item.id === selectedId ? null : item.id)}
+          <div className={`inv-main-content ${selected ? 'detail-open' : ''}`}>
+            <EquipmentPaperDoll
+              equipment={state.equipment}
+              dropHandlers={dropHandlers}
+              dragOverSlot={dragState.dragOverSlot}
+              lastEquippedSlot={lastEquippedSlot}
+              onSlotClick={handleSlotClick}
+            />
+
+            <InventoryBagGrid
+              items={items}
+              selectedId={selectedId}
+              upgradeMap={upgradeMap}
+              newLootIds={newLootIds}
+              draggedItemId={dragState.draggedItemId}
+              dragHandlers={dragHandlers}
+              onItemClick={handleItemClick}
+              onToggleLock={doToggleLock}
+              totalSlots={60}
+            />
+
+            {selected && (
+              <ItemDetailSidePanel
+                item={selected}
+                equipped={equipped}
+                currentDerived={derived}
+                newDerived={newDerived}
+                onEquip={handleEquip}
+                onSell={handleSell}
+                onSalvage={handleSalvage}
+                onToggleLock={handleToggleLock}
+                onClose={() => setSelectedId(null)}
               />
-            </div>
-          ))}
-          {Array.from({ length: emptySlotCount }, (_, i) => (
-            <div key={`empty-${i}`} className="inv-slot empty" />
-          ))}
-        </div>
-      </div>
+            )}
+          </div>
 
-      {selected && (
-        <ComparisonModal
-          item={selected}
-          equipped={equipped}
-          currentDerived={derived}
-          newDerived={newDerived}
-          onEquip={handleEquip}
-          onSell={handleSell}
-          onSalvage={handleSalvage}
-          onClose={() => setSelectedId(null)}
-        />
+          {bulkAction && (
+            <BulkActionConfirmModal
+              items={bulkAction.items}
+              mode={bulkAction.mode}
+              onConfirm={confirmBulkAction}
+              onCancel={() => setBulkAction(null)}
+            />
+          )}
+        </>
       )}
-
-      {bulkAction && (
-        <BulkActionConfirmModal
-          items={bulkAction.items}
-          mode={bulkAction.mode}
-          onConfirm={confirmBulkAction}
-          onCancel={() => setBulkAction(null)}
-        />
-      )}
-      </>}
     </div>
   );
 }
