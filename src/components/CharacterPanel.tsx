@@ -73,8 +73,13 @@ export default function CharacterPanel() {
 
   return (
     <div className="character-panel">
+      <div className="panel-ornament panel-ornament-bl" />
+      <div className="panel-ornament panel-ornament-br" />
       <div className="char-header">
-        <h2>{character.name} — Level {character.level}</h2>
+        <h2>
+          <span className="char-name">{character.name}</span>
+          <span className="char-level-badge">Lv. {character.level}</span>
+        </h2>
         <StatBar
           current={character.xp}
           max={character.xpToNextLevel}

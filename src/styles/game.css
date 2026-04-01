@@ -25,6 +25,19 @@
   --rare: #4444ff;
   --epic: #aa00ff;
   --legendary: #ff8800;
+
+  /* Game UI Frame */
+  --frame-border: #4a3a2a;
+  --frame-highlight: #8a7a5a;
+  --frame-shadow: #2a1a0a;
+  --glow-gold: rgba(255, 193, 7, 0.3);
+  --glow-blue: rgba(68, 170, 255, 0.3);
+  --ornament-color: #6a5a3a;
+}
+
+@keyframes pulse-gold {
+  0%, 100% { box-shadow: 0 0 8px var(--glow-gold); }
+  50% { box-shadow: 0 0 16px var(--glow-gold), 0 0 24px rgba(255, 193, 7, 0.1); }
 }
 
 * {
@@ -367,38 +380,122 @@ button {
   border-top: none;
 }
 
-/* Character Panel */
+/* Character Panel — Game UI Frame */
 .character-panel {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  position: relative;
+  background: linear-gradient(180deg, #1e1d24 0%, #16151c 100%);
+  border: 2px solid var(--frame-border);
+  border-radius: 2px;
+  padding: 16px;
+  box-shadow:
+    inset 0 1px 0 var(--frame-highlight),
+    inset 0 -1px 0 var(--frame-shadow),
+    0 4px 20px rgba(0, 0, 0, 0.5);
+}
+.character-panel::before,
+.character-panel::after {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--ornament-color);
+  transform: rotate(45deg);
+  z-index: 1;
+}
+.character-panel::before { top: -6px; left: -6px; background: var(--bg); }
+.character-panel::after { top: -6px; right: -6px; background: var(--bg); }
+.panel-ornament {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--ornament-color);
+  transform: rotate(45deg);
+  z-index: 1;
+  background: var(--bg);
+}
+.panel-ornament-bl { bottom: -6px; left: -6px; }
+.panel-ornament-br { bottom: -6px; right: -6px; }
+
+/* Character Header */
+.char-header {
+  text-align: center;
+  padding: 12px 16px;
+  background: radial-gradient(ellipse at center, rgba(255, 193, 7, 0.06) 0%, transparent 70%);
+  border-radius: 2px;
 }
 .char-header h2 {
   color: var(--text-bright);
   margin-bottom: 8px;
   font-size: 18px;
 }
-
-.stat-points-banner {
+.char-name {
+  font-variant: small-caps;
+  letter-spacing: 1.5px;
+  text-shadow: 0 0 10px rgba(255, 193, 7, 0.2);
+}
+.char-level-badge {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 2px 10px;
+  font-size: 11px;
   background: rgba(255, 193, 7, 0.15);
-  border: 1px solid rgba(255, 193, 7, 0.4);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: 2px;
   color: var(--gold);
-  padding: 8px 12px;
-  border-radius: 6px;
+  vertical-align: middle;
+  font-variant: normal;
+  letter-spacing: 0;
   font-weight: 600;
-  text-align: center;
 }
 
+/* Stat Points Banner — pulsing gold */
+.stat-points-banner {
+  background: linear-gradient(180deg, rgba(255, 193, 7, 0.15) 0%, rgba(255, 193, 7, 0.05) 100%);
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  padding: 8px 12px;
+  border-radius: 2px;
+  font-weight: 600;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-size: 12px;
+  text-shadow: 0 0 6px rgba(255, 193, 7, 0.4);
+  animation: pulse-gold 2s ease-in-out infinite;
+}
+
+/* Section Headers — RPG divider style */
 .stats-section h3,
 .derived-section h3,
 .equipment-section h3 {
-  color: var(--text-bright);
-  font-size: 15px;
-  margin-bottom: 8px;
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--gold);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 10px;
+  padding-bottom: 0;
+  border-bottom: none;
+  text-shadow: 0 0 8px rgba(255, 193, 7, 0.3);
+}
+.stats-section h3::before,
+.stats-section h3::after,
+.derived-section h3::before,
+.derived-section h3::after,
+.equipment-section h3::before,
+.equipment-section h3::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--frame-border), transparent);
 }
 
+/* Primary Stat Grid */
 .stat-grid {
   display: flex;
   flex-direction: column;
@@ -409,14 +506,19 @@ button {
   align-items: center;
   gap: 8px;
   padding: 6px 10px;
-  background: var(--bg-card);
-  border-radius: 4px;
+  background: linear-gradient(180deg, var(--bg-card) 0%, #18191f 100%);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--gold);
+  border-radius: 2px;
 }
 .stat-name {
   font-weight: 700;
   color: var(--gold);
   width: 40px;
   cursor: help;
+  font-variant: small-caps;
+  font-size: 15px;
+  text-shadow: 0 0 6px rgba(255, 193, 7, 0.3);
 }
 .stat-row .tooltip-wrapper { width: auto; }
 .stat-value {
@@ -424,6 +526,7 @@ button {
   color: var(--text-bright);
   width: 40px;
   text-align: center;
+  text-shadow: 0 0 4px rgba(238, 238, 242, 0.15);
 }
 .stat-btn-group {
   display: flex;
@@ -431,48 +534,66 @@ button {
   margin-left: auto;
 }
 .stat-btn {
-  background: var(--gold);
+  background: linear-gradient(180deg, #daa520 0%, #b8860b 100%);
   color: #000;
-  border: none;
-  border-radius: 4px;
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: 2px;
   min-width: 28px;
   height: 24px;
   font-weight: 700;
   font-size: 11px;
   padding: 0 5px;
   cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 1px 2px rgba(0, 0, 0, 0.3);
+  transition: box-shadow 0.15s, transform 0.1s;
 }
-.stat-btn:hover:not(:disabled) { background: #e0a800; }
+.stat-btn:hover:not(:disabled) {
+  background: linear-gradient(180deg, #e0b020 0%, #c89710 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 0 8px rgba(255, 193, 7, 0.3);
+}
+.stat-btn:active:not(:disabled) { transform: translateY(1px); }
 .stat-btn:disabled {
   opacity: 0.35;
   cursor: not-allowed;
   background: #555;
   color: #999;
+  border-color: #444;
+  box-shadow: none;
 }
 .stat-btn-max {
-  background: #44aaff;
+  background: linear-gradient(180deg, #5599dd 0%, #3377bb 100%);
   color: #fff;
+  border: 1px solid rgba(68, 170, 255, 0.3);
 }
-.stat-btn-max:hover:not(:disabled) { background: #3399ee; }
+.stat-btn-max:hover:not(:disabled) {
+  background: linear-gradient(180deg, #66aaee 0%, #4488cc 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 0 8px var(--glow-blue);
+}
 .stat-btn-max:disabled {
   background: #334;
   color: #667;
+  border-color: #445;
+  box-shadow: none;
 }
 
+/* Reset Stats Button */
 .btn-reset-stats {
   width: 100%;
   padding: 6px 12px;
   margin-top: 8px;
   border: 1px solid #FF3366;
-  border-radius: 4px;
-  background: transparent;
+  border-radius: 2px;
+  background: linear-gradient(180deg, rgba(255, 51, 102, 0.1) 0%, rgba(255, 51, 102, 0.02) 100%);
   color: #FF3366;
-  font-size: 12px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: background 0.15s, box-shadow 0.15s;
 }
 .btn-reset-stats:hover:not(.disabled) {
-  background: #FF336622;
+  background: rgba(255, 51, 102, 0.12);
+  box-shadow: 0 0 10px rgba(255, 51, 102, 0.2);
 }
 .btn-reset-stats.disabled {
   opacity: 0.4;
@@ -481,6 +602,7 @@ button {
   color: #888;
 }
 
+/* Derived Stats Grid */
 .derived-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -490,13 +612,22 @@ button {
   display: flex;
   justify-content: space-between;
   padding: 4px 10px;
-  background: var(--bg-card);
-  border-radius: 4px;
+  background: linear-gradient(90deg, var(--bg-card) 0%, transparent 100%);
+  border-left: 2px solid var(--border-light);
+  border-radius: 2px;
   font-size: 13px;
 }
 .derived-stat-row .tooltip-wrapper { width: auto; }
-.derived-stat-row span:first-child { color: var(--text-dim); }
-.derived-stat-row > span:last-child { color: var(--text-bright); font-weight: 600; }
+.derived-stat-row span:first-child {
+  color: var(--gold);
+  text-shadow: 0 0 4px rgba(255, 193, 7, 0.15);
+  font-variant: small-caps;
+}
+.derived-stat-row > span:last-child {
+  color: var(--text-bright);
+  font-weight: 600;
+  text-shadow: 0 0 4px rgba(238, 238, 242, 0.15);
+}
 
 /* Paper Doll Equipment Layout */
 .paper-doll {
@@ -515,37 +646,53 @@ button {
   align-items: center;
   justify-content: center;
   padding: 12px;
+  position: relative;
+}
+.paper-doll-center::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  border: 1px solid var(--frame-border);
+  border-radius: 6px;
+  box-shadow: 0 0 15px rgba(255, 193, 7, 0.1);
+  pointer-events: none;
 }
 .paper-doll-portrait {
-  width: 96px;
-  height: 96px;
-  border-radius: 12px;
-  border: 2px solid var(--border-light);
-  background: var(--bg-card);
+  width: 110px;
+  height: 110px;
+  border-radius: 4px;
+  border: 3px solid var(--frame-border);
+  background: linear-gradient(180deg, #1a1915 0%, #0d0e12 100%);
   object-fit: cover;
+  box-shadow: 0 0 20px rgba(255, 193, 7, 0.15), inset 0 0 30px rgba(0, 0, 0, 0.5);
 }
 .paper-doll-slot {
   position: relative;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 6px;
+  background: linear-gradient(180deg, var(--bg-card) 0%, #131418 100%);
+  border: 2px solid var(--frame-border);
+  border-radius: 2px;
   padding: 8px;
   cursor: pointer;
-  transition: background 0.1s, border-color 0.1s;
+  transition: background 0.1s, border-color 0.1s, box-shadow 0.15s;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3), inset 0 -1px 0 rgba(255, 255, 255, 0.03);
 }
 .paper-doll-slot:hover {
   background: var(--bg-hover);
-  border-color: var(--border-light);
+  border-color: var(--frame-highlight);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 0 10px rgba(255, 193, 7, 0.15);
 }
 .paper-doll-slot.active {
   border-color: var(--blue);
+  box-shadow: 0 0 12px var(--glow-blue);
 }
 .equip-label {
   font-size: 11px;
-  color: var(--text-dim);
+  color: var(--gold);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
   margin-bottom: 4px;
+  font-variant: small-caps;
+  text-shadow: 0 0 4px rgba(255, 193, 7, 0.2);
 }
 .equip-empty-doll {
   color: var(--text-dim);
@@ -553,13 +700,14 @@ button {
   font-size: 12px;
   padding: 6px 0;
   text-align: center;
-  border: 1px dashed var(--border);
-  border-radius: 4px;
+  border: 1px solid rgba(74, 58, 42, 0.4);
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.equip-empty-icon { opacity: 0.3; }
+.equip-empty-icon { opacity: 0.3; filter: drop-shadow(0 0 2px rgba(255, 193, 7, 0.1)); }
 .grid-icon { margin-bottom: 2px; flex-shrink: 0; }
 
 /* Equip Slot Popover */
