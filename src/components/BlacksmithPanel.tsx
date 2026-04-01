@@ -15,6 +15,25 @@ function formatEssence(e: Essence): string {
   return `[T${e.tier}] +${(e.value * 100).toFixed(1)}% ${getAffixShortName(e.affixId)}`;
 }
 
+function groupEssences(essences: Essence[]): { affixId: AffixId; affixName: string; slotType: AffixSlotType; entries: { tier: number; count: number }[] }[] {
+  const map = new Map<AffixId, { slotType: AffixSlotType; tiers: Map<number, number> }>();
+  for (const e of essences) {
+    if (!map.has(e.affixId)) map.set(e.affixId, { slotType: e.slotType, tiers: new Map() });
+    const group = map.get(e.affixId)!;
+    group.tiers.set(e.tier, (group.tiers.get(e.tier) ?? 0) + 1);
+  }
+  return Array.from(map.entries())
+    .map(([affixId, { slotType, tiers }]) => ({
+      affixId,
+      affixName: getAffixShortName(affixId),
+      slotType,
+      entries: Array.from(tiers.entries())
+        .map(([tier, count]) => ({ tier, count }))
+        .sort((a, b) => b.tier - a.tier),
+    }))
+    .sort((a, b) => b.entries[0].tier - a.entries[0].tier);
+}
+
 export default function BlacksmithPanel() {
   const { state, doDismantleItem, doBulkDismantle, doSlotEssence, doUpgradeEssence } = useGameState();
 
@@ -25,13 +44,14 @@ export default function BlacksmithPanel() {
   // Bulk dismantle state
   const [bulkSelectedIds, setBulkSelectedIds] = useState<Set<string>>(new Set());
   const [showBulkConfirm, setShowBulkConfirm] = useState(false);
+  const [showDismantleAllConfirm, setShowDismantleAllConfirm] = useState(false);
   const [bulkResult, setBulkResult] = useState<{ essences: Essence[]; itemCount: number } | null>(null);
 
   // Craft tab state
   const [craftItemId, setCraftItemId] = useState<string | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<{ type: AffixSlotType; index: number } | null>(null);
   const [selectedEssenceId, setSelectedEssenceId] = useState<string | null>(null);
-  const [craftSource, setCraftSource] = useState<'inventory' | 'equipped'>('inventory');
+  // Craft only operates on equipped gear
   const [craftMode, setCraftMode] = useState<CraftMode>('slot');
   const [upgradeTarget, setUpgradeTarget] = useState<{ affixId: AffixId; tier: number; slotType: AffixSlotType } | null>(null);
 
@@ -63,14 +83,10 @@ export default function BlacksmithPanel() {
       const hasAffix = item.prefixes.some(a => a !== null) || item.suffixes.some(a => a !== null);
       return hasEmpty || hasAffix;
     };
-    if (craftSource === 'inventory') {
-      return state.inventory.filter(item => !item.consumable && hasAnySlotOrAffix(item));
-    }
     return Object.values(state.equipment).filter((item): item is Item =>
       item !== undefined && hasAnySlotOrAffix(item)
     );
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [craftSource, state.inventory, state.inventory.length, state.equipment]);
+  }, [state.equipment]);
 
   const craftItem = craftItems.find(i => i.id === craftItemId) ?? null;
 
@@ -178,6 +194,12 @@ export default function BlacksmithPanel() {
                   </button>
                 );
               })}
+              <button
+                className="btn-danger dismantle-all-btn"
+                onClick={() => setShowDismantleAllConfirm(true)}
+              >
+                Dismantle All ({dismantleItems.length})
+              </button>
             </div>
           )}
 
@@ -287,6 +309,32 @@ export default function BlacksmithPanel() {
             </div>
           )}
 
+          {/* Dismantle All confirm modal */}
+          {showDismantleAllConfirm && (
+            <div className="modal-overlay" onClick={() => setShowDismantleAllConfirm(false)}>
+              <div className="modal-content dismantle-result" onClick={e => e.stopPropagation()}>
+                <h3>Dismantle All Items</h3>
+                <p>Dismantle all {dismantleItems.length} unlocked item{dismantleItems.length > 1 ? 's' : ''} with affixes?</p>
+                <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
+                  <button
+                    className="btn-danger"
+                    onClick={() => {
+                      const ids = dismantleItems.map(i => i.id);
+                      const essences = doBulkDismantle(ids);
+                      setBulkResult({ essences, itemCount: ids.length });
+                      setBulkSelectedIds(new Set());
+                      setShowDismantleAllConfirm(false);
+                      setSelectedItemId(null);
+                    }}
+                  >
+                    Confirm Dismantle All
+                  </button>
+                  <button className="btn-secondary" onClick={() => setShowDismantleAllConfirm(false)}>Cancel</button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Single dismantle result modal */}
           {dismantleResult !== null && (
             <div className="modal-overlay" onClick={() => setDismantleResult(null)}>
@@ -296,13 +344,10 @@ export default function BlacksmithPanel() {
                   <p>No essences were extracted. Bad luck!</p>
                 ) : (
                   <div className="dismantle-result-list">
-                    {dismantleResult.map(e => (
-                      <div
-                        key={e.id}
-                        className="dismantle-result-item"
-                        style={{ color: e.slotType === 'prefix' ? '#ffcc44' : '#44ccff' }}
-                      >
-                        {formatEssence(e)}
+                    {groupEssences(dismantleResult).map(group => (
+                      <div key={group.affixId} className="essence-group" style={{ color: group.slotType === 'prefix' ? '#ffcc44' : '#44ccff' }}>
+                        <span className="essence-group-name">{group.affixName}</span>
+                        <span className="essence-group-tiers">{group.entries.map(e => `T${e.tier} \u00d7${e.count}`).join(', ')}</span>
                       </div>
                     ))}
                   </div>
@@ -324,13 +369,10 @@ export default function BlacksmithPanel() {
                   <>
                     <p>{bulkResult.essences.length} essence{bulkResult.essences.length > 1 ? 's' : ''} extracted:</p>
                     <div className="dismantle-result-list" style={{ maxHeight: 250, overflow: 'auto' }}>
-                      {bulkResult.essences.map(e => (
-                        <div
-                          key={e.id}
-                          className="dismantle-result-item"
-                          style={{ color: e.slotType === 'prefix' ? '#ffcc44' : '#44ccff' }}
-                        >
-                          {formatEssence(e)}
+                      {groupEssences(bulkResult.essences).map(group => (
+                        <div key={group.affixId} className="essence-group" style={{ color: group.slotType === 'prefix' ? '#ffcc44' : '#44ccff' }}>
+                          <span className="essence-group-name">{group.affixName}</span>
+                          <span className="essence-group-tiers">{group.entries.map(e => `T${e.tier} \u00d7${e.count}`).join(', ')}</span>
                         </div>
                       ))}
                     </div>
@@ -349,20 +391,7 @@ export default function BlacksmithPanel() {
 
           <div className="craft-layout">
             <div className="craft-left">
-              <div className="craft-source-toggle">
-                <button
-                  className={craftSource === 'inventory' ? 'active' : ''}
-                  onClick={() => { setCraftSource('inventory'); setCraftItemId(null); resetCraftSelection(); }}
-                >
-                  Inventory
-                </button>
-                <button
-                  className={craftSource === 'equipped' ? 'active' : ''}
-                  onClick={() => { setCraftSource('equipped'); setCraftItemId(null); resetCraftSelection(); }}
-                >
-                  Equipped
-                </button>
-              </div>
+              <div className="craft-source-label" style={{ fontSize: '0.85em', color: 'var(--text-dim)', marginBottom: 6 }}>Equipped Gear</div>
 
               {craftItems.length === 0 ? (
                 <div className="bs-empty">No items available for crafting.</div>

@@ -179,16 +179,16 @@ export default function InventoryPanel() {
       )}
 
       {subTab === 'equipment' && <>
-      <div className="inv-controls">
-        <div className="inv-sort">
-          <label>Sort:</label>
-          {(['rarity', 'level', 'slot', 'value'] as SortBy[]).map(s => (
-            <button key={s} className={sortBy === s ? 'active' : ''} onClick={() => setSortBy(s)}>
-              {s}
-            </button>
-          ))}
-        </div>
-        <div className="inv-filter">
+      <div className="inv-toolbar">
+        <div className="inv-toolbar-row">
+          <div className="inv-sort">
+            <label>Sort:</label>
+            {(['rarity', 'level', 'slot', 'value'] as SortBy[]).map(s => (
+              <button key={s} className={sortBy === s ? 'active' : ''} onClick={() => setSortBy(s)}>
+                {s}
+              </button>
+            ))}
+          </div>
           <select value={filterSlot} onChange={e => setFilterSlot(e.target.value as EquipSlot | 'all')}>
             <option value="all">All Slots</option>
             {ALL_EQUIP_SLOTS.map(s => (
@@ -201,53 +201,48 @@ export default function InventoryPanel() {
               <option key={r} value={r}>{r}</option>
             ))}
           </select>
+          <div className="inv-bulk-actions">
+            <button className="btn-bulk-action btn-bulk-sell" onClick={() => handleBulkAction('sell')}>
+              Sell Filtered
+            </button>
+            <button className="btn-bulk-action btn-bulk-salvage" onClick={() => handleBulkAction('salvage')}>
+              Salvage Filtered
+            </button>
+            <button className="btn-bulk-action btn-bulk-sell" onClick={handleSellNonUpgrades}>
+              Sell Non-Upgrades
+            </button>
+          </div>
         </div>
-      </div>
-
-      <div className="inv-actions">
-        <button className="btn-bulk-action btn-bulk-sell" onClick={() => handleBulkAction('sell')}>
-          Sell Filtered
-        </button>
-        <button className="btn-bulk-action btn-bulk-salvage" onClick={() => handleBulkAction('salvage')}>
-          Salvage Filtered
-        </button>
-        <button className="btn-bulk-action btn-bulk-sell" onClick={handleSellNonUpgrades}>
-          Sell Non-Upgrades
-        </button>
-      </div>
-
-      <div className="auto-sell-group">
-        <span className="auto-sell-label">Auto-sell:</span>
-        {EQUIPMENT_RARITIES.map(r => (
-          <button
-            key={r}
-            className={`auto-sell-toggle ${state.autoSellRarities.includes(r) ? 'active' : ''}`}
-            style={{
-              borderColor: RARITY_COLORS[r],
-              ...(state.autoSellRarities.includes(r) ? { background: RARITY_COLORS[r] + '33' } : {}),
-            }}
-            onClick={() => doToggleAutoSell(r)}
-          >
-            {r}
-          </button>
-        ))}
-      </div>
-
-      <div className="auto-sell-group">
-        <span className="auto-sell-label">Auto-salvage:</span>
-        {EQUIPMENT_RARITIES.map(r => (
-          <button
-            key={r}
-            className={`auto-sell-toggle ${state.autoSalvageRarities.includes(r) ? 'active' : ''}`}
-            style={{
-              borderColor: RARITY_COLORS[r],
-              ...(state.autoSalvageRarities.includes(r) ? { background: RARITY_COLORS[r] + '33' } : {}),
-            }}
-            onClick={() => doToggleAutoSalvage(r)}
-          >
-            {r}
-          </button>
-        ))}
+        <div className="inv-toolbar-row">
+          <span className="auto-sell-label">Auto-sell:</span>
+          {EQUIPMENT_RARITIES.map(r => (
+            <button
+              key={`sell-${r}`}
+              className={`auto-sell-toggle ${state.autoSellRarities.includes(r) ? 'active' : ''}`}
+              style={{
+                borderColor: RARITY_COLORS[r],
+                ...(state.autoSellRarities.includes(r) ? { background: RARITY_COLORS[r] + '33' } : {}),
+              }}
+              onClick={() => doToggleAutoSell(r)}
+            >
+              {r}
+            </button>
+          ))}
+          <span className="auto-sell-label" style={{ marginLeft: 10 }}>Auto-salvage:</span>
+          {EQUIPMENT_RARITIES.map(r => (
+            <button
+              key={`salv-${r}`}
+              className={`auto-sell-toggle ${state.autoSalvageRarities.includes(r) ? 'active' : ''}`}
+              style={{
+                borderColor: RARITY_COLORS[r],
+                ...(state.autoSalvageRarities.includes(r) ? { background: RARITY_COLORS[r] + '33' } : {}),
+              }}
+              onClick={() => doToggleAutoSalvage(r)}
+            >
+              {r}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="inv-grid-wrapper">

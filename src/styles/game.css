@@ -684,6 +684,24 @@ button {
 .inv-header h2 { color: var(--text-bright); font-size: 18px; }
 .inv-gold { color: var(--gold); font-weight: 600; }
 
+.inv-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+.inv-toolbar-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+.inv-bulk-actions {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
 .inv-controls {
   display: flex;
   gap: 12px;
@@ -784,14 +802,14 @@ button {
 }
 
 .inv-grid-wrapper {
-  max-height: calc(100vh - 280px);
+  max-height: calc(100vh - 310px);
   overflow-y: auto;
   padding: 4px;
 }
 .inv-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-  gap: 4px;
+  grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  gap: 3px;
 }
 .inv-slot {
   border-radius: 6px;
@@ -1051,6 +1069,14 @@ button {
   text-transform: capitalize;
   background: rgba(0,0,0,0.2);
 }
+.zone-rarity-breakdown {
+  display: flex;
+  gap: 8px;
+  font-size: 10px;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+.zone-rarity-breakdown span { opacity: 0.8; }
 
 .zone-progress {
   font-size: 13px;
@@ -1199,6 +1225,7 @@ button {
 }
 .tooltip-box.above { bottom: calc(100% + 6px); }
 .tooltip-box.below { top: calc(100% + 6px); }
+.tooltip-box.align-right { left: 0; transform: none; }
 
 /* Combat Animations */
 @keyframes shake-hit {
@@ -1777,7 +1804,7 @@ button {
   border: 1px solid var(--border-light);
   border-radius: 6px;
   padding: 8px 12px;
-  z-index: 200;
+  z-index: 1001;
   pointer-events: none;
   min-width: 160px;
   max-width: 240px;
@@ -2026,12 +2053,22 @@ button {
 .blacksmith-panel {
   padding: 16px;
   height: 100%;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 .blacksmith-panel h2 {
   color: var(--text-bright);
   font-size: 18px;
   margin-bottom: 8px;
+}
+
+.dismantle-section {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .blacksmith-tabs {
@@ -2069,11 +2106,13 @@ button {
 
 .bs-item-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, 52px);
-  gap: 4px;
+  grid-template-columns: repeat(auto-fill, 54px);
+  gap: 6px;
   margin-bottom: 12px;
-  max-height: 200px;
+  max-height: calc(100vh - 420px);
+  min-height: 140px;
   overflow-y: auto;
+  padding: 4px;
 }
 
 .bs-detail-panel {
@@ -2123,6 +2162,12 @@ button {
   background: rgba(255,255,255,0.05);
 }
 .bulk-rarity-btn.active {
+  font-weight: 600;
+}
+.dismantle-all-btn {
+  margin-left: auto;
+  padding: 4px 12px;
+  font-size: 11px;
   font-weight: 600;
 }
 
@@ -2204,6 +2249,17 @@ button {
   background: var(--bg-card);
   border-radius: 4px;
 }
+.essence-group {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 10px;
+  background: var(--bg-card);
+  border-radius: 4px;
+  font-size: 13px;
+}
+.essence-group-name { font-weight: 600; }
+.essence-group-tiers { font-size: 11px; opacity: 0.85; }
 
 /* Craft layout */
 .craft-layout {

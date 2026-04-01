@@ -1,6 +1,7 @@
 import type { GameState, Item, PrimaryStat, Affix } from '../types';
 import { xpForLevel } from '../data/formulas';
 import { getMaxTier } from '../data/affixes';
+import { getZone } from '../data/zones';
 
 const SAVE_KEY = 'endless_loot_save';
 const SAVE_VERSION = 6;
@@ -298,18 +299,31 @@ export interface OfflineProgress {
   itemsFound: number;
 }
 
-export function calculateOfflineProgress(state: GameState): OfflineProgress | null {
-  const elapsed = (Date.now() - state.lastSaveTimestamp) / 1000;
-  if (elapsed < 60) return null; // less than 1 minute, skip
+export function calculateOfflineProgress(state: GameState, elapsedOverride?: number): OfflineProgress | null {
+  const elapsed = elapsedOverride ?? (Date.now() - state.lastSaveTimestamp) / 1000;
+  if (elapsed < 10) return null; // less than 10 seconds, skip
 
-  // Estimate average fight duration based on player power vs zone mobs
-  const avgFightDuration = 3; // seconds — rough estimate
+  // Only calculate if combat was active
+  if (!state.combatActive) return null;
+
+  // Use zone data for better estimates
+  const zone = getZone(state.currentZoneId);
+  const avgMobLevel = zone ? (zone.levelRange[0] + zone.levelRange[1]) / 2 : state.character.level;
+
+  // Estimate fight duration based on level ratio (stronger player = faster kills)
+  const levelRatio = state.character.level / Math.max(1, avgMobLevel);
+  const avgFightDuration = Math.max(1, 3 / Math.max(0.5, levelRatio));
   const kills = Math.floor(elapsed / avgFightDuration);
   if (kills <= 0) return null;
 
-  // Estimate rewards per kill based on zone
-  const avgXpPerKill = 15 * state.character.level;
-  const avgGoldPerKill = 8 * state.character.level;
+  // Use zone mob data for XP/gold estimates, with act multiplier
+  const actMultiplier = zone ? Math.pow(1.5, zone.act - 1) : 1;
+  const avgXpPerKill = zone
+    ? zone.mobs[0].baseXp * actMultiplier
+    : 15 * state.character.level;
+  const avgGoldPerKill = zone
+    ? zone.mobs[0].baseGold * actMultiplier
+    : 8 * state.character.level;
 
   const xpGained = kills * avgXpPerKill;
   const goldGained = kills * avgGoldPerKill;

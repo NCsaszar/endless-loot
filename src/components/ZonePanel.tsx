@@ -35,6 +35,7 @@ export interface ZonePanelProps {
   equipment: GameState['equipment'];
   totalKills: number;
   totalGoldEarned: number;
+  lootRarityBonus: number;
   doChangeZone: (zoneId: number) => void;
   doStartCombat: () => void;
   doStopCombat: () => void;
@@ -49,6 +50,7 @@ const ZonePanel = memo(function ZonePanel({
   equipment,
   totalKills,
   totalGoldEarned,
+  lootRarityBonus,
   doChangeZone,
   doStartCombat,
   doStopCombat,
@@ -159,7 +161,8 @@ const ZonePanel = memo(function ZonePanel({
         )}
 
         {isExpanded && unlocked && (() => {
-          const zoneRarityPercents = computeRarityPercents(luk, zone.rarityBonus);
+          const totalRarityBonus = zone.rarityBonus + lootRarityBonus;
+          const zoneRarityPercents = computeRarityPercents(luk, totalRarityBonus);
           return (
             <div className="zone-details-compact">
               <div className="zone-detail-row">
@@ -180,6 +183,13 @@ const ZonePanel = memo(function ZonePanel({
                   );
                 })}
               </div>
+              {(zone.rarityBonus > 0 || lootRarityBonus > 0 || luk > 5) && (
+                <div className="zone-rarity-breakdown">
+                  {zone.rarityBonus > 0 && <span>Zone: +{(zone.rarityBonus * 100).toFixed(0)}%</span>}
+                  {lootRarityBonus > 0 && <span>Gear: +{(lootRarityBonus * 100).toFixed(0)}%</span>}
+                  {luk > 5 && <span>LUK: {luk}</span>}
+                </div>
+              )}
             </div>
           );
         })()}

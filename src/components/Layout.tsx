@@ -17,7 +17,7 @@ const TABS: { id: ActivePanel; label: string; condition?: (state: any) => boolea
 ];
 
 export default function Layout() {
-  const { activePanel, setActivePanel, state, doChangeZone, doStartCombat, doStopCombat } = useGameState();
+  const { activePanel, setActivePanel, state, derived, doChangeZone, doStartCombat, doStopCombat } = useGameState();
 
   const visibleTabs = TABS.filter(t => !t.condition || t.condition(state));
 
@@ -36,6 +36,7 @@ export default function Layout() {
           equipment={state.equipment}
           totalKills={state.totalKills}
           totalGoldEarned={state.totalGoldEarned}
+          lootRarityBonus={derived.lootRarityBonus}
           doChangeZone={doChangeZone}
           doStartCombat={doStartCombat}
           doStopCombat={doStopCombat}

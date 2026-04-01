@@ -176,8 +176,9 @@ export default function EquipmentComparisonModal({
           style={{
             position: 'fixed',
             top: hoveredItem.rect.top,
-            left: hoveredItem.rect.left - 8,
-            transform: 'translateX(-100%)',
+            ...(hoveredItem.rect.left < 260
+              ? { left: hoveredItem.rect.right + 8 }
+              : { left: hoveredItem.rect.left - 8, transform: 'translateX(-100%)' }),
           }}
         >
           {(() => {

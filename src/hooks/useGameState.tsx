@@ -109,9 +109,9 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
       recalcDerived();
       tick(stateRef.current, derivedRef.current, dt, primaryStatsRef.current);
 
-      // Auto-save every 30s
+      // Auto-save every 10s
       saveTimerRef.current += dt;
-      if (saveTimerRef.current >= 30) {
+      if (saveTimerRef.current >= 10) {
         saveTimerRef.current = 0;
         saveGame(stateRef.current);
       }
@@ -122,6 +122,47 @@ export function GameProvider({ children }: { children: React.ReactNode }) {
 
     let frameId = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(frameId);
+  }, [recalcDerived]);
+
+  // Save on page unload to prevent progress loss
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      saveGame(stateRef.current);
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, []);
+
+  // Catch up on elapsed time when tab becomes visible again
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        const now = performance.now();
+        const elapsed = (now - lastTickRef.current) / 1000;
+
+        if (elapsed > 2 && stateRef.current.combatActive) {
+          // Tab was hidden long enough — simulate offline progress for the gap
+          const progress = calculateOfflineProgress(stateRef.current, elapsed);
+          if (progress && progress.itemsFound > 0) {
+            const zone = stateRef.current.currentZoneId;
+            for (let i = 0; i < progress.itemsFound; i++) {
+              stateRef.current.inventory.push(
+                generateItem(stateRef.current.character.level + zone)
+              );
+            }
+          }
+          if (progress) {
+            setOfflineProgress(progress);
+          }
+          recalcDerived();
+        }
+
+        // Reset tick timer so game loop doesn't try to catch up with a huge dt
+        lastTickRef.current = now;
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [recalcDerived]);
 
   const doAllocateStat = useCallback((stat: PrimaryStat) => {
