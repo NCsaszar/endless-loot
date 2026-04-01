@@ -4,9 +4,7 @@ import type { EquipSlot, Rarity, Item, BulkActionMode } from '../types';
 import { RARITY_ORDER } from '../types';
 import { getTotalPrimaryStats, calculateDerivedStats } from '../data/formulas';
 import { computeItemDpsDelta } from '../systems/dps';
-import { useDragEquip } from '../hooks/useDragEquip';
 import CollapsibleToolbar, { type SortBy } from './CollapsibleToolbar';
-import EquipmentPaperDoll from './EquipmentPaperDoll';
 import InventoryBagGrid from './InventoryBagGrid';
 import ItemDetailSidePanel from './ItemDetailSidePanel';
 import BulkActionConfirmModal from './BulkActionConfirmModal';
@@ -24,7 +22,7 @@ const MATERIAL_DEFS = [
 ] as const;
 
 export default function InventoryPanel() {
-  const { state, derived, doSellItem, doSalvageItem, doEquipItem, doUnequipItem, doToggleAutoSell, doToggleAutoSalvage, doToggleLock, doBulkSell, doBulkSalvage, doDiscardEssences } = useGameState();
+  const { state, derived, doSellItem, doSalvageItem, doEquipItem, doToggleAutoSell, doToggleAutoSalvage, doToggleLock, doBulkSell, doBulkSalvage, doDiscardEssences } = useGameState();
   const [subTab, setSubTab] = useState<InventorySubTab>('equipment');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortBy>('rarity');
@@ -32,7 +30,6 @@ export default function InventoryPanel() {
   const [filterRarity, setFilterRarity] = useState<Rarity | 'all'>('all');
   const [bulkAction, setBulkAction] = useState<{ items: Item[]; mode: BulkActionMode } | null>(null);
   const [showDiscardModal, setShowDiscardModal] = useState(false);
-  const [lastEquippedSlot, setLastEquippedSlot] = useState<EquipSlot | null>(null);
 
   // Track new loot items
   const [newLootIds, setNewLootIds] = useState<Set<string>>(new Set());
@@ -61,14 +58,6 @@ export default function InventoryPanel() {
       return () => clearTimeout(timeout);
     }
   }, [state.inventory]);
-
-  // Clear equip flash after animation
-  useEffect(() => {
-    if (lastEquippedSlot) {
-      const timeout = setTimeout(() => setLastEquippedSlot(null), 500);
-      return () => clearTimeout(timeout);
-    }
-  }, [lastEquippedSlot]);
 
   // Filter & sort items (exclude consumables from equipment tab)
   const items = useMemo(() => {
@@ -109,22 +98,9 @@ export default function InventoryPanel() {
     return calculateDerivedStats(hypotheticalPrimary, hypotheticalEquipment);
   }, [selected, state.equipment, state.character, derived]);
 
-  // Drag-and-drop
-  const handleDragEquip = useCallback((item: Item) => {
-    doEquipItem(item);
-    setLastEquippedSlot(item.slot);
-    setSelectedId(null);
-  }, [doEquipItem]);
-
-  const { dragState, dragHandlers, dropHandlers } = useDragEquip(state.inventory, handleDragEquip);
-
   // Item actions
   const handleEquip = () => {
-    if (selected) {
-      doEquipItem(selected);
-      setLastEquippedSlot(selected.slot);
-      setSelectedId(null);
-    }
+    if (selected) { doEquipItem(selected); setSelectedId(null); }
   };
   const handleSell = () => { if (selectedId) { doSellItem(selectedId); setSelectedId(null); } };
   const handleSalvage = () => { if (selectedId) { doSalvageItem(selectedId); setSelectedId(null); } };
@@ -136,14 +112,6 @@ export default function InventoryPanel() {
     if ((e.ctrlKey || e.metaKey) && !item.locked) { doSalvageItem(item.id); return; }
     setSelectedId(prev => item.id === prev ? null : item.id);
   }, [doSellItem, doSalvageItem]);
-
-  // Equipment slot click (select equipped item or unequip)
-  const handleSlotClick = useCallback((slot: EquipSlot) => {
-    const equippedItem = state.equipment[slot];
-    if (equippedItem) {
-      doUnequipItem(slot);
-    }
-  }, [state.equipment, doUnequipItem]);
 
   // Bulk actions
   const handleBulkAction = (mode: BulkActionMode) => {
@@ -169,9 +137,19 @@ export default function InventoryPanel() {
     setSelectedId(null);
   };
 
+  // Dummy drag handlers (no paper doll, but grid cells still support drag)
+  const noopDragHandlers = useCallback((_itemId: string) => ({
+    draggable: false,
+    onDragStart: () => {},
+    onDragEnd: () => {},
+  }), []);
+
   return (
     <div className="inventory-panel-v2">
-      <div className="inv-header">
+      <div className="panel-ornament panel-ornament-bl" />
+      <div className="panel-ornament panel-ornament-br" />
+
+      <div className="inv-v2-header">
         <h2>Inventory ({state.inventory.length})</h2>
         <div className="inv-subtabs">
           <button className={`inv-subtab ${subTab === 'equipment' ? 'active' : ''}`} onClick={() => setSubTab('equipment')}>
@@ -252,21 +230,13 @@ export default function InventoryPanel() {
           />
 
           <div className={`inv-main-content ${selected ? 'detail-open' : ''}`}>
-            <EquipmentPaperDoll
-              equipment={state.equipment}
-              dropHandlers={dropHandlers}
-              dragOverSlot={dragState.dragOverSlot}
-              lastEquippedSlot={lastEquippedSlot}
-              onSlotClick={handleSlotClick}
-            />
-
             <InventoryBagGrid
               items={items}
               selectedId={selectedId}
               upgradeMap={upgradeMap}
               newLootIds={newLootIds}
-              draggedItemId={dragState.draggedItemId}
-              dragHandlers={dragHandlers}
+              draggedItemId={null}
+              dragHandlers={noopDragHandlers}
               onItemClick={handleItemClick}
               onToggleLock={doToggleLock}
               totalSlots={60}

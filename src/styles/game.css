@@ -1017,29 +1017,52 @@ button {
 .materials-grid > div span:last-child { color: var(--text-bright); }
 
 /* ============================================
-   Inventory V2 - Overhauled Layout
+   Inventory V2 - Character Panel Styled
    ============================================ */
 
-/* Main container */
+/* Main container - matches character-panel styling */
 .inventory-panel-v2 {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  height: 100%;
-  overflow: hidden;
+  gap: 12px;
+  position: relative;
+  background: linear-gradient(180deg, #1e1d24 0%, #16151c 100%);
+  border: 2px solid var(--frame-border);
+  border-radius: 2px;
+  padding: 16px;
+  box-shadow:
+    inset 0 1px 0 var(--frame-highlight),
+    inset 0 -1px 0 var(--frame-shadow),
+    0 4px 20px rgba(0, 0, 0, 0.5);
 }
-.inventory-panel-v2 .inv-header {
+.inventory-panel-v2::before,
+.inventory-panel-v2::after {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--ornament-color);
+  transform: rotate(45deg);
+  z-index: 1;
+}
+.inventory-panel-v2::before { top: -6px; left: -6px; background: var(--bg); }
+.inventory-panel-v2::after { top: -6px; right: -6px; background: var(--bg); }
+
+/* Header */
+.inv-v2-header {
   display: flex;
   align-items: center;
   gap: 12px;
-  flex-wrap: wrap;
+  padding: 8px 12px;
+  background: radial-gradient(ellipse at center, rgba(255, 193, 7, 0.06) 0%, transparent 70%);
+  border-radius: 2px;
 }
-.inventory-panel-v2 .inv-header h2 {
+.inv-v2-header h2 {
   color: var(--text-bright);
   font-size: 18px;
   margin: 0;
 }
-.inventory-panel-v2 .inv-gold {
+.inv-v2-header .inv-gold {
   color: var(--gold);
   font-weight: 600;
   margin-left: auto;
@@ -1048,6 +1071,8 @@ button {
 /* Collapsible Toolbar */
 .collapsible-toolbar {
   margin-bottom: 0;
+  padding: 4px 0;
+  border-bottom: 1px solid linear-gradient(90deg, transparent, var(--frame-border), transparent);
 }
 .toolbar-header {
   display: flex;
@@ -1066,10 +1091,10 @@ button {
 .toolbar-chip {
   font-size: 11px;
   color: var(--text-dim);
-  background: var(--bg-card);
+  background: rgba(255, 255, 255, 0.03);
   padding: 2px 8px;
-  border-radius: 10px;
-  border: 1px solid var(--border);
+  border-radius: 2px;
+  border: 1px solid var(--frame-border);
 }
 .toolbar-chip-auto {
   font-size: 10px;
@@ -1109,148 +1134,76 @@ button {
   padding: 2px 0;
 }
 
-/* 3-column main content layout */
+/* Main content layout - full width grid + optional side panel */
 .inv-main-content {
   display: grid;
-  grid-template-columns: 200px 1fr;
+  grid-template-columns: 1fr;
   gap: 10px;
   flex: 1;
   overflow: hidden;
   transition: grid-template-columns 0.25s ease;
 }
 .inv-main-content.detail-open {
-  grid-template-columns: 200px 1fr 280px;
+  grid-template-columns: 1fr 280px;
 }
 
-/* Equipment Paper Doll (left column) */
-.equipment-paper-doll {
-  display: flex;
-  gap: 4px;
-  align-items: center;
-  justify-content: center;
-  padding: 8px 0;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  align-self: start;
-}
-.doll-column {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.doll-center {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 4px;
-}
-.doll-portrait {
-  width: 64px;
-  height: 64px;
-  border-radius: 50%;
-  border: 2px solid var(--border);
-  background: var(--bg-panel);
-}
-.doll-slot {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 72px;
-  min-height: 62px;
-  background: var(--bg-panel);
-  border: 2px solid var(--border);
-  border-radius: 6px;
-  cursor: pointer;
-  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
-  position: relative;
-  padding: 4px 2px;
-}
-.doll-slot:hover {
-  background: var(--bg-hover);
-  border-color: var(--text-dim);
-}
-.doll-slot.filled {
-  border-width: 2px;
-}
-.doll-slot.drag-over {
-  border-color: var(--gold) !important;
-  box-shadow: 0 0 12px rgba(255, 193, 7, 0.4);
-  background: rgba(255, 193, 7, 0.08);
-}
-.doll-slot-label {
-  font-size: 9px;
-  color: var(--text-dim);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 2px;
-}
-.doll-slot-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-}
-.doll-slot-level {
-  font-size: 9px;
-  color: var(--text-dim);
-}
-.doll-slot-empty {
-  color: var(--text-dim);
-  opacity: 0.3;
-}
-
-/* Bag Grid (center column) */
+/* Bag Grid */
 .inv-bag-grid-wrapper {
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 2px;
+  padding: 4px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 2px;
 }
 .inv-bag-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-  gap: 4px;
+  grid-template-columns: repeat(auto-fill, minmax(82px, 1fr));
+  gap: 3px;
 }
 
-/* Inventory Item Cell V2 */
+/* Inventory Item Cell V2 - Diablo-style dark slots */
 .inv-cell-v2 {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 85px;
-  border-radius: 6px;
-  border: 3px solid var(--border);
-  background: var(--bg-card);
+  aspect-ratio: 1;
+  border-radius: 2px;
+  border: 2px solid var(--border);
+  background: linear-gradient(180deg, #1a1b22 0%, #12131a 100%);
   cursor: pointer;
   transition: border-color 0.15s, box-shadow 0.15s, transform 0.1s, opacity 0.15s;
-  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.25);
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.4);
   padding: 4px;
 }
 .inv-cell-v2:hover {
   transform: translateY(-1px);
-  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.25), 0 4px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.4);
+  border-color: var(--frame-highlight);
 }
 .inv-cell-v2.empty {
-  opacity: 0.25;
-  border-style: dashed;
+  opacity: 0.2;
+  border-style: solid;
   border-width: 1px;
+  border-color: rgba(255, 255, 255, 0.06);
   cursor: default;
+  background: rgba(0, 0, 0, 0.15);
 }
 .inv-cell-v2.empty:hover {
   transform: none;
-  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.25);
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.4);
+  border-color: rgba(255, 255, 255, 0.06);
 }
 .inv-cell-v2.selected {
-  box-shadow: 0 0 0 2px var(--gold), inset 0 1px 4px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 0 0 2px var(--gold), 0 0 12px rgba(255, 193, 7, 0.3), inset 0 1px 4px rgba(0, 0, 0, 0.4);
 }
 .inv-cell-v2.dragging {
   opacity: 0.4;
 }
 .inv-cell-v2.locked {
-  box-shadow: inset 0 0 0 1px rgba(255, 193, 7, 0.3);
+  box-shadow: inset 0 0 0 1px rgba(255, 193, 7, 0.25);
 }
 
 /* Cell badges & indicators */
@@ -1311,9 +1264,9 @@ button {
 
 /* Item Detail Side Panel (right column) */
 .item-detail-side-panel {
-  background: var(--bg-panel);
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  background: linear-gradient(180deg, #1e1d24 0%, #16151c 100%);
+  border: 1px solid var(--frame-border);
+  border-radius: 2px;
   padding: 14px;
   overflow-y: auto;
   position: relative;
@@ -1371,7 +1324,7 @@ button {
   line-height: 1.4;
 }
 .side-panel-divider {
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--frame-border);
   margin: 2px 0;
 }
 .side-panel-compare-header {
@@ -1460,27 +1413,18 @@ button {
 }
 .side-panel-actions button {
   padding: 8px 6px;
-  border-radius: 4px;
+  border-radius: 2px;
   cursor: pointer;
   font-size: 12px;
   font-weight: 600;
   transition: background 0.15s;
 }
 
-/* Equip Flash animation */
-@keyframes equip-flash {
-  0% { background: rgba(255, 193, 7, 0.35); }
-  100% { background: var(--bg-panel); }
-}
-.doll-slot.just-equipped {
-  animation: equip-flash 0.5s ease-out;
-}
-
 /* New Loot Pulse animation */
 @keyframes new-loot-pulse {
-  0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.6), inset 0 1px 4px rgba(0,0,0,0.25); }
-  70% { box-shadow: 0 0 0 8px rgba(255, 193, 7, 0), inset 0 1px 4px rgba(0,0,0,0.25); }
-  100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0), inset 0 1px 4px rgba(0,0,0,0.25); }
+  0% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.6), inset 0 1px 4px rgba(0,0,0,0.4); }
+  70% { box-shadow: 0 0 0 8px rgba(255, 193, 7, 0), inset 0 1px 4px rgba(0,0,0,0.4); }
+  100% { box-shadow: 0 0 0 0 rgba(255, 193, 7, 0), inset 0 1px 4px rgba(0,0,0,0.4); }
 }
 .inv-cell-v2.new-loot {
   animation: new-loot-pulse 0.6s ease-out 2;
@@ -1496,7 +1440,7 @@ button {
   content: '';
   position: absolute;
   inset: 0;
-  border-radius: 4px;
+  border-radius: 2px;
   background-size: 200% 100%;
   animation: legendary-shimmer 3s linear infinite;
   pointer-events: none;
@@ -1525,10 +1469,10 @@ button {
   background-size: 200% 100%;
 }
 
-/* Upgrade glow (reuse existing for V2 cells) */
+/* Upgrade glow */
 @keyframes upgrade-pulse-v2 {
-  0%, 100% { box-shadow: 0 0 4px rgba(0, 204, 0, 0.2), inset 0 1px 4px rgba(0,0,0,0.25); }
-  50% { box-shadow: 0 0 12px rgba(0, 204, 0, 0.5), inset 0 1px 4px rgba(0,0,0,0.25); }
+  0%, 100% { box-shadow: 0 0 4px rgba(0, 204, 0, 0.2), inset 0 1px 4px rgba(0,0,0,0.4); }
+  50% { box-shadow: 0 0 12px rgba(0, 204, 0, 0.5), inset 0 1px 4px rgba(0,0,0,0.4); }
 }
 .inv-cell-v2.upgrade-glow {
   animation: upgrade-pulse-v2 1.5s ease-in-out infinite;
